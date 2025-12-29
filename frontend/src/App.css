@@ -1,0 +1,36 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0;
+}
+.login-container{
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  margin-top: 20px;
+  justify-content: center;
+  /* align-items: center; */
+}
+.login-container form{
+  width: 500px;
+  height: max-content;
+  padding: 10px 16px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3), 10px 10px 2px rgba(0, 0, 0, 0.3);
+
+}
+.menu {
+  position: relative;
+  margin-top: 2px;
+  border-radius: 10px;
+  background-color: rgb(46, 96, 234);
+  padding: 0 10px;
+  box-shadow: 0 4px 5px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.navbar-brand {
+  font-size: 22px !important;
+  font-weight: bold;
+  color: white !important;
+}
