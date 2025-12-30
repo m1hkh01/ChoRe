@@ -1,15 +1,20 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ChoRe.Models
 {
     public class Role
     {
         [Key]
-        public int Id { get; set; }
+        public int RoleId { get; set; }
 
-        [Required, MaxLength(50)]
-        public string Name { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Tên vai trò là bắt buộc")]
+        [StringLength(50, ErrorMessage = "Tên vai trò không được vượt quá 50 ký tự")]
+        public string RoleName { get; set; }
 
-        public ICollection<User>? Users { get; set; }
+        // Navigation properties
+        public virtual ICollection<User> Users { get; set; }
     }
 }

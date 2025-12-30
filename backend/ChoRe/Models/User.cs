@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -7,78 +8,70 @@ namespace ChoRe.Models
     public class User
     {
         [Key]
-        public int Id { get; set; }
+        public int UserId { get; set; }
 
-        // ================== THÔNG TIN CƠ BẢN ==================
+        [Required(ErrorMessage = "Tên người dùng là bắt buộc")]
+        [StringLength(50, ErrorMessage = "Tên người dùng không được vượt quá 50 ký tự")]
+        public string UserName { get; set; }
 
-        [Required(ErrorMessage = "Họ tên không được để trống")]
-        [MaxLength(150, ErrorMessage = "Họ tên tối đa 150 ký tự")]
+        [StringLength(255)]
+        public string Avatar { get; set; }
+
+        [StringLength(100, ErrorMessage = "Họ tên không được vượt quá 100 ký tự")]
         public string FullName { get; set; }
 
-        [Required(ErrorMessage = "Email không được để trống")]
-        [EmailAddress(ErrorMessage = "Email không đúng định dạng")]
-        [MaxLength(150)]
+        [Required(ErrorMessage = "Email là bắt buộc")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+        [StringLength(100)]
         public string Email { get; set; }
 
-        [Required(ErrorMessage = "Số điện thoại không được để trống")]
-        [RegularExpression(@"^(0|\+84)[0-9]{9}$",
-            ErrorMessage = "Số điện thoại không hợp lệ")]
-        [MaxLength(20)]
+        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+        [StringLength(15)]
         public string PhoneNumber { get; set; }
 
-        [Required(ErrorMessage = "Mật khẩu không được để trống")]
-        [MinLength(8, ErrorMessage = "Mật khẩu tối thiểu 8 ký tự")]
+        [StringLength(255)]
+        public string Address { get; set; }
+
+        [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
+        [StringLength(255)]
         public string PasswordHash { get; set; }
 
-        // ================== PHÂN QUYỀN ==================
-
-        [Required]
+        [ForeignKey("Role")]
         public int RoleId { get; set; }
 
-        [ForeignKey(nameof(RoleId))]
-        public Role Role { get; set; }
-
-        // ================== XÁC MINH DANH TÍNH ==================
-
-        public bool IsEmailVerified { get; set; } = false;
-        public bool IsPhoneVerified { get; set; } = false;
-
-        [MaxLength(20)]
-        [RegularExpression(@"^[0-9]{9,12}$",
-            ErrorMessage = "CCCD không hợp lệ")]
+        [StringLength(12, ErrorMessage = "Số CMND/CCCD không hợp lệ")]
         public string CitizenIdNumber { get; set; }
 
-        [Url(ErrorMessage = "Đường dẫn ảnh CCCD không hợp lệ")]
+        [StringLength(255)]
         public string CitizenIdFrontImage { get; set; }
 
-        [Url(ErrorMessage = "Đường dẫn ảnh CCCD không hợp lệ")]
+        [StringLength(255)]
         public string CitizenIdBackImage { get; set; }
 
-        public bool IsIdentityVerified { get; set; } = false;
+        public DateTime CreateAt { get; set; } = DateTime.Now;
 
-        // ================== UY TÍN ==================
+        public bool IsLocked { get; set; } = false;
 
-        [Range(0, 5, ErrorMessage = "Điểm đánh giá phải từ 0 đến 5")]
-        public double RatingAverage { get; set; } = 0;
+        [StringLength(255)]
+        public string LockReason { get; set; }
 
-        [Range(0, int.MaxValue)]
-        public int RatingCount { get; set; } = 0;
-
-        [Range(0, int.MaxValue)]
-        public int SuccessfulTransactions { get; set; } = 0;
-
-        // ================== THỜI GIAN ==================
-
-        [Required]
-        public DateTime JoinedAt { get; set; } = DateTime.Now;
-
-        public DateTime? LastActiveAt { get; set; }
-
-        // ================== TRẠNG THÁI ==================
-
-        public bool IsBanned { get; set; } = false;
-
-        [MaxLength(255)]
-        public string BanReason { get; set; }
+        // Navigation properties
+        public virtual Role Role { get; set; }
+        public virtual ICollection<Post> Posts { get; set; }
+        public virtual ICollection<Rating> RatingsGiven { get; set; }
+        public virtual ICollection<Rating> RatingsReceived { get; set; }
+        //public virtual ICollection<PostReport> ReportsSubmitted { get; set; }
+        public virtual ICollection<PostReport> ReportedPost { get; set; }
+        public virtual ICollection<SavedPost> SavedPosts { get; set; }
+        public virtual ICollection<Comment> Comments { get; set; }
+        public virtual ICollection<Order> OrdersAsBuyer { get; set; }
+        public virtual ICollection<Order> OrdersAsSeller { get; set; }
+        public virtual ICollection<Dispute> DisputesOpened { get; set; }
+        public virtual ICollection<DisputeEvidence> DisputeEvidences { get; set; }
+        public virtual ICollection<ChatRoom> ChatRoomsUser1 { get; set; }
+        public virtual ICollection<ChatRoom> ChatRoomsUser2 { get; set; }
+        public virtual ICollection<ChatMessage> ChatMessages { get; set; }
+        public virtual ICollection<UserSubscription> UserSubscriptions { get; set; }
+        public virtual ICollection<UserSubUsage> UserSubUsages { get; set; }
     }
 }
