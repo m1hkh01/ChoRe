@@ -1,4 +1,5 @@
 ﻿using ChoRe.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 
@@ -8,6 +9,7 @@ namespace ChoReDB.Data
     {
         public static void Seed(ModelBuilder modelBuilder)
         {
+            var hasher = new PasswordHasher<User>();
             // ================= ROLE =================
             modelBuilder.Entity<Role>().HasData(
                 new Role { RoleId = 1, RoleName = "Admin" },
@@ -29,7 +31,7 @@ namespace ChoReDB.Data
                     CitizenIdNumber = "123123123123",
                     CitizenIdFrontImage = "cccd-front.jpg",
                     CitizenIdBackImage = "cccd-back.jpg",
-                    PasswordHash = "123",
+                    PasswordHash = "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==",
                     RoleId = 1,
                     IsLocked = false,
                     LockReason = "",
@@ -47,7 +49,7 @@ namespace ChoReDB.Data
                     CitizenIdNumber = "123123123123",
                     CitizenIdFrontImage = "cccd-front.jpg",
                     CitizenIdBackImage = "cccd-back.jpg",
-                    PasswordHash = "123",
+                    PasswordHash = "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==",
                     RoleId = 2,
                     IsLocked = false,
                     LockReason = "",
@@ -65,7 +67,7 @@ namespace ChoReDB.Data
                     CitizenIdNumber = "123123123123",
                     CitizenIdFrontImage = "cccd-front.jpg",
                     CitizenIdBackImage = "cccd-back.jpg",
-                    PasswordHash = "123",
+                    PasswordHash = "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==",
                     RoleId = 3,
                     IsLocked = false,
                     LockReason = "",

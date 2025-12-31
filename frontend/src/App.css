@@ -1,9 +1,10 @@
 #root {
-  max-width: 1280px;
+  width: 100%;
   margin: 0 auto;
   padding: 0;
 }
-.login-container{
+
+.login-container {
   width: 100%;
   height: 100vh;
   display: flex;
@@ -11,7 +12,8 @@
   justify-content: center;
   /* align-items: center; */
 }
-.login-container form{
+
+.login-container form {
   width: 500px;
   height: max-content;
   padding: 10px 16px;
@@ -19,18 +21,44 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3), 10px 10px 2px rgba(0, 0, 0, 0.3);
 
 }
+
 .menu {
-  position: relative;
-  margin-top: 2px;
-  border-radius: 10px;
-  background-color: rgb(46, 96, 234);
-  padding: 0 10px;
-  box-shadow: 0 4px 5px rgba(0, 0, 0, 0.3);
-  z-index: 10;
+  background-color: #14532de9;
+  padding: 0 2%;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .navbar-brand {
-  font-size: 22px !important;
-  font-weight: bold;
+  color: whitesmoke !important;
+  /* Chữ trắng */
+  font-size: 24px !important;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.navbar-brand span {
+  color: #22c55e;
+}
+.nav-link{
+  font-size: 20px !important;
   color: white !important;
+  font-weight: 600 !important;
+}
+
+.Account,
+.Account a {
+  text-decoration: none;
+  font-size: 22px;
+  font-weight: bold;
+  color: white;
+}
+
+.dropdown-item {
+  cursor: pointer;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  color: black !important;
 }

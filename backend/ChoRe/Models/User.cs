@@ -15,7 +15,7 @@ namespace ChoRe.Models
         public string UserName { get; set; }
 
         [StringLength(255)]
-        public string Avatar { get; set; }
+        public string? Avatar { get; set; }
 
         [StringLength(100, ErrorMessage = "Họ tên không được vượt quá 100 ký tự")]
         public string FullName { get; set; }
@@ -33,45 +33,44 @@ namespace ChoRe.Models
         public string Address { get; set; }
 
         [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
-        [StringLength(255)]
         public string PasswordHash { get; set; }
 
         [ForeignKey("Role")]
         public int RoleId { get; set; }
 
         [StringLength(12, ErrorMessage = "Số CMND/CCCD không hợp lệ")]
-        public string CitizenIdNumber { get; set; }
+        public string? CitizenIdNumber { get; set; }
 
         [StringLength(255)]
-        public string CitizenIdFrontImage { get; set; }
+        public string? CitizenIdFrontImage { get; set; }
 
         [StringLength(255)]
-        public string CitizenIdBackImage { get; set; }
+        public string? CitizenIdBackImage { get; set; }
 
         public DateTime CreateAt { get; set; } = DateTime.Now;
 
         public bool IsLocked { get; set; } = false;
 
         [StringLength(255)]
-        public string LockReason { get; set; }
+        public string? LockReason { get; set; }
 
         // Navigation properties
-        public virtual Role Role { get; set; }
-        public virtual ICollection<Post> Posts { get; set; }
-        public virtual ICollection<Rating> RatingsGiven { get; set; }
-        public virtual ICollection<Rating> RatingsReceived { get; set; }
+        public virtual Role? Role { get; set; }
+        public virtual ICollection<Post>? Posts { get; set; }
+        public virtual ICollection<Rating>? RatingsGiven { get; set; }
+        public virtual ICollection<Rating>? RatingsReceived { get; set; }
         //public virtual ICollection<PostReport> ReportsSubmitted { get; set; }
-        public virtual ICollection<PostReport> ReportedPost { get; set; }
-        public virtual ICollection<SavedPost> SavedPosts { get; set; }
-        public virtual ICollection<Comment> Comments { get; set; }
-        public virtual ICollection<Order> OrdersAsBuyer { get; set; }
-        public virtual ICollection<Order> OrdersAsSeller { get; set; }
-        public virtual ICollection<Dispute> DisputesOpened { get; set; }
-        public virtual ICollection<DisputeEvidence> DisputeEvidences { get; set; }
-        public virtual ICollection<ChatRoom> ChatRoomsUser1 { get; set; }
-        public virtual ICollection<ChatRoom> ChatRoomsUser2 { get; set; }
-        public virtual ICollection<ChatMessage> ChatMessages { get; set; }
-        public virtual ICollection<UserSubscription> UserSubscriptions { get; set; }
-        public virtual ICollection<UserSubUsage> UserSubUsages { get; set; }
+        public virtual ICollection<PostReport>? ReportedPost { get; set; }
+        public virtual ICollection<SavedPost>? SavedPosts { get; set; }
+        public virtual ICollection<Comment>? Comments { get; set; }
+        public virtual ICollection<Order>? OrdersAsBuyer { get; set; }
+        public virtual ICollection<Order>? OrdersAsSeller { get; set; }
+        public virtual ICollection<Dispute>? DisputesOpened { get; set; }
+        public virtual ICollection<DisputeEvidence>? DisputeEvidences { get; set; }
+        public virtual ICollection<ChatRoom>? ChatRoomsUser1 { get; set; }
+        public virtual ICollection<ChatRoom>? ChatRoomsUser2 { get; set; }
+        public virtual ICollection<ChatMessage>? ChatMessages { get; set; }
+        public virtual ICollection<UserSubscription>? UserSubscriptions { get; set; }
+        public virtual ICollection<UserSubUsage>? UserSubUsages { get; set; }
     }
 }

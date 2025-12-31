@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ChoRe.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateDBb : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -194,19 +194,19 @@ namespace ChoRe.Migrations
                     UserId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Avatar = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Avatar = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     FullName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
                     Address = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     RoleId = table.Column<int>(type: "int", nullable: false),
-                    CitizenIdNumber = table.Column<string>(type: "nvarchar(12)", maxLength: 12, nullable: false),
-                    CitizenIdFrontImage = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    CitizenIdBackImage = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    CitizenIdNumber = table.Column<string>(type: "nvarchar(12)", maxLength: 12, nullable: true),
+                    CitizenIdFrontImage = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    CitizenIdBackImage = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()"),
                     IsLocked = table.Column<bool>(type: "bit", nullable: false),
-                    LockReason = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
+                    LockReason = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -852,9 +852,9 @@ namespace ChoRe.Migrations
                 columns: new[] { "UserId", "Address", "Avatar", "CitizenIdBackImage", "CitizenIdFrontImage", "CitizenIdNumber", "CreateAt", "Email", "FullName", "IsLocked", "LockReason", "PasswordHash", "PhoneNumber", "RoleId", "UserName" },
                 values: new object[,]
                 {
-                    { 1, "Thành phố Hồ Chí Minh", "avt-adminKhoi.jpg", "cccd-back.jpg", "cccd-front.jpg", "123123123123", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@gmail.com", "Nguyễn Admin", false, "", "123", "0123123123", 1, "adminKhoi" },
-                    { 2, "Đồng Nai", "avt-censorKhoi.jpg", "cccd-back.jpg", "cccd-front.jpg", "123123123123", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "user@gmail.com", "Nguyễn Censor", false, "", "123", "0123123123", 2, "CensorKhoi" },
-                    { 3, "Biên Hòa", "avt-userKhoi.jpg", "cccd-back.jpg", "cccd-front.jpg", "123123123123", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "user1@gmail.com", "Nguyễn User", false, "", "123", "0123123123", 3, "userKhoi" }
+                    { 1, "Thành phố Hồ Chí Minh", "avt-adminKhoi.jpg", "cccd-back.jpg", "cccd-front.jpg", "123123123123", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@gmail.com", "Nguyễn Admin", false, "", "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==", "0123123123", 1, "adminKhoi" },
+                    { 2, "Đồng Nai", "avt-censorKhoi.jpg", "cccd-back.jpg", "cccd-front.jpg", "123123123123", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "user@gmail.com", "Nguyễn Censor", false, "", "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==", "0123123123", 2, "CensorKhoi" },
+                    { 3, "Biên Hòa", "avt-userKhoi.jpg", "cccd-back.jpg", "cccd-front.jpg", "123123123123", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "user1@gmail.com", "Nguyễn User", false, "", "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==", "0123123123", 3, "userKhoi" }
                 });
 
             migrationBuilder.InsertData(

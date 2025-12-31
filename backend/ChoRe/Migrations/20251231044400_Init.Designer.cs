@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChoRe.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251230080144_CreateDBb")]
-    partial class CreateDBb
+    [Migration("20251231044400_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1280,22 +1280,18 @@ namespace ChoRe.Migrations
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("Avatar")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("CitizenIdBackImage")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("CitizenIdFrontImage")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("CitizenIdNumber")
-                        .IsRequired()
                         .HasMaxLength(12)
                         .HasColumnType("nvarchar(12)");
 
@@ -1318,7 +1314,6 @@ namespace ChoRe.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("LockReason")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
@@ -1368,7 +1363,7 @@ namespace ChoRe.Migrations
                             FullName = "Nguyễn Admin",
                             IsLocked = false,
                             LockReason = "",
-                            PasswordHash = "123",
+                            PasswordHash = "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==",
                             PhoneNumber = "0123123123",
                             RoleId = 1,
                             UserName = "adminKhoi"
@@ -1386,7 +1381,7 @@ namespace ChoRe.Migrations
                             FullName = "Nguyễn Censor",
                             IsLocked = false,
                             LockReason = "",
-                            PasswordHash = "123",
+                            PasswordHash = "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==",
                             PhoneNumber = "0123123123",
                             RoleId = 2,
                             UserName = "CensorKhoi"
@@ -1404,7 +1399,7 @@ namespace ChoRe.Migrations
                             FullName = "Nguyễn User",
                             IsLocked = false,
                             LockReason = "",
-                            PasswordHash = "123",
+                            PasswordHash = "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==",
                             PhoneNumber = "0123123123",
                             RoleId = 3,
                             UserName = "userKhoi"
