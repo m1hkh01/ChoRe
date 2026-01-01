@@ -37,15 +37,15 @@ namespace ChoRe.Models
         public string Address { get; set; }
 
         [ForeignKey("PostStatusNavigation")]
-        public int PostStatusId { get; set; }
+        public int PostStatusId { get; set; } = 1;
 
         [ForeignKey("ApprovedByUser")]
-        public int? ApprovedBy { get; set; }
+        public int? ApprovedBy { get; set; } 
 
         public DateTime? ApprovedAt { get; set; }
 
         [StringLength(500)]
-        public string RejectReason { get; set; }
+        public string? RejectReason { get; set; } = "";
 
         public int ViewCount { get; set; } = 0;
 
@@ -59,7 +59,6 @@ namespace ChoRe.Models
         // Navigation properties
         public virtual User User { get; set; }
         public virtual User ApprovedByUser { get; set; }
-        //public virtual Category Category { get; set; }
         public virtual ICollection<PostCate> PostCates { get; set; }
         public virtual Brand Brand { get; set; }
         public virtual PostStatus PostStatusNavigation { get; set; }

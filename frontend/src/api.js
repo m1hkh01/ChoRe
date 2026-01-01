@@ -2,8 +2,10 @@ import axios from "axios";
 import { useAuthStore } from "./store/auth";
 import { useNavigate } from "react-router-dom";
 
+export const API_BASE_URL = "http://localhost:5121";
+
 const api = axios.create({
-    baseURL: "http://localhost:5121"
+    baseURL: API_BASE_URL 
 });
 
 api.interceptors.request.use(config => {

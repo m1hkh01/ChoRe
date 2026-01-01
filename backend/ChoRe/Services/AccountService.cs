@@ -39,9 +39,9 @@ public class AccountService
             new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
-            new Claim("Id", user.UserId.ToString()),
+            new Claim("UserId", user.UserId.ToString()),
             new Claim("UserName", user.UserName),
-            new Claim("Email", user.Email),
+            new Claim("UserEmail", user.Email),
             new Claim(ClaimTypes.Role, user.Role.RoleName)
         };
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));

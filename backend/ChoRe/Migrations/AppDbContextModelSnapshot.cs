@@ -95,6 +95,11 @@ namespace ChoRe.Migrations
                         },
                         new
                         {
+                            BrandId = 1,
+                            CateId = 3
+                        },
+                        new
+                        {
                             BrandId = 2,
                             CateId = 1
                         },
@@ -657,7 +662,6 @@ namespace ChoRe.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("RejectReason")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -978,14 +982,20 @@ namespace ChoRe.Migrations
                         new
                         {
                             PostStatusId = 1,
-                            Description = "",
+                            Description = "Tin đăng đang chờ phê duyệt!",
                             PostStatusName = "Pending"
                         },
                         new
                         {
                             PostStatusId = 2,
-                            Description = "",
+                            Description = "Tin đăng đã được phê duyệt!",
                             PostStatusName = "Approved"
+                        },
+                        new
+                        {
+                            PostStatusId = 3,
+                            Description = "Tin đăng đã bị từ chối!",
+                            PostStatusName = "Reject"
                         });
                 });
 

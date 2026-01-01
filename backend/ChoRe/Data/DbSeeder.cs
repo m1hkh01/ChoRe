@@ -91,14 +91,16 @@ namespace ChoReDB.Data
             modelBuilder.Entity<BrandCate>().HasData(
                 new BrandCate { BrandId = 1, CateId = 1 },
                 new BrandCate { BrandId = 1, CateId = 2 },
+                new BrandCate { BrandId = 1, CateId = 3 },
                 new BrandCate { BrandId = 2, CateId = 1 },
                 new BrandCate { BrandId = 2, CateId = 2 }
             );
 
             // ================= POST STATUS =================
             modelBuilder.Entity<PostStatus>().HasData(
-                new PostStatus { PostStatusId = 1, PostStatusName = "Pending", Description = "" },
-                new PostStatus { PostStatusId = 2, PostStatusName = "Approved", Description = "" }
+                new PostStatus { PostStatusId = 1, PostStatusName = "Pending", Description = "Tin đăng đang chờ phê duyệt!" },
+                new PostStatus { PostStatusId = 2, PostStatusName = "Approved", Description = "Tin đăng đã được phê duyệt!" },
+                new PostStatus { PostStatusId = 3, PostStatusName = "Reject", Description = "Tin đăng đã bị từ chối!" }
             );
 
             // ================= POST =================
