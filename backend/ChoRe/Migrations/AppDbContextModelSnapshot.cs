@@ -665,6 +665,12 @@ namespace ChoRe.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<DateTime?>("RejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("RejectedBy")
+                        .HasColumnType("int");
+
                     b.Property<int>("SavedCount")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -705,6 +711,8 @@ namespace ChoRe.Migrations
 
                     b.HasIndex("Price")
                         .HasDatabaseName("IX_Posts_Price");
+
+                    b.HasIndex("RejectedBy");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("IX_Posts_UserId");
@@ -1711,6 +1719,11 @@ namespace ChoRe.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ChoRe.Models.User", "RejectedByUser")
+                        .WithMany()
+                        .HasForeignKey("RejectedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ChoRe.Models.User", "User")
                         .WithMany("Posts")
                         .HasForeignKey("UserId")
@@ -1722,6 +1735,8 @@ namespace ChoRe.Migrations
                     b.Navigation("Brand");
 
                     b.Navigation("PostStatusNavigation");
+
+                    b.Navigation("RejectedByUser");
 
                     b.Navigation("User");
                 });

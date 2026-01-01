@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChoRe.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260101032944_UpdSeedData")]
-    partial class UpdSeedData
+    [Migration("20260101044812_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

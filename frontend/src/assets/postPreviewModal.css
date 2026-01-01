@@ -1,0 +1,29 @@
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+.modal-preview{
+    padding: 20px;
+    background-color: white;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: 600px;
+    z-index: 1200;
+}
+.preview-images{
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+.preview-images .preview-image{
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+}

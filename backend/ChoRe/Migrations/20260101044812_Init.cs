@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ChoRe.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateDb : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -261,7 +261,7 @@ namespace ChoRe.Migrations
                     PostStatusId = table.Column<int>(type: "int", nullable: false),
                     ApprovedBy = table.Column<int>(type: "int", nullable: true),
                     ApprovedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    RejectReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    RejectReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     ViewCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     SavedCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()"),
@@ -797,8 +797,9 @@ namespace ChoRe.Migrations
                 columns: new[] { "PostStatusId", "Description", "PostStatusName" },
                 values: new object[,]
                 {
-                    { 1, "", "Pending" },
-                    { 2, "", "Approved" }
+                    { 1, "Tin đăng đang chờ phê duyệt!", "Pending" },
+                    { 2, "Tin đăng đã được phê duyệt!", "Approved" },
+                    { 3, "Tin đăng đã bị từ chối!", "Reject" }
                 });
 
             migrationBuilder.InsertData(
@@ -829,6 +830,7 @@ namespace ChoRe.Migrations
                 {
                     { 1, 1 },
                     { 1, 2 },
+                    { 1, 3 },
                     { 2, 1 },
                     { 2, 2 }
                 });

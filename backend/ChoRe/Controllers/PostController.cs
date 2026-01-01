@@ -13,10 +13,11 @@ namespace ChoRe.Controllers
     public class PostController : ControllerBase
     {
         private readonly AppDbContext _context;
-
-        public PostController(AppDbContext context)
+        private readonly IPostService _service;
+        public PostController(AppDbContext context, IPostService service)
         {
             _context = context;
+            _service = service;
         }
 
         [HttpPost]
@@ -192,5 +193,50 @@ namespace ChoRe.Controllers
             return Ok(new { fileName = fileName });
 
         }
+
+        [HttpGet("/admin-posts")]
+        public async Task<IActionResult> GetPostsByAdmin()
+        {
+            var posts = await _service.GetPostsByAdminAsync();
+            return Ok(posts);
+        }
+        [HttpPost("/accept-post/{id}")]
+        public async Task<IActionResult> AcceptPost(int id)
+        {
+            try
+            {
+                Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: " + id);
+                await _service.ApprovePostAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException err)
+            {
+                return NotFound(new { Error = err.Message });
+
+            }
+            catch (Exception err)
+            {
+                return BadRequest(new { Error = "Có lỗi xảy ra khi duyệt tin: ", err.Message });
+            }
+        }
+        [HttpPost("/cancel-post/{id}")]
+        public async Task<IActionResult> CancelPost(int id,[FromBody]string rejectReason)
+        {
+            try
+            {
+                await _service.RejectPostAsync(id,rejectReason);
+                return NoContent();
+            }
+            catch (KeyNotFoundException err)
+            {
+                return NotFound(new { Error = err.Message });
+
+            }
+            catch (Exception err)
+            {
+                return BadRequest(new { Error = "Có lỗi xảy ra khi từ chối tin tin: ", err.Message });
+            }
+        }
+
     }
 }

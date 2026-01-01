@@ -388,6 +388,14 @@ namespace ChoRe.Data
                 .WithMany()
                 .HasForeignKey(p => p.ApprovedBy)
                 .OnDelete(DeleteBehavior.Restrict);
+            // --- POST -> REJECTED BY USER (CENSOR) ---
+            // Post được approve bởi Censor
+            modelBuilder.Entity<Post>()
+                .HasOne(p => p.RejectedByUser)
+                .WithMany()
+                .HasForeignKey(p => p.RejectedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             // --- POST -> POST IMAGES ---
             // CASCADE: Xóa Post -> tự động xóa tất cả hình ảnh

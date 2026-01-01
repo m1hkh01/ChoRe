@@ -44,6 +44,11 @@ namespace ChoRe.Models
 
         public DateTime? ApprovedAt { get; set; }
 
+        [ForeignKey("RejectedByUser")]
+        public int? RejectedBy { get; set; }
+
+        public DateTime? RejectedAt { get; set; }
+
         [StringLength(500)]
         public string? RejectReason { get; set; } = "";
 
@@ -59,6 +64,7 @@ namespace ChoRe.Models
         // Navigation properties
         public virtual User User { get; set; }
         public virtual User ApprovedByUser { get; set; }
+        public virtual User RejectedByUser { get; set; }
         public virtual ICollection<PostCate> PostCates { get; set; }
         public virtual Brand Brand { get; set; }
         public virtual PostStatus PostStatusNavigation { get; set; }

@@ -9,7 +9,7 @@ function Header() {
         <header className="menu">
             <nav className="navbar navbar-expand-sm">
                 <ul className="navbar-nav w-100 d-flex align-items-center justify-content-between pe-3">
-                    
+
                     {/* Logo */}
                     <Link to="/" className="navbar-brand">
                         Chợ <span>Rẻ</span>
@@ -45,6 +45,18 @@ function Header() {
                                             Trang cá nhân
                                         </Link>
                                     </li>
+                                    {
+                                        user.role != "User" ?
+                                        (
+
+                                            <li>
+                                                <Link className="dropdown-item" to="/dashboard">
+                                                    Admin
+                                                </Link>
+                                            </li>
+                                        ) : ""
+                                    
+                                    }
                                     <li><hr className="dropdown-divider" /></li>
                                     <li
                                         onClick={logout}

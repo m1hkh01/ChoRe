@@ -37,8 +37,9 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
     options.SerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     options.SerializerOptions.WriteIndented = true;
 });
-
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AccountService>();
+builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<HtmlSanitizer>();
 
 builder.Services.AddCors(options =>
