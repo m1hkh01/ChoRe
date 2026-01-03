@@ -23,6 +23,7 @@ function PostPreviewModal({ post, onClose, onApprove, onReject }) {
                                     key={img.postImageId ?? index}
                                     src={`${baseURL}/uploads/${img.postImage1}`}
                                     alt={post.title}
+                                    className="preview-image"
                                 />
                             ))}
 

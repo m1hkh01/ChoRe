@@ -72,7 +72,7 @@ function Header() {
 
                         {/* ACCOUNT */}
                         {user ? (
-                            <div className="dropdown">
+                            <div className="dropdown Account">
                                 <a
                                     href="#"
                                     className="dropdown-toggle text-decoration-none fw-semibold"

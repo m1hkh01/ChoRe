@@ -69,7 +69,10 @@ function PostManager() {
                 <div className="title">
                     <span>Quản lý bài viết</span>
                 </div>
-
+                <div className="header">
+                    <h4>Danh sách bài viết cần duyệt</h4>
+                    <input type="text" placeholder="Tìm kiếm theo tên bài viết ..." />
+                </div>
                 <div className="list-post">
                     {posts.length > 0 ? (
                         <table className="post-table">
@@ -91,14 +94,14 @@ function PostManager() {
                                         <td>{post.user.userName}</td>
                                         <td>{formatDate(post.createdAt)}</td>
                                         <td>{formatPrice(post.price)}</td>
-                                        <td>
-                                            <button onClick={() => setSelectedPost(post)}>
+                                        <td className="actions">
+                                            <button className="btn-preview" onClick={() => setSelectedPost(post)}>
                                                 <FontAwesomeIcon icon={faEye} />
                                             </button>
-                                            <button onClick={() => acceptPost(post.postId)}>
+                                            <button className="btn-accept" onClick={() => acceptPost(post.postId)}>
                                                 <FontAwesomeIcon icon={faCheck} />
                                             </button>
-                                            <button onClick={() => {
+                                            <button className="btn-cancel" onClick={() => {
                                                 setCancelPostId(post.postId);
                                                 setShowRejectReason(true);
                                             }}>
@@ -110,7 +113,7 @@ function PostManager() {
                             </tbody>
                         </table>
                     ) : (
-                        <h4>Không có bài cần duyệt</h4>
+                        <h4 className="text-center mt-3">Không có bài cần duyệt</h4>
                     )}
                 </div>
             </div>

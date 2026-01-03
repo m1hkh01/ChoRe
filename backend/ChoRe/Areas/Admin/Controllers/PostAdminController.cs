@@ -15,7 +15,7 @@ namespace ChoRe.Areas.Admin.Controllers
             _service = service;
         }
 
-        [HttpGet("/admin-posts")]
+        [HttpGet]
         public async Task<IActionResult> GetPostsByAdmin()
         {
             var posts = await _service.GetPostsByAsync();
