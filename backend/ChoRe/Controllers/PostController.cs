@@ -194,49 +194,49 @@ namespace ChoRe.Controllers
 
         }
 
-        [HttpGet("/admin-posts")]
-        public async Task<IActionResult> GetPostsByAdmin()
-        {
-            var posts = await _service.GetPostsByAdminAsync();
-            return Ok(posts);
-        }
-        [HttpPost("/accept-post/{id}")]
-        public async Task<IActionResult> AcceptPost(int id)
-        {
-            try
-            {
-                Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: " + id);
-                await _service.ApprovePostAsync(id);
-                return NoContent();
-            }
-            catch (KeyNotFoundException err)
-            {
-                return NotFound(new { Error = err.Message });
+        //[HttpGet("/admin-posts")]
+        //public async Task<IActionResult> GetPostsByAdmin()
+        //{
+        //    var posts = await _service.GetPostsByAdminAsync();
+        //    return Ok(posts);
+        //}
+        //[HttpPost("/accept-post/{id}")]
+        //public async Task<IActionResult> AcceptPost(int id)
+        //{
+        //    try
+        //    {
+        //        Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: " + id);
+        //        await _service.ApprovePostAsync(id);
+        //        return NoContent();
+        //    }
+        //    catch (KeyNotFoundException err)
+        //    {
+        //        return NotFound(new { Error = err.Message });
 
-            }
-            catch (Exception err)
-            {
-                return BadRequest(new { Error = "Có lỗi xảy ra khi duyệt tin: ", err.Message });
-            }
-        }
-        [HttpPost("/cancel-post/{id}")]
-        public async Task<IActionResult> CancelPost(int id,[FromBody]string rejectReason)
-        {
-            try
-            {
-                await _service.RejectPostAsync(id,rejectReason);
-                return NoContent();
-            }
-            catch (KeyNotFoundException err)
-            {
-                return NotFound(new { Error = err.Message });
+        //    }
+        //    catch (Exception err)
+        //    {
+        //        return BadRequest(new { Error = "Có lỗi xảy ra khi duyệt tin: ", err.Message });
+        //    }
+        //}
+        //[HttpPost("/cancel-post/{id}")]
+        //public async Task<IActionResult> CancelPost(int id,[FromBody]string rejectReason)
+        //{
+        //    try
+        //    {
+        //        await _service.RejectPostAsync(id,rejectReason);
+        //        return NoContent();
+        //    }
+        //    catch (KeyNotFoundException err)
+        //    {
+        //        return NotFound(new { Error = err.Message });
 
-            }
-            catch (Exception err)
-            {
-                return BadRequest(new { Error = "Có lỗi xảy ra khi từ chối tin tin: ", err.Message });
-            }
-        }
+        //    }
+        //    catch (Exception err)
+        //    {
+        //        return BadRequest(new { Error = "Có lỗi xảy ra khi từ chối tin tin: ", err.Message });
+        //    }
+        //}
 
     }
 }

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 public interface IPostService
 {
-    Task<List<PostResponseDto>> GetPostsByAdminAsync();
+    Task<List<PostResponseDto>> GetPostsByAsync();
     Task<Post> GetPostByIdAsync(int id);
     Task ApprovePostAsync(int id);
     Task RejectPostAsync(int id, string rejectReason);
@@ -48,30 +48,44 @@ public class PostService : IPostService
         return post;
     }
 
-    public async Task<List<PostResponseDto>> GetPostsByAdminAsync()
+    public async Task<List<PostResponseDto>> GetPostsByAsync()
     {
         var posts = await _context.Posts
-                            .Where(p => p.PostStatusId == 1).Select(p=>new PostResponseDto
-                            {
-                                PostId = p.PostId,
-                                Title = p.Title,
-                                Description = p.Description,
-                                Price = p.Price,
-                                Address = p.Address,
-                                CreatedAt = p.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss.fff"),
-                                User = new UserResponseDto
-                                {
-                                    UserId = p.User.UserId,
-                                    UserName = p.User.UserName,
-                                    Avatar = p.User.Avatar,
-                                    Email = p.User.Email,
-                                    Role = p.User.Role.RoleName
-                                },
-                                Brand = p.Brand,
-                                PostCates = p.PostCates,
-                                PostImages = p.PostImages,
-                                PostSpecifications = p.PostSpecifications,
-                            }).ToListAsync();
+            .Where(p => p.PostStatusId == 1)
+
+            .Include(p => p.User)
+                .ThenInclude(u => u.Role)
+
+            .Include(p => p.Brand)
+            .Include(p => p.PostCates)
+            .Include(p => p.PostImages)
+            .Include(p => p.PostSpecifications)
+
+            .Select(p => new PostResponseDto
+            {
+                PostId = p.PostId,
+                Title = p.Title,
+                Description = p.Description,
+                Price = p.Price,
+                Address = p.Address,
+                CreatedAt = p.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss.fff"),
+
+                User = p.User == null ? null : new UserResponseDto
+                {
+                    UserId = p.User.UserId,
+                    UserName = p.User.UserName,
+                    Avatar = p.User.Avatar,
+                    Email = p.User.Email,
+                    Role = p.User.Role != null ? p.User.Role.RoleName : null
+                },
+
+                Brand = p.Brand,
+                PostCates = p.PostCates,
+                PostImages = p.PostImages,
+                PostSpecifications = p.PostSpecifications
+            })
+            .ToListAsync();
+
         return posts;
     }
 

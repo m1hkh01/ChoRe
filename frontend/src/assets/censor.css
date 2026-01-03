@@ -1,0 +1,175 @@
+@import url("../index.css");
+
+.admin-container {
+    width: 100%;
+    height: 100vh;
+    background-color: #eee;
+    display: flex;
+    overflow-y: auto;
+}
+
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background-color: var(--primary-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    color: white;
+}
+
+.sidebar h3 {
+    margin-top: 10px;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.sidebar .admin-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.admin-info .admin-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    padding: 1px;
+    /* box-shadow: 0 0 5px rgba(255, 255, 255, 0.3); */
+}
+
+/* .admin-info .admin-name {
+    font-family: 'Playfair Display', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+} */
+
+.sidebar .menu {
+    display: flex;
+    flex-direction: column;
+    margin-top: 5px;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+}
+
+.sidebar .menu a {
+    /* display: block; */
+    width: 100%;
+    height: 50px;
+    padding: 8px 24px;
+    text-decoration: none;
+    color: white;
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.sidebar .menu a:hover {
+    background-color: var(--primary-color-hover);
+}
+
+.admin-container .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== Post Manager ===== */
+
+.post-container{
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+.post-container .title{
+    width: 100%;
+    background-color: white;
+    padding: 10px 16px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.6);
+    text-align: left;
+    color: black;
+    font-size: 18px;
+    font-weight: 600;
+    /* font-style: italic; */
+}
+.post-container .header{
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    margin-top: 5px;
+}
+.post-container .header h4{
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+}
+.post-container .header input{
+    width: 300px;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 5px;
+}
+.post-container .list-post{
+    /* width: ; */
+    flex: 1;
+    max-height: 700px;
+    overflow: hidden;
+    overflow-y: auto;
+    background-color: white;
+    border-radius: 10px;
+    margin: 10px;
+    margin-top: 2px;
+    /* display: flex; */
+    /* align-items: center; */
+}
+.list-post .post-table{
+    table-layout: auto;
+    border-collapse: collapse;
+    width: 100%;
+}
+.list-post .post-table th {
+    /* background: #2c3e50; */
+    color: #333;
+    padding: 12px 16px;
+    text-align: center;
+    font-weight: 600;
+    border-bottom: 2px solid #eee;
+}
+
+.list-post .post-table td {
+    text-align: center;
+    padding: 15px 10px;
+    border-bottom: 2px solid #eee;
+}
+
+.list-post .post-table tr:hover {
+    background: #f8f9fa;
+    cursor: pointer;
+}
+
+.post-table tr .actions {
+    display:  flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+.actions .btn-accept,
+.actions .btn-cancel,
+.actions .btn-preview{
+    color: white;
+    padding: 5px;
+    border: none;
+    background-color: var(--success);
+    border-radius: 50%;
+}
+.actions .btn-cancel{
+    background-color: var(--cancel);
+}
+.actions .btn-preview{
+    background-color: var(--preview);
+}

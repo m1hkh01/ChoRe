@@ -1,42 +1,84 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../App.css";
 import { useAuthStore } from "../store/auth";
 
 function Header() {
     const { user, logout } = useAuthStore();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        logout();
+        navigate("/login");
+    };
+
+    const renderDashboardLink = () => {
+        if (!user) return null;
+
+        if (user.role === "Admin") {
+            return (
+                <li>
+                    <Link
+                        className="dropdown-item"
+                        to="/admin/post-manager"
+                    >
+                        Trang quản trị Admin
+                    </Link>
+                </li>
+            );
+        }
+
+        if (user.role === "Censor") {
+            return (
+                <li>
+                    <Link
+                        className="dropdown-item"
+                        to="/censor/post-censor"
+                    >
+                        Trang kiểm duyệt
+                    </Link>
+                </li>
+            );
+        }
+
+        return null;
+    };
 
     return (
         <header className="menu">
             <nav className="navbar navbar-expand-sm">
-                <ul className="navbar-nav w-100 d-flex align-items-center justify-content-between pe-3">
+                <div className="container-fluid px-3 d-flex justify-content-between align-items-center">
 
-                    {/* Logo */}
-                    <Link to="/" className="navbar-brand">
-                        Chợ <span>Rẻ</span>
+                    {/* LOGO */}
+                    <Link to="/" className="navbar-brand fw-bold">
+                        Chợ <span style={{ color: "#f39c12" }}>Rẻ</span>
                     </Link>
 
-                    {/* Right menu */}
+                    {/* RIGHT MENU */}
                     <div className="d-flex align-items-center gap-3">
 
-                        {/* ✅ Nút đăng tin - chỉ khi đã login */}
-                        {user && (
+                        {/* ĐĂNG TIN */}
+                        {user && user.role === "User" && (
                             <Link
                                 to="/post/create"
                                 className="btn btn-warning fw-bold"
+                                style={{
+                                    borderRadius: "20px",
+                                    padding: "6px 16px"
+                                }}
                             >
                                 + Đăng tin
                             </Link>
                         )}
 
-                        {/* Account */}
+                        {/* ACCOUNT */}
                         {user ? (
-                            <li className="Account dropdown list-unstyled">
+                            <div className="dropdown">
                                 <a
                                     href="#"
+                                    className="dropdown-toggle text-decoration-none fw-semibold"
                                     data-bs-toggle="dropdown"
-                                    className="dropdown-toggle text-decoration-none"
                                 >
-                                    Welcome {user.userName}
+                                    Xin chào, {user.userName}
                                 </a>
 
                                 <ul className="dropdown-menu dropdown-menu-end">
@@ -45,52 +87,31 @@ function Header() {
                                             Trang cá nhân
                                         </Link>
                                     </li>
-                                    {
-                                        user.role != "User" ?
-                                        (
 
-                                            <li>
-                                                <Link className="dropdown-item" to="/dashboard">
-                                                    Admin
-                                                </Link>
-                                            </li>
-                                        ) : ""
-                                    
-                                    }
+                                    {/* ADMIN / CENSOR */}
+                                    {renderDashboardLink()}
+
                                     <li><hr className="dropdown-divider" /></li>
+
                                     <li
-                                        onClick={logout}
                                         className="dropdown-item text-danger"
                                         role="button"
+                                        onClick={handleLogout}
                                     >
                                         Đăng xuất
                                     </li>
                                 </ul>
-                            </li>
+                            </div>
                         ) : (
-                            <li className="nav-item list-unstyled">
-                                <Link to="/login" className="nav-link">
-                                    Login
-                                </Link>
-                            </li>
+                            <Link to="/login" className="nav-link">
+                                Đăng nhập
+                            </Link>
                         )}
                     </div>
-
-                </ul>
+                </div>
             </nav>
         </header>
     );
 }
 
 export default Header;
-
-<Link
-    to="/post/create"
-    className="btn btn-warning fw-bold"
-    style={{
-        borderRadius: "20px",
-        padding: "6px 16px"
-    }}
->
-    + Đăng tin
-</Link>
