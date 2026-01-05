@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
-import axios, { API_BASE_URL } from "../api.js"; // axios có interceptor JWT
+import axios, { API_BASE_URL } from "../api.js";
 import { useNavigate } from "react-router-dom";
 
 function CreatePost() {
     const navigate = useNavigate();
 
-    // ===== STATE =====
+    /* ===================== STATE ===================== */
     const [brands, setBrands] = useState([]);
     const [categories, setCategories] = useState([]);
     const [specs, setSpecs] = useState([]);
-    const [images, setImages] = useState([]);
     const [specValues, setSpecValues] = useState({});
+    const [images, setImages] = useState([]);
 
     const [brandId, setBrandId] = useState("");
     const [cateId, setCateId] = useState("");
@@ -23,85 +23,62 @@ function CreatePost() {
         status: "",
     });
 
-    // ===== LOAD CATEGORY =====
+    const [errorMsg, setErrorMsg] = useState("");
+
+    /* ===================== LOAD INIT ===================== */
     useEffect(() => {
-        axios.get("/api/categories")
-            .then(res => setCategories(res.data));
+        axios.get("/api/brands").then(res => setBrands(res.data));
+        axios.get("/api/categories").then(res => setCategories(res.data));
     }, []);
-    // ===== LOAD BRAND =====
-    useEffect(() => {
-        axios.get("/api/brands")
-            .then(res => setBrands(res.data));
-    }, []);
-    useEffect(() => {
-        if (brandId) {
-            axios.get(`/api/categories/by-brand/${brandId}`)
-                .then(res => {
-                    setCategories(res.data);
-                    setCateId("");
-                    setSpecs([]);
-                    setSpecValues({});
-                });
-        }
-    }, [brandId]);
+
+    /* ===================== BRAND → CATEGORY ===================== */
     useEffect(() => {
         if (!brandId) {
             setCategories([]);
             setCateId("");
+            setSpecs([]);
+            setSpecValues({});
             return;
         }
 
-        axios.get(`/api/categories/by-brand/${brandId}`)
+        axios
+            .get(`/api/categories/by-brand/${brandId}`)
             .then(res => {
                 setCategories(res.data);
-                setCateId(""); // reset cate cũ
+                setCateId("");
+                setSpecs([]);
+                setSpecValues({});
             });
     }, [brandId]);
 
-    // ===== LOAD BRAND THEO CATEGORY =====
+    /* ===================== CATEGORY → SPEC ===================== */
     useEffect(() => {
-        if (cateId) {
-            axios.get(`/api/brands/by-category/${cateId}`)
-                .then(res => setBrands(res.data));
-        } else {
-            setBrands([]);
+        if (!cateId) {
+            setSpecs([]);
+            setSpecValues({});
+            return;
         }
-    }, [cateId]);
-    useEffect(() => {
-        if (cateId) {
-            axios.get(`/api/specifications/by-category/${cateId}`)
-                .then(res => setSpecs(res.data));
-        }
+
+        axios
+            .get(`/api/specifications/by-category/${cateId}`)
+            .then(res => {
+                setSpecs(res.data);
+                setSpecValues({});
+            });
     }, [cateId]);
 
-    // ===== HANDLE =====
+    /* ===================== HANDLERS ===================== */
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        if (!brandId || !cateId) {
-            alert("Vui lòng chọn hãng và danh mục");
-            return;
-        }
-
-        await axios.post("/api/posts", {
-            title: form.title,
-            description: form.description,
-            price: Number(form.price),
-            address: form.address,
-            status: form.status,
-            brandId: Number(brandId),
-            cateIds: [Number(cateId)],
-            specifications: specValues,
-            images: images
-        });
-
-        alert("Đăng tin thành công, chờ duyệt");
-        navigate("/");
+    const handleSpecChange = (specId, value) => {
+        setSpecValues(prev => ({
+            ...prev,
+            [specId]: value
+        }));
     };
+
     const handleImageChange = async (e) => {
         const files = Array.from(e.target.files);
 
@@ -118,17 +95,11 @@ function CreatePost() {
                 const res = await axios.post(
                     "/api/posts/upload-image",
                     formData,
-                    {
-                        headers: {
-                            "Content-Type": "multipart/form-data",
-                        },
-                    }
+                    { headers: { "Content-Type": "multipart/form-data" } }
                 );
 
                 setImages(prev => [...prev, res.data.fileName]);
-
-            } catch (err) {
-                console.error(err);
+            } catch {
                 alert("Upload ảnh thất bại");
             }
         }
@@ -136,13 +107,83 @@ function CreatePost() {
         e.target.value = null;
     };
 
-    // ===== UI =====
+    /* ===================== SUBMIT ===================== */
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setErrorMsg("");
+
+        if (!brandId || !cateId) {
+            setErrorMsg("Vui lòng chọn hãng và danh mục");
+            return;
+        }
+
+        // ✅ VALIDATE SPEC
+        for (let spec of specs) {
+            const value = specValues[spec.specId];
+
+            if (!value || value.trim() === "") {
+                setErrorMsg(`Vui lòng nhập ${spec.specName}`);
+                return;
+            }
+
+            if (value.length > 25) {
+                setErrorMsg(`${spec.specName} không được vượt quá 25 ký tự`);
+                return;
+            }
+        }
+
+        try {
+            await axios.post("/api/posts", {
+                title: form.title,
+                description: form.description,
+                price: Number(form.price),
+                address: form.address,
+                status: form.status,
+                brandId: Number(brandId),
+                cateIds: [Number(cateId)],
+                specifications: specValues,
+                images
+            });
+
+            alert("Đăng tin thành công, chờ duyệt");
+            navigate("/");
+        } catch (err) {
+            if (err.response?.data) {
+                const data = err.response.data;
+
+                if (typeof data === "string") {
+                    setErrorMsg(data);
+                    return;
+                }
+
+                if (data.error) {
+                    setErrorMsg(data.error);
+                    return;
+                }
+
+                if (data.errors) {
+                    setErrorMsg(
+                        Object.values(data.errors).flat().join(", ")
+                    );
+                    return;
+                }
+            }
+
+            setErrorMsg("Có lỗi xảy ra, vui lòng thử lại");
+        }
+    };
+
+    /* ===================== UI ===================== */
     return (
         <div className="container mt-4">
             <h3>Đăng tin mới</h3>
 
+            {errorMsg && (
+                <div className="alert alert-danger">{errorMsg}</div>
+            )}
+
             <form onSubmit={handleSubmit}>
-                {/* ===== CHỌN ẢNH ===== */}
+                {/* ===== IMAGES ===== */}
                 <input
                     type="file"
                     accept="image/*"
@@ -151,22 +192,19 @@ function CreatePost() {
                     onChange={handleImageChange}
                 />
 
-                {/* PREVIEW ẢNH */}
-                <div className="d-flex gap-2 flex-wrap mb-2">
-                    {images.map((img, index) => (
-                        <div key={index} style={{ position: "relative" }}>
+                <div className="d-flex gap-2 flex-wrap mb-3">
+                    {images.map((img, i) => (
+                        <div key={i} style={{ position: "relative" }}>
                             <img
                                 src={`${API_BASE_URL}/uploads/${img}`}
-                                alt=""
                                 width={100}
                                 height={100}
                                 style={{ objectFit: "cover", borderRadius: 6 }}
                             />
-
                             <button
                                 type="button"
                                 onClick={() =>
-                                    setImages(images.filter((_, i) => i !== index))
+                                    setImages(images.filter((_, idx) => idx !== i))
                                 }
                                 style={{
                                     position: "absolute",
@@ -174,11 +212,10 @@ function CreatePost() {
                                     right: -6,
                                     background: "red",
                                     color: "white",
-                                    border: "none",
                                     borderRadius: "50%",
                                     width: 20,
                                     height: 20,
-                                    cursor: "pointer"
+                                    border: "none"
                                 }}
                             >
                                 ×
@@ -186,41 +223,14 @@ function CreatePost() {
                         </div>
                     ))}
                 </div>
-                <input
-                    name="title"
-                    className="form-control mb-2"
-                    placeholder="Tiêu đề"
-                    onChange={handleChange}
-                />
 
-                <textarea
-                    name="description"
-                    className="form-control mb-2"
-                    placeholder="Mô tả"
-                    onChange={handleChange}
-                />
+                {/* ===== BASIC INFO ===== */}
+                <input name="title" className="form-control mb-2" placeholder="Tiêu đề" onChange={handleChange} />
+                <textarea name="description" className="form-control mb-2" placeholder="Mô tả" onChange={handleChange} />
+                <input name="price" type="number" className="form-control mb-2" placeholder="Giá" onChange={handleChange} />
+                <input name="address" className="form-control mb-2" placeholder="Địa chỉ" onChange={handleChange} />
 
-                <input
-                    name="price"
-                    type="number"
-                    className="form-control mb-2"
-                    placeholder="Giá"
-                    onChange={handleChange}
-                />
-
-                <input
-                    name="address"
-                    className="form-control mb-2"
-                    placeholder="Địa chỉ"
-                    onChange={handleChange}
-                />
-
-                {/* ===== TRẠNG THÁI THIẾT BỊ ===== */}
-                <select
-                    name="status"
-                    className="form-control mb-2"
-                    onChange={handleChange}
-                >
+                <select name="status" className="form-control mb-2" onChange={handleChange}>
                     <option value="">-- Tình trạng thiết bị --</option>
                     <option value="NEW">Mới 100%</option>
                     <option value="LIKE_NEW">Như mới</option>
@@ -229,37 +239,44 @@ function CreatePost() {
                     <option value="BROKEN">Hư hỏng</option>
                 </select>
 
-                {/* BRAND */}
-                <select
-                    className="form-control mb-2"
-                    value={brandId}
-                    onChange={e => setBrandId(e.target.value)}
-                >
+                {/* ===== BRAND / CATEGORY ===== */}
+                <select className="form-control mb-2" value={brandId} onChange={e => setBrandId(e.target.value)}>
                     <option value="">-- Chọn hãng --</option>
                     {brands.map(b => (
-                        <option key={b.brandId} value={b.brandId}>
-                            {b.brandName}
-                        </option>
-                    ))}
-                </select>
-                {/* CATEGORY */}
-                <select
-                    className="form-control mb-2"
-                    value={cateId}
-                    disabled={!brandId}   // 🔒 KHÓA KHI CHƯA CHỌN BRAND
-                    onChange={e => setCateId(e.target.value)}
-                >
-                    <option value="">-- Chọn danh mục --</option>
-                    {categories.map(c => (
-                        <option key={c.cateId} value={c.cateId}>
-                            {c.cateName}
-                        </option>
+                        <option key={b.brandId} value={b.brandId}>{b.brandName}</option>
                     ))}
                 </select>
 
-                <button className="btn btn-warning fw-bold">
-                    Đăng tin
-                </button>
+                <select className="form-control mb-3" value={cateId} disabled={!brandId} onChange={e => setCateId(e.target.value)}>
+                    <option value="">-- Chọn danh mục --</option>
+                    {categories.map(c => (
+                        <option key={c.cateId} value={c.cateId}>{c.cateName}</option>
+                    ))}
+                </select>
+
+                {/* ===== SPEC ===== */}
+                {specs.length > 0 && (
+                    <div className="border rounded p-3 mb-3">
+                        <h6 className="fw-bold mb-2">Thông số kỹ thuật</h6>
+
+                        {specs.map(spec => (
+                            <div key={spec.specId} className="mb-2">
+                                <label className="form-label">
+                                    {spec.specName} <span className="text-danger">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    maxLength={25}
+                                    className="form-control"
+                                    value={specValues[spec.specId] || ""}
+                                    onChange={e => handleSpecChange(spec.specId, e.target.value)}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                <button className="btn btn-warning fw-bold">Đăng tin</button>
             </form>
         </div>
     );

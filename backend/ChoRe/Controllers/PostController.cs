@@ -81,6 +81,21 @@ namespace ChoRe.Controllers
             if (!isValidBrandCate)
                 return BadRequest("Danh mục không thuộc brand đã chọn!");
 
+            // ===================== CHECK SPEC =====================
+            var specsInCate = await _context.Specifications
+                .Where(s => dto.CateIds.Contains(s.CateId))
+                .Select(s => s.SpecId)
+                .ToListAsync();
+
+            foreach (var specId in specsInCate)
+            {
+                if (!dto.Specifications.ContainsKey(specId))
+                    return BadRequest("Thiếu thông số kỹ thuật!");
+
+                if (dto.Specifications[specId].Length > 25)
+                    return BadRequest("Giá trị thông số không được vượt quá 25 ký tự!");
+            }
+
             /* ===================== 7️⃣ TẠO POST ===================== */
             var post = new Post
             {

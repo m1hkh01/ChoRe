@@ -3,11 +3,11 @@ select * from users
 
 select * from roles
 
-select * from
+select * from UserSubUsages
 
-select * from
+select * from UserSubscriptions
 
-select * from
+select * from posts
 
 select * from
 

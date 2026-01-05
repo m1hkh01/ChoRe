@@ -25,8 +25,8 @@ namespace ChoRe.Controllers
                 .Where(s => s.CateId == cateId)
                 .Select(s => new
                 {
-                    s.SpecId,
-                    s.SpecName
+                    specId = s.SpecId,
+                    specName = s.SpecName
                 })
                 .ToListAsync();
 

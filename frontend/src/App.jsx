@@ -16,6 +16,8 @@ import RequireRole from './routes/RequireRole'
 import PostManager from './components/AdminComponents/PostManager'
 import PostCensor from './components/CensorComponents/PostCensor'
 
+import BrandManager from './components/AdminComponents/BrandManager.jsx'
+
 function App() {
   return (
     <Routes>
@@ -32,6 +34,14 @@ function App() {
             <ProtectedRoute>
               <CreatePost />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/brand-manager"
+          element={
+            <RequireRole roles={["Admin"]}>
+              <BrandManager />
+            </RequireRole>
           }
         />
       </Route>

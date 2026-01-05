@@ -50,7 +50,7 @@ function Header() {
 
                     {/* LOGO */}
                     <Link to="/" className="navbar-brand fw-bold">
-                        Chợ <span style={{ color: "#f39c12" }}>Rẻ</span>
+                        Chó<span style={{ color: "#f39c12" }}>Rẻ</span>
                     </Link>
 
                     {/* RIGHT MENU */}
