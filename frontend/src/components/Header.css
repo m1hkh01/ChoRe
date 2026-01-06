@@ -1,0 +1,131 @@
+.site-header {
+  background-color: #0f172a;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  padding: 0 5%;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* LOGO */
+.logo {
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+.logo-text span {
+  color: #22c55e;
+}
+
+/* NAV */
+.main-nav {
+  margin-left: 50px;
+  display: flex;
+  gap: 24px;
+}
+
+.main-nav a {
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.main-nav a:hover {
+  color: #22c55e;
+}
+
+/* SEARCH */
+.search-bar {
+  margin-left: auto;
+  margin-right: 30px;
+  width: 300px;
+}
+
+.search-bar input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 15px;
+  border-radius: 20px;
+  color: white;
+  font-size: 14px;
+  outline: none;
+}
+
+.search-bar input:focus {
+  border-color: #22c55e;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ACTIONS */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.cart-btn {
+  position: relative;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 14px;
+}
+
+.cart-btn span {
+  background: #22c55e;
+  color: #0f172a;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  position: absolute;
+  top: -8px;
+  right: -10px;
+}
+
+.login-btn {
+  background: #22c55e;
+  color: #0f172a;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 14px;
+  transition: 0.2s;
+}
+.register-btn {
+  background: #22c55e;
+  color: #0f172a;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.login-btn:hover {
+  opacity: 0.9;
+}
+.login-btn:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+.auth-buttons {
+  display: flex;
+  gap: 8px; /* khoảng cách nhỏ giữa 2 nút */
+}

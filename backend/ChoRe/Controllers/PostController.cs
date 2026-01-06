@@ -20,6 +20,81 @@ namespace ChoRe.Controllers
             _service = service;
         }
 
+        [AllowAnonymous]
+        [HttpGet("home")]
+        public async Task<IActionResult> GetPostsForHome(
+                string? keyword,
+                int? brandId,
+                int? categoryId,
+                decimal? maxPrice,
+                int? time
+                )
+        {
+            var query = _context.Posts
+                .AsNoTracking()
+                .Include(p => p.User)
+                .Include(p => p.PostImages)
+                .Include(p => p.Brand)
+                .Include(p => p.PostCates)
+                    .ThenInclude(pc => pc.Category)
+                .Where(p => p.PostStatusId == 2);
+
+            // 🔍 keyword - Trim và search case-insensitive
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                keyword = keyword.Trim();
+                query = query.Where(p => EF.Functions.Like(p.Title, $"%{keyword}%"));
+            }
+
+            // 🏷️ brandId
+            if (brandId.HasValue && brandId > 0)
+            {
+                query = query.Where(p => p.BrandId == brandId.Value);
+            }
+
+            // 📂 categoryId
+            if (categoryId.HasValue && categoryId > 0)
+            {
+                query = query.Where(p =>
+                    p.PostCates.Any(pc => pc.CateId == categoryId.Value)
+                );
+            }
+
+            // 💰 price
+            if (maxPrice.HasValue && maxPrice > 0)
+            {
+                query = query.Where(p => p.Price <= maxPrice.Value);
+            }
+
+            // ⏰ time
+            if (time.HasValue && time > 0)
+            {
+                var fromDate = DateTime.Now.AddDays(-time.Value);
+                query = query.Where(p => p.CreatedAt >= fromDate);
+            }
+
+            var posts = await query
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new PostHomeDto
+                {
+                    PostId = p.PostId,
+                    Title = p.Title,
+                    ShortDescription = p.Description.Length > 120
+                        ? p.Description.Substring(0, 120) + "..."
+                        : p.Description,
+                    Price = p.Price,
+                    Address = p.Address,
+                    CreatedAt = p.CreatedAt,
+                    UserName = p.User.UserName,
+                    Thumbnail = p.PostImages
+                        .Select(i => i.PostImage1)
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            return Ok(posts);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreatePost([FromBody] CreatePostDto dto)
         {
@@ -108,8 +183,8 @@ namespace ChoRe.Controllers
 
                 BrandId = dto.BrandId,
 
-                Status = dto.Status, 
-                PostStatusId = 1,           
+                Status = dto.Status,
+                PostStatusId = 1,
 
                 ViewCount = 0,
                 SavedCount = 0,
