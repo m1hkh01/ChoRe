@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/auth";
-import "./Header.css";
+import "@/assets/Header.css";
 
 function Header() {
     const { user, logout } = useAuthStore();

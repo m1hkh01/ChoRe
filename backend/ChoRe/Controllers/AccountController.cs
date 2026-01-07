@@ -55,6 +55,7 @@ public class AccountController : ControllerBase
         {
             UserId = user.UserId,
             UserName = user.UserName,
+            FullName = user.FullName,
             Avatar = user.Avatar,
             Email = user.Email,
             Role = user.Role.RoleName

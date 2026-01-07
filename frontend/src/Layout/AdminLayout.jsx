@@ -1,21 +1,27 @@
 import { Link, Outlet } from "react-router-dom";
 import "@/assets/admin.css";
+import { useAuthStore } from "../store/auth";
 
 function AdminLayout() {
+    const { user } = useAuthStore();
     return (
         <div className="admin-container">
             {/* SIDEBAR */}
             <aside className="sidebar">
-                <a href="/"><h3 className="sidebar-title">ADMIN PANEL</h3></a>
+                <Link to="/">
+                    <img src="/logo.png" alt="logo" className="sidebar-logo" />
+                </Link>
+                
 
                 {/* ADMIN INFO */}
                 <div className="admin-info">
+                    <h3 className="admin-name">{ user.fullName }</h3>
                     {/* <img
                         src="http://localhost:5121/uploads/default-avatar.png"
                         className="admin-avatar"
                         alt="Admin Avatar"
                     /> */}
-                    <span className="admin-name">Administrator</span>
+                    <span className="admin-role">Administrator</span>
                 </div>
 
                 {/* MENU */}

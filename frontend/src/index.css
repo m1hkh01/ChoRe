@@ -2,6 +2,7 @@
 :root {
   --primary-color: #14532de9;
   --primary-color-hover: #14532d9d;
+  --primary-color-text: White;
   --success: #22c55e;
   --cancel: rgba(223, 15, 15, 0.877);
   --preview: #2196f3;

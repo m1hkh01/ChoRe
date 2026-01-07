@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import api, { API_BASE_URL } from "@/api";
+import api, { API_BASE_URL } from "@/api"; 
+import "@/assets/brand-manager.css";
 
 function BrandManager() {
     const [brands, setBrands] = useState([]);
@@ -13,11 +14,6 @@ function BrandManager() {
     const [logo, setLogo] = useState(null);
     const [error, setError] = useState("");
     const [isEditing, setIsEditing] = useState(false);
-
-    useEffect(() => {
-        loadBrands();
-        loadCategories();
-    }, []);
 
     const loadBrands = async () => {
         try {
@@ -37,6 +33,13 @@ function BrandManager() {
         }
     };
 
+    useEffect(() => {
+        const fetchData = async () => {            
+            await loadBrands();
+            await loadCategories();
+        }
+        fetchData();
+    }, []);
     // ================= CREATE / UPDATE =================
     const submit = async (e) => {
         e.preventDefault();
@@ -126,7 +129,7 @@ function BrandManager() {
     };
 
     return (
-        <div className="container-fluid p-4">
+        <div className="p-4">
             <h3 className="mb-4">Quản lý thương hiệu</h3>
 
             {error && (

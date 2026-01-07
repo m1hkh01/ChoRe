@@ -52,14 +52,13 @@ public class PostService : IPostService
     {
         var posts = await _context.Posts
             .Where(p => p.PostStatusId == 1)
-
             .Include(p => p.User)
                 .ThenInclude(u => u.Role)
-
             .Include(p => p.Brand)
             .Include(p => p.PostCates)
             .Include(p => p.PostImages)
             .Include(p => p.PostSpecifications)
+                .ThenInclude(ps=>ps.Specification)
 
             .Select(p => new PostResponseDto
             {
@@ -82,7 +81,11 @@ public class PostService : IPostService
                 Brand = p.Brand,
                 PostCates = p.PostCates,
                 PostImages = p.PostImages,
-                PostSpecifications = p.PostSpecifications
+                PostSpecificationsDto = p.PostSpecifications.Select(ps => new PostSpecificationDto
+                {
+                    SpecValue = ps.SpecValue,
+                    SpecName = ps.Specification.SpecName
+                }).ToList()
             })
             .ToListAsync();
 

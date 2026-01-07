@@ -7,10 +7,22 @@ import api from "../../api";
 
 function PostManager() {
     const [posts, setPosts] = useState([]);
+    const [postsFilter, setPostsFilter] = useState([]);
     const [selectedPost, setSelectedPost] = useState(null);
     const [rejectReason, setRejectReason] = useState("");
     const [cancelPostId, setCancelPostId] = useState(null);
     const [showRejectReason, setShowRejectReason] = useState(false);
+
+    function debounce(fn, delay = 300) {
+        let timer;
+        return function (...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                fn.apply(this, args);
+            }, delay);
+        };
+    }
+
 
     const formatDate = (dateStr) => {
         if (!dateStr) return "";
@@ -32,6 +44,11 @@ function PostManager() {
             alert("Lỗi khi duyệt bài");
         }
     };
+
+    const searchByUserName = (search) => {
+        setPostsFilter(posts.filter(item=>item.user.userName.includes(search)))
+    }
+    const debounceSearch = debounce(searchByUserName, 500);
 
     // ❌ TỪ CHỐI BÀI
     const rejectPost = async () => {
@@ -59,6 +76,7 @@ function PostManager() {
         async function fetchData() {
             const res = await api.get("/api/admin/posts");
             setPosts(res.data);
+            setPostsFilter(res.data);
         }
         fetchData();
     }, []);
@@ -71,7 +89,15 @@ function PostManager() {
                 </div>
                 <div className="header">
                     <h4>Danh sách bài viết cần duyệt</h4>
-                    <input type="text" placeholder="Tìm kiếm theo tên bài viết ..." />
+                    <div className="d-flex">
+                        {/* <div className="filter">
+                            <button className="btn-filter">Lọc</button>
+                            <div className="filter-box">
+
+                            </div>
+                        </div> */}
+                        <input type="text" placeholder="Tìm kiếm theo tên người dùng ..." onChange={(e)=>debounceSearch(e.target.value)} />
+                    </div>
                 </div>
                 <div className="list-post">
                     {posts.length > 0 ? (
@@ -87,7 +113,7 @@ function PostManager() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {posts.map(post => (
+                                { postsFilter.length > 0 ?  postsFilter.map(post => (
                                     <tr key={post.postId}>
                                         <td>{post.postId}</td>
                                         <td>{post.title}</td>
@@ -109,7 +135,14 @@ function PostManager() {
                                             </button>
                                         </td>
                                     </tr>
-                                ))}
+                                )) : (
+                                        <tr>
+                                            <td colSpan={6}>
+                                                <h4 className="text-center mt-3">Không có bài viết nào phù hợp</h4>
+                                            </td>
+                                        </tr>
+                                    )
+                                }
                             </tbody>
                         </table>
                     ) : (

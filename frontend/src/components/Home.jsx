@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
-import "./Home.css";
+import "@/assets/Home.css";
 
 function Home() {
   const [posts, setPosts] = useState([]);

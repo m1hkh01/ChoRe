@@ -12,7 +12,7 @@ public class PostResponseDto
     public Brand? Brand { get; set; }
     public ICollection<PostCate>? PostCates { get; set; }
     public ICollection<PostImage>? PostImages { get; set; }
-    public ICollection<PostSpecification>? PostSpecifications { get; set; }
+    public ICollection<PostSpecificationDto>? PostSpecificationsDto { get; set; }
 
 
 }

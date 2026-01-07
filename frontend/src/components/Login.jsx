@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api";
 import { useAuthStore } from "../store/auth";
-import "./Auth.css";
+import "@/assets/Auth.css";
 
 export function Login() {
     const { login } = useAuthStore();

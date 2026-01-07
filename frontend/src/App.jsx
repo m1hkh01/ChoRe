@@ -14,7 +14,6 @@ import ProtectedRoute from "./routes/ProtectedRoute"
 import RequireRole from './routes/RequireRole'
 
 import PostManager from './components/AdminComponents/PostManager'
-import PostCensor from './components/CensorComponents/PostCensor'
 
 import BrandManager from './components/AdminComponents/BrandManager.jsx'
 
@@ -36,14 +35,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/admin/brand-manager"
-          element={
-            <RequireRole roles={["Admin"]}>
-              <BrandManager />
-            </RequireRole>
-          }
-        />
       </Route>
 
       {/* ================= ADMIN ================= */}
@@ -55,7 +46,21 @@ function App() {
           </RequireRole>
         }
       >
-        <Route path="post-manager" element={<PostManager />} />
+        <Route path="post-manager"
+          element={
+            <RequireRole roles={["Admin","Censor"]}>
+              <PostManager />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="brand-manager"
+          element={
+            <RequireRole roles={["Admin"]}>
+              <BrandManager />
+            </RequireRole>
+          }
+        />
       </Route>
 
       {/* ================= CENSOR ================= */}
@@ -67,7 +72,7 @@ function App() {
           </RequireRole>
         }
       >
-        <Route path="post-censor" element={<PostCensor />} />
+        <Route path="post-censor" element={<PostManager />} />
       </Route>
 
     </Routes>
