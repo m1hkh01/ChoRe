@@ -5,10 +5,7 @@ import { useNavigate } from "react-router-dom";
 export const API_BASE_URL = "http://localhost:5121";
 
 const api = axios.create({
-    baseURL: "http://localhost:5121/api", // ⭐ THÊM /api
-    headers: {
-        "Content-Type": "application/json"
-    }
+    baseURL: API_BASE_URL 
 });
 
 api.interceptors.request.use(config => {

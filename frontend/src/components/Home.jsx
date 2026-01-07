@@ -10,44 +10,82 @@ function Home() {
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
 
-  // 👉 FILTER (GIỮ NGUYÊN – chỉ sửa đúng tên field)
+  // 👉 THÊM STATE CHO GIÁ TỐI ĐA
+  const [maxPriceInDB, setMaxPriceInDB] = useState(0);
+
+  // 👉 FILTER (Thay maxPrice thành priceRange)
   const [filters, setFilters] = useState({
     keyword: "",
     brandId: null,
     categoryId: null,
-    maxPrice: null,
+    priceRange: [0, 0], // Sẽ được update sau khi load max price
     time: null
   });
 
-  // 👉 LOAD POSTS (KHÔNG ĐỤNG LOGIC CŨ)
+  // 👉 LOAD POSTS
   const loadPosts = () => {
-    api.get("/posts/home", {
+    api.get("/api/posts/home", {
       params: {
         keyword: filters.keyword || null,
         brandId: filters.brandId ? Number(filters.brandId) : null,
         categoryId: filters.categoryId ? Number(filters.categoryId) : null,
-        maxPrice: filters.maxPrice ? Number(filters.maxPrice) : null,
+        minPrice: filters.priceRange[0],
+        maxPrice: filters.priceRange[1],
         time: filters.time ? Number(filters.time) : null
       }
     })
-      .then(res => setPosts(res.data))
+      .then(res => {
+        setPosts(res.data);
+        
+        // 👉 TỰ ĐỘNG TÍNH MAX PRICE TỪ POSTS
+        if (res.data && res.data.length > 0) {
+          const calculatedMax = Math.max(...res.data.map(p => p.price));
+          
+          // Chỉ update maxPriceInDB nếu giá mới cao hơn
+          if (calculatedMax > maxPriceInDB) {
+            setMaxPriceInDB(calculatedMax);
+            
+            // Update filter range nếu đang ở mặc định
+            if (filters.priceRange[1] === maxPriceInDB || filters.priceRange[1] === 0) {
+              setFilters(prev => ({
+                ...prev,
+                priceRange: [prev.priceRange[0], calculatedMax]
+              }));
+            }
+          }
+        }
+      })
       .catch(err => console.error("Lỗi load posts:", err));
   };
 
   // 👉 LOAD DATA BAN ĐẦU (brands, categories)
   useEffect(() => {
-    api.get("/brands").then(res => setBrands(res.data));
-    api.get("/categories").then(res => setCategories(res.data));
-  }, []); // Chỉ chạy 1 lần khi component mount
+    api.get("api/brands").then(res => setBrands(res.data));
+    api.get("api/categories").then(res => setCategories(res.data));
+    
+    // Load posts ban đầu để tính max price
+    loadPosts();
+  }, []);
 
-  // 👉 AUTO-LOAD KHI FILTER THAY ĐỔI (với debounce)
+  // 👉 AUTO-LOAD KHI FILTER THAY ĐỔI (với debounce) - Bỏ qua lần đầu tiên
   useEffect(() => {
+    // Bỏ qua nếu maxPriceInDB chưa được set (tức là lần render đầu tiên)
+    if (maxPriceInDB === 0) return;
+
     const timer = setTimeout(() => {
       loadPosts();
-    }, 500); // Đợi 0.5s sau khi user ngừng thay đổi filter
+    }, 500);
 
-    return () => clearTimeout(timer); // Clear timer cũ khi filter thay đổi
-  }, [filters]); // Chạy mỗi khi filters thay đổi
+    return () => clearTimeout(timer);
+  }, [filters]);
+
+  // 👉 FORMAT TIỀN VN
+  const formatPrice = (price) => {
+    if (price >= 1000000) {
+      return `${(price / 1000000).toFixed(1)} triệu`;
+    }
+    return `${(price / 1000).toFixed(0)}k`;
+  };
 
   return (
     <main className="container my-5">
@@ -67,7 +105,8 @@ function Home() {
         <div className="row justify-content-center">
           <div className="col-lg-8 col-md-10">
 
-            <div className="d-flex gap-2 align-items-center p-2"
+            {/* THANH TÌM KIẾM */}
+            <div className="d-flex gap-2 align-items-center p-2 mb-3"
               style={{
                 border: "2px solid #e0e0e0",
                 borderRadius: "50px",
@@ -90,7 +129,7 @@ function Home() {
                 }}
               />
 
-              {/* FILTER DROPDOWN BUTTON */}
+              {/* FILTER DROPDOWN BUTTON - CHỈ CÒN GIÁ & THỜI GIAN */}
               <div className="dropdown">
                 <button
                   className="btn btn-sm btn-outline-secondary dropdown-toggle border-0"
@@ -107,74 +146,95 @@ function Home() {
                   }}
                 >
                   <span>Lọc</span>
-                  {(filters.brandId || filters.categoryId || filters.maxPrice || filters.time) && (
+                  {(filters.priceRange[0] > 0 || filters.priceRange[1] < maxPriceInDB || 
+                    filters.time) && (
                     <span className="badge bg-success rounded-pill" style={{ fontSize: "10px" }}>
-                      {[filters.brandId, filters.categoryId, filters.maxPrice, filters.time].filter(Boolean).length}
+                      {[
+                        filters.priceRange[0] > 0 || filters.priceRange[1] < maxPriceInDB, 
+                        filters.time
+                      ].filter(Boolean).length}
                     </span>
                   )}
                 </button>
 
-                {/* DROPDOWN MENU */}
-                <div className="dropdown-menu dropdown-menu-end p-3" style={{ minWidth: "300px" }}>
+                {/* DROPDOWN MENU - CHỈ GIÁ & THỜI GIAN */}
+                <div className="dropdown-menu dropdown-menu-end p-3" style={{ minWidth: "320px" }}>
 
-                  {/* CATEGORY */}
+                  {/* PRICE RANGE SLIDER */}
                   <div className="mb-3">
-                    <label className="form-label fw-semibold small text-muted mb-1">📂 Phân loại</label>
-                    <select
-                      className="form-select form-select-sm"
-                      value={filters.categoryId ?? ""}
-                      onChange={e =>
-                        setFilters({ ...filters, categoryId: e.target.value || null })
-                      }
-                    >
-                      <option value="">Tất cả phân loại</option>
-                      {categories.map(c => (
-                        <option key={c.cateId} value={c.cateId}>
-                          {c.cateName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    <label className="form-label fw-semibold small text-muted mb-2">
+                      Khoảng giá
+                    </label>
+                    
+                    {/* Display current range */}
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                      <span className="badge bg-light text-dark">
+                        {formatPrice(filters.priceRange[0])}đ
+                      </span>
+                      <span className="text-muted small">-</span>
+                      <span className="badge bg-light text-dark">
+                        {formatPrice(filters.priceRange[1])}đ
+                      </span>
+                    </div>
 
-                  {/* BRAND */}
-                  <div className="mb-3">
-                    <label className="form-label fw-semibold small text-muted mb-1">🏷️ Hãng</label>
-                    <select
-                      className="form-select form-select-sm"
-                      value={filters.brandId ?? ""}
-                      onChange={e =>
-                        setFilters({ ...filters, brandId: e.target.value || null })
-                      }
-                    >
-                      <option value="">Tất cả hãng</option>
-                      {brands.map(b => (
-                        <option key={b.brandId} value={b.brandId}>
-                          {b.brandName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    {/* Min Price Slider */}
+                    <div className="mb-2">
+                      <label className="form-label small text-muted" style={{ fontSize: "11px" }}>
+                        Từ: {filters.priceRange[0].toLocaleString()}đ
+                      </label>
+                      <input
+                        type="range"
+                        className="form-range"
+                        min="0"
+                        max={maxPriceInDB}
+                        step="100000"
+                        value={filters.priceRange[0]}
+                        onChange={e => {
+                          const newMin = Number(e.target.value);
+                          if (newMin < filters.priceRange[1]) {
+                            setFilters({ 
+                              ...filters, 
+                              priceRange: [newMin, filters.priceRange[1]] 
+                            });
+                          }
+                        }}
+                        style={{
+                          accentColor: "#22c55e"
+                        }}
+                      />
+                    </div>
 
-                  {/* PRICE */}
-                  <div className="mb-3">
-                    <label className="form-label fw-semibold small text-muted mb-1">💰 Giá</label>
-                    <select
-                      className="form-select form-select-sm"
-                      value={filters.maxPrice ?? ""}
-                      onChange={e =>
-                        setFilters({ ...filters, maxPrice: e.target.value || null })
-                      }
-                    >
-                      <option value="">Tất cả mức giá</option>
-                      <option value="5000000">≤ 5 triệu</option>
-                      <option value="10000000">≤ 10 triệu</option>
-                      <option value="20000000">≤ 20 triệu</option>
-                    </select>
+                    {/* Max Price Slider */}
+                    <div>
+                      <label className="form-label small text-muted" style={{ fontSize: "11px" }}>
+                        Đến: {filters.priceRange[1].toLocaleString()}đ
+                      </label>
+                      <input
+                        type="range"
+                        className="form-range"
+                        min="0"
+                        max={maxPriceInDB}
+                        step="100000"
+                        value={filters.priceRange[1]}
+                        onChange={e => {
+                          const newMax = Number(e.target.value);
+                          if (newMax > filters.priceRange[0]) {
+                            setFilters({ 
+                              ...filters, 
+                              priceRange: [filters.priceRange[0], newMax] 
+                            });
+                          }
+                        }}
+                        style={{
+                          accentColor: "#22c55e"
+                        }}
+                      />
+                    </div>
                   </div>
 
                   {/* TIME */}
                   <div className="mb-3">
-                    <label className="form-label fw-semibold small text-muted mb-1">⏰ Thời gian đăng</label>
+                    <label className="form-label fw-semibold small text-muted mb-1">Thời gian đăng</label>
                     <select
                       className="form-select form-select-sm"
                       value={filters.time ?? ""}
@@ -190,14 +250,13 @@ function Home() {
                   </div>
 
                   {/* RESET BUTTON */}
-                  {(filters.brandId || filters.categoryId || filters.maxPrice || filters.time) && (
+                  {(filters.priceRange[0] > 0 || filters.priceRange[1] < maxPriceInDB || 
+                    filters.time) && (
                     <button
                       className="btn btn-sm btn-outline-danger w-100"
                       onClick={() => setFilters({
                         ...filters,
-                        brandId: null,
-                        categoryId: null,
-                        maxPrice: null,
+                        priceRange: [0, maxPriceInDB],
                         time: null
                       })}
                     >
@@ -224,13 +283,196 @@ function Home() {
 
             </div>
 
+            {/* 🏷️ PHÂN LOẠI & HÃNG - GOM CHUNG 1 BOX */}
+            <div className="mb-3">
+              <div 
+                style={{ 
+                  backgroundColor: "#fff",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "12px",
+                  padding: "16px"
+                }}
+              >
+                {/* PHÂN LOẠI */}
+                <div className="mb-3">
+                  <h6 className="fw-semibold mb-2" style={{ fontSize: "13px", color: "#6b7280" }}>Phân loại</h6>
+                  <div 
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fill, minmax(85px, 1fr))",
+                      gap: "8px"
+                    }}
+                  >
+                    {/* TẤT CẢ */}
+                    <div
+                      onClick={() => setFilters({ ...filters, categoryId: null })}
+                      style={{
+                        height: "40px",
+                        border: !filters.categoryId ? "2px solid #22c55e" : "1px solid #e0e0e0",
+                        borderRadius: "8px",
+                        backgroundColor: !filters.categoryId ? "#f0fdf4" : "#fafafa",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        transition: "all 0.2s"
+                      }}
+                      onMouseEnter={e => {
+                        if (!filters.categoryId) return;
+                        e.currentTarget.style.borderColor = "#22c55e";
+                      }}
+                      onMouseLeave={e => {
+                        if (!filters.categoryId) return;
+                        e.currentTarget.style.borderColor = "#e0e0e0";
+                      }}
+                    >
+                      <span style={{ 
+                        fontSize: "13px", 
+                        fontWeight: !filters.categoryId ? "600" : "500",
+                        color: !filters.categoryId ? "#22c55e" : "#6b7280",
+                        textAlign: "center"
+                      }}>
+                        Tất cả
+                      </span>
+                    </div>
+
+                    {/* CATEGORIES */}
+                    {categories.map(c => (
+                      <div
+                        key={c.cateId}
+                        onClick={() => setFilters({ ...filters, categoryId: c.cateId })}
+                        style={{
+                          height: "40px",
+                          border: filters.categoryId == c.cateId ? "2px solid #22c55e" : "1px solid #e0e0e0",
+                          borderRadius: "8px",
+                          backgroundColor: filters.categoryId == c.cateId ? "#f0fdf4" : "#fafafa",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "all 0.2s",
+                          padding: "0 8px"
+                        }}
+                        onMouseEnter={e => {
+                          if (filters.categoryId == c.cateId) return;
+                          e.currentTarget.style.borderColor = "#22c55e";
+                        }}
+                        onMouseLeave={e => {
+                          if (filters.categoryId == c.cateId) return;
+                          e.currentTarget.style.borderColor = "#e0e0e0";
+                        }}
+                      >
+                        <span style={{ 
+                          fontSize: "13px", 
+                          fontWeight: filters.categoryId == c.cateId ? "600" : "500",
+                          color: filters.categoryId == c.cateId ? "#22c55e" : "#6b7280",
+                          textAlign: "center",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis"
+                        }}>
+                          {c.cateName}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* HÃNG */}
+                <div>
+                  <h6 className="fw-semibold mb-2" style={{ fontSize: "13px", color: "#6b7280" }}>Hãng</h6>
+                  <div 
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+                      gap: "10px"
+                    }}
+                  >
+                    {/* TẤT CẢ */}
+                    <div
+                      onClick={() => setFilters({ ...filters, brandId: null })}
+                      style={{
+                        height: "70px",
+                        border: !filters.brandId ? "2px solid #22c55e" : "1px solid #e0e0e0",
+                        borderRadius: "8px",
+                        backgroundColor: !filters.brandId ? "#f0fdf4" : "#fafafa",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        transition: "all 0.2s"
+                      }}
+                      onMouseEnter={e => {
+                        if (!filters.brandId) return;
+                        e.currentTarget.style.borderColor = "#22c55e";
+                      }}
+                      onMouseLeave={e => {
+                        if (!filters.brandId) return;
+                        e.currentTarget.style.borderColor = "#e0e0e0";
+                      }}
+                    >
+                      <span style={{ 
+                        fontSize: "11px", 
+                        fontWeight: !filters.brandId ? "600" : "400",
+                        color: !filters.brandId ? "#22c55e" : "#6b7280"
+                      }}>
+                        Tất cả
+                      </span>
+                    </div>
+
+                    {/* BRANDS - CHỈ LOGO */}
+                    {brands.map(b => (
+                      <div
+                        key={b.brandId}
+                        onClick={() => setFilters({ ...filters, brandId: b.brandId })}
+                        style={{
+                          height: "70px",
+                          border: filters.brandId == b.brandId ? "2px solid #22c55e" : "1px solid #e0e0e0",
+                          borderRadius: "8px",
+                          backgroundColor: filters.brandId == b.brandId ? "#f0fdf4" : "#fafafa",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "all 0.2s",
+                          padding: "8px"
+                        }}
+                        onMouseEnter={e => {
+                          if (filters.brandId == b.brandId) return;
+                          e.currentTarget.style.borderColor = "#22c55e";
+                        }}
+                        onMouseLeave={e => {
+                          if (filters.brandId == b.brandId) return;
+                          e.currentTarget.style.borderColor = "#e0e0e0";
+                        }}
+                      >
+                        {/* CHỈ LOGO - KHÔNG TÊN */}
+                        {b.brandLogo && (
+                          <img 
+                            src={`http://localhost:5121/brands/${b.brandLogo}`}
+                            alt={b.brandName}
+                            style={{
+                              maxWidth: "100%",
+                              maxHeight: "100%",
+                              objectFit: "contain"
+                            }}
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
       {/* POSTS */}
       <section>
-        <h4 className="mb-4 fw-semibold">🔥 Tin đăng mới nhất</h4>
+        <h4 className="mb-4 fw-semibold">Tin đăng mới nhất</h4>
 
         {posts.length === 0 ? (
           <div className="text-center text-muted py-5">
@@ -248,7 +490,7 @@ function Home() {
                     <img
                       src={
                         post.thumbnail
-                          ? `https://localhost:7252/uploads/${post.thumbnail}`
+                          ? `http://localhost:5121/uploads/${post.thumbnail}`
                           : "/no-image.png"
                       }
                       alt={post.title}
