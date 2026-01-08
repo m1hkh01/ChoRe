@@ -14,8 +14,11 @@ import ProtectedRoute from "./routes/ProtectedRoute"
 import RequireRole from './routes/RequireRole'
 
 import PostManager from './components/AdminComponents/PostManager'
-
 import BrandManager from './components/AdminComponents/BrandManager.jsx'
+import CategoryManager from './components/AdminComponents/CategoryManager.jsx'
+import BrandCategoryManager from './components/AdminComponents/BrandCategoryManager.jsx'
+import SpecificationManager from './components/AdminComponents/SpecificationManager.jsx'
+import PostDetail from './components/PostDetail.jsx'
 
 function App() {
   return (
@@ -35,6 +38,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/posts/:id" element={<PostDetail />} />
       </Route>
 
       {/* ================= ADMIN ================= */}
@@ -58,6 +62,30 @@ function App() {
           element={
             <RequireRole roles={["Admin"]}>
               <BrandManager />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="category-manager"
+          element={
+            <RequireRole roles={["Admin"]}>
+              <CategoryManager />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="brand-category-manager"
+          element={
+            <RequireRole roles={["Admin"]}>
+              <BrandCategoryManager />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="specification-manager"
+          element={
+            <RequireRole roles={["Admin"]}>
+              <SpecificationManager />
             </RequireRole>
           }
         />

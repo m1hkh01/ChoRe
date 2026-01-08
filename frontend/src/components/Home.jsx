@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
 import "@/assets/Home.css";
+import PostGrid from "@/components/Post/PostGrid";
 
 function Home() {
   const [posts, setPosts] = useState([]);
@@ -36,15 +37,15 @@ function Home() {
     })
       .then(res => {
         setPosts(res.data);
-        
+
         // 👉 TỰ ĐỘNG TÍNH MAX PRICE TỪ POSTS
         if (res.data && res.data.length > 0) {
           const calculatedMax = Math.max(...res.data.map(p => p.price));
-          
+
           // Chỉ update maxPriceInDB nếu giá mới cao hơn
           if (calculatedMax > maxPriceInDB) {
             setMaxPriceInDB(calculatedMax);
-            
+
             // Update filter range nếu đang ở mặc định
             if (filters.priceRange[1] === maxPriceInDB || filters.priceRange[1] === 0) {
               setFilters(prev => ({
@@ -62,7 +63,7 @@ function Home() {
   useEffect(() => {
     api.get("api/brands").then(res => setBrands(res.data));
     api.get("api/categories").then(res => setCategories(res.data));
-    
+
     // Load posts ban đầu để tính max price
     loadPosts();
   }, []);
@@ -146,15 +147,15 @@ function Home() {
                   }}
                 >
                   <span>Lọc</span>
-                  {(filters.priceRange[0] > 0 || filters.priceRange[1] < maxPriceInDB || 
+                  {(filters.priceRange[0] > 0 || filters.priceRange[1] < maxPriceInDB ||
                     filters.time) && (
-                    <span className="badge bg-success rounded-pill" style={{ fontSize: "10px" }}>
-                      {[
-                        filters.priceRange[0] > 0 || filters.priceRange[1] < maxPriceInDB, 
-                        filters.time
-                      ].filter(Boolean).length}
-                    </span>
-                  )}
+                      <span className="badge bg-success rounded-pill" style={{ fontSize: "10px" }}>
+                        {[
+                          filters.priceRange[0] > 0 || filters.priceRange[1] < maxPriceInDB,
+                          filters.time
+                        ].filter(Boolean).length}
+                      </span>
+                    )}
                 </button>
 
                 {/* DROPDOWN MENU - CHỈ GIÁ & THỜI GIAN */}
@@ -165,7 +166,7 @@ function Home() {
                     <label className="form-label fw-semibold small text-muted mb-2">
                       Khoảng giá
                     </label>
-                    
+
                     {/* Display current range */}
                     <div className="d-flex justify-content-between align-items-center mb-2">
                       <span className="badge bg-light text-dark">
@@ -192,9 +193,9 @@ function Home() {
                         onChange={e => {
                           const newMin = Number(e.target.value);
                           if (newMin < filters.priceRange[1]) {
-                            setFilters({ 
-                              ...filters, 
-                              priceRange: [newMin, filters.priceRange[1]] 
+                            setFilters({
+                              ...filters,
+                              priceRange: [newMin, filters.priceRange[1]]
                             });
                           }
                         }}
@@ -219,9 +220,9 @@ function Home() {
                         onChange={e => {
                           const newMax = Number(e.target.value);
                           if (newMax > filters.priceRange[0]) {
-                            setFilters({ 
-                              ...filters, 
-                              priceRange: [filters.priceRange[0], newMax] 
+                            setFilters({
+                              ...filters,
+                              priceRange: [filters.priceRange[0], newMax]
                             });
                           }
                         }}
@@ -250,19 +251,19 @@ function Home() {
                   </div>
 
                   {/* RESET BUTTON */}
-                  {(filters.priceRange[0] > 0 || filters.priceRange[1] < maxPriceInDB || 
+                  {(filters.priceRange[0] > 0 || filters.priceRange[1] < maxPriceInDB ||
                     filters.time) && (
-                    <button
-                      className="btn btn-sm btn-outline-danger w-100"
-                      onClick={() => setFilters({
-                        ...filters,
-                        priceRange: [0, maxPriceInDB],
-                        time: null
-                      })}
-                    >
-                      ✖ Xóa bộ lọc
-                    </button>
-                  )}
+                      <button
+                        className="btn btn-sm btn-outline-danger w-100"
+                        onClick={() => setFilters({
+                          ...filters,
+                          priceRange: [0, maxPriceInDB],
+                          time: null
+                        })}
+                      >
+                        ✖ Xóa bộ lọc
+                      </button>
+                    )}
 
                 </div>
               </div>
@@ -285,8 +286,8 @@ function Home() {
 
             {/* 🏷️ PHÂN LOẠI & HÃNG - GOM CHUNG 1 BOX */}
             <div className="mb-3">
-              <div 
-                style={{ 
+              <div
+                style={{
                   backgroundColor: "#fff",
                   border: "1px solid #e0e0e0",
                   borderRadius: "12px",
@@ -296,7 +297,7 @@ function Home() {
                 {/* PHÂN LOẠI */}
                 <div className="mb-3">
                   <h6 className="fw-semibold mb-2" style={{ fontSize: "13px", color: "#6b7280" }}>Phân loại</h6>
-                  <div 
+                  <div
                     style={{
                       display: "grid",
                       gridTemplateColumns: "repeat(auto-fill, minmax(85px, 1fr))",
@@ -326,8 +327,8 @@ function Home() {
                         e.currentTarget.style.borderColor = "#e0e0e0";
                       }}
                     >
-                      <span style={{ 
-                        fontSize: "13px", 
+                      <span style={{
+                        fontSize: "13px",
                         fontWeight: !filters.categoryId ? "600" : "500",
                         color: !filters.categoryId ? "#22c55e" : "#6b7280",
                         textAlign: "center"
@@ -362,8 +363,8 @@ function Home() {
                           e.currentTarget.style.borderColor = "#e0e0e0";
                         }}
                       >
-                        <span style={{ 
-                          fontSize: "13px", 
+                        <span style={{
+                          fontSize: "13px",
                           fontWeight: filters.categoryId == c.cateId ? "600" : "500",
                           color: filters.categoryId == c.cateId ? "#22c55e" : "#6b7280",
                           textAlign: "center",
@@ -381,7 +382,7 @@ function Home() {
                 {/* HÃNG */}
                 <div>
                   <h6 className="fw-semibold mb-2" style={{ fontSize: "13px", color: "#6b7280" }}>Hãng</h6>
-                  <div 
+                  <div
                     style={{
                       display: "grid",
                       gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
@@ -411,8 +412,8 @@ function Home() {
                         e.currentTarget.style.borderColor = "#e0e0e0";
                       }}
                     >
-                      <span style={{ 
-                        fontSize: "11px", 
+                      <span style={{
+                        fontSize: "11px",
                         fontWeight: !filters.brandId ? "600" : "400",
                         color: !filters.brandId ? "#22c55e" : "#6b7280"
                       }}>
@@ -448,7 +449,7 @@ function Home() {
                       >
                         {/* CHỈ LOGO - KHÔNG TÊN */}
                         {b.brandLogo && (
-                          <img 
+                          <img
                             src={`http://localhost:5121/brands/${b.brandLogo}`}
                             alt={b.brandName}
                             style={{
@@ -472,7 +473,6 @@ function Home() {
 
       {/* POSTS */}
       <section>
-        <h4 className="mb-4 fw-semibold">Tin đăng mới nhất</h4>
 
         {posts.length === 0 ? (
           <div className="text-center text-muted py-5">
@@ -480,7 +480,12 @@ function Home() {
           </div>
         ) : (
           <div className="row g-4">
-            {posts.map(post => (
+            <section>
+              <h4 className="mb-4 fw-semibold">Tin đăng mới nhất</h4>
+              <PostGrid posts={posts} />
+            </section>
+
+            {/* {posts.map(post => (
               <div
                 key={post.postId}
                 className="col-12 col-sm-6 col-md-4 col-lg-3"
@@ -512,7 +517,7 @@ function Home() {
                   </div>
                 </div>
               </div>
-            ))}
+            ))} */}
           </div>
         )}
       </section>

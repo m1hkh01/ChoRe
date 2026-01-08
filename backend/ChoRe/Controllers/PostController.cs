@@ -20,6 +20,62 @@ namespace ChoRe.Controllers
             _service = service;
         }
 
+        // GET: api/posts/5
+        [AllowAnonymous]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetPostDetail(int id)
+        {
+            var post = await _context.Posts
+                .Include(p => p.Brand)
+                .Include(p => p.PostImages)
+                .Include(p => p.PostCates)
+                .ThenInclude(pc => pc.Category)
+                .Include(p => p.PostSpecifications)
+                    .ThenInclude(ps => ps.Specification)
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.PostId == id);
+
+            if (post == null)
+                return NotFound();
+
+            return Ok(new
+            {
+                post.PostId,
+                post.Title,
+                post.Price,
+                post.Description,
+                post.Address,
+                post.CreatedAt,
+
+                brand = post.Brand == null ? null : new
+                {
+                    post.Brand.BrandId,
+                    post.Brand.BrandName
+                },
+
+                images = post.PostImages.Select(i => i.PostImage1),
+
+                categories = post.PostCates.Select(pc => new
+                {
+                    pc.Category.CateId,
+                    pc.Category.CateName
+                }),
+
+                specifications = post.PostSpecifications.Select(ps => new
+                {
+                    specName = ps.Specification.SpecName,
+                    value = ps.SpecValue
+                }),
+
+                user = new
+                {
+                    post.User.UserId,
+                    post.User.FullName,
+                    post.User.PhoneNumber
+                }
+            });
+        }
+
         [AllowAnonymous]
         [HttpGet("home")]
         public async Task<IActionResult> GetPostsForHome(

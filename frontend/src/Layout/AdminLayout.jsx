@@ -30,10 +30,16 @@ function AdminLayout() {
                         Quản lý bài viết
                     </Link>
                     <Link to="/admin/brand-manager" className="menu-item">
-                        Quản lý thương hiệu
+                        Quản lý hãng
                     </Link>
                     <Link to="/admin/category-manager" className="menu-item">
                         Quản lý phân loại
+                    </Link>
+                    <Link to="/admin/brand-category-manager" className="menu-item">
+                        Quản lý phân loại hãng
+                    </Link>
+                    <Link to="/admin/specification-manager" className="menu-item">
+                        Quản lý cấu hình phân loại
                     </Link>
                 </nav>
             </aside>
