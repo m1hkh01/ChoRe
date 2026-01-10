@@ -79,25 +79,18 @@
   gap: 20px;
 }
 
-.cart-btn {
+.servicePackage-btn {
   position: relative;
   cursor: pointer;
   background: none;
   border: none;
   color: var(--primary-color-text);
-  font-size: 14px;
+  font-size: 18px;
+  text-decoration: none;
+  font-weight: 600;
 }
-
-.cart-btn span {
-  background: #22c55e;
-  color: var(--primary-color-text);
-  font-size: 10px;
-  font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 10px;
-  position: absolute;
-  top: -8px;
-  right: -10px;
+.servicePackage-btn span{
+  color: gold;
 }
 
 .login-btn {

@@ -19,6 +19,8 @@ import CategoryManager from './components/AdminComponents/CategoryManager.jsx'
 import BrandCategoryManager from './components/AdminComponents/BrandCategoryManager.jsx'
 import SpecificationManager from './components/AdminComponents/SpecificationManager.jsx'
 import PostDetail from './components/PostDetail.jsx'
+import ServicePackage from './components/ServicePackage/ServicePackage.jsx'
+import ServicePackageManager from './components/ServicePackage/ServicePackageManager.jsx'
 
 function App() {
   return (
@@ -35,6 +37,22 @@ function App() {
           element={
             <ProtectedRoute>
               <CreatePost />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/service-package"
+          element={
+            <ProtectedRoute>
+              <ServicePackage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/service-package-manager"
+          element={
+            <ProtectedRoute>
+              <ServicePackageManager />
             </ProtectedRoute>
           }
         />

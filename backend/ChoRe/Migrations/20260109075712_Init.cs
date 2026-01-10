@@ -132,10 +132,13 @@ namespace ChoRe.Migrations
                     SubPlanId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     SubPlanName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    SubPlanTitle = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    SubPlanPromo = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     SubPlanPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     DurationDays = table.Column<int>(type: "int", nullable: false),
                     MaxPostPerSub = table.Column<int>(type: "int", nullable: false),
-                    MaxFreePlatformFeePerSub = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    MaxFreePlatformFeePerSub = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    MaxFreePost = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -261,6 +264,8 @@ namespace ChoRe.Migrations
                     PostStatusId = table.Column<int>(type: "int", nullable: false),
                     ApprovedBy = table.Column<int>(type: "int", nullable: true),
                     ApprovedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RejectedBy = table.Column<int>(type: "int", nullable: true),
+                    RejectedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     RejectReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     ViewCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     SavedCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
@@ -291,6 +296,12 @@ namespace ChoRe.Migrations
                     table.ForeignKey(
                         name: "FK_Posts_Users_ApprovedBy",
                         column: x => x.ApprovedBy,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Posts_Users_RejectedBy",
+                        column: x => x.RejectedBy,
                         principalTable: "Users",
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.Restrict);
@@ -333,6 +344,44 @@ namespace ChoRe.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SubscriptionOrders",
+                columns: table => new
+                {
+                    OrderId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OrderCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    SubPlanId = table.Column<int>(type: "int", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    OrdStatusId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PaidAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ExpiredAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SubscriptionOrders", x => x.OrderId);
+                    table.ForeignKey(
+                        name: "FK_SubscriptionOrders_OrderStatuses_OrdStatusId",
+                        column: x => x.OrdStatusId,
+                        principalTable: "OrderStatuses",
+                        principalColumn: "OrdStatusId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_SubscriptionOrders_SubscriptionPlans_SubPlanId",
+                        column: x => x.SubPlanId,
+                        principalTable: "SubscriptionPlans",
+                        principalColumn: "SubPlanId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_SubscriptionOrders_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserSubscriptions",
                 columns: table => new
                 {
@@ -369,7 +418,8 @@ namespace ChoRe.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     RemainingSubFPF = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    RemainingSubPost = table.Column<int>(type: "int", nullable: false)
+                    RemainingSubPost = table.Column<int>(type: "int", nullable: false),
+                    RemainingFreePost = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -778,8 +828,11 @@ namespace ChoRe.Migrations
                 columns: new[] { "OrdStatusId", "Description", "OrdStatusName" },
                 values: new object[,]
                 {
-                    { 1, "", "Pending" },
-                    { 2, "", "Completed" }
+                    { 1, "Chờ thanh toán", "Pending" },
+                    { 2, "Đã thanh toán", "Paid" },
+                    { 3, "Đã huỷ", "Cancelled" },
+                    { 4, "Hết hạn thanh toán", "Expired" },
+                    { 5, "Thanh toán thất bại", "Failed" }
                 });
 
             migrationBuilder.InsertData(
@@ -814,13 +867,13 @@ namespace ChoRe.Migrations
 
             migrationBuilder.InsertData(
                 table: "SubscriptionPlans",
-                columns: new[] { "SubPlanId", "DurationDays", "MaxFreePlatformFeePerSub", "MaxPostPerSub", "SubPlanName", "SubPlanPrice" },
+                columns: new[] { "SubPlanId", "DurationDays", "MaxFreePlatformFeePerSub", "MaxFreePost", "MaxPostPerSub", "SubPlanName", "SubPlanPrice", "SubPlanPromo", "SubPlanTitle" },
                 values: new object[,]
                 {
-                    { 1, 30, 0m, 5, "ChoRe Free", 0m },
-                    { 2, 30, 4m, 10, "ChoRe Vip", 150000m },
-                    { 3, 30, 12m, 30, "ChoRe Premium", 350000m },
-                    { 4, 40, 30m, 100, "ChoRe Bussiness", 1000000m }
+                    { 1, 30, 0m, 2m, 5, "ChoRe Free", 0m, "Tiết kiệm 16% so với giá mua lẻ (*)", "Gói mặc định cho người mới đăng ký" },
+                    { 2, 30, 4m, 5m, 10, "ChoRe Vip", 150000m, "Tiết kiệm 16% so với giá mua lẻ (*)", "Gói VIP cho người dành cho người bán chuyên nghiệp" },
+                    { 3, 30, 12m, 10m, 30, "ChoRe Premium", 350000m, "Tiết kiệm 16% so với giá mua lẻ (*)", "Gói Premium cho người bán có quy mô lớn" },
+                    { 4, 40, 30m, 18m, 100, "ChoRe Bussiness", 1000000m, "Tiết kiệm 16% so với giá mua lẻ (*)", "Gói Bussiness cho người bán là doanh nghiệp" }
                 });
 
             migrationBuilder.InsertData(
@@ -861,8 +914,8 @@ namespace ChoRe.Migrations
 
             migrationBuilder.InsertData(
                 table: "Posts",
-                columns: new[] { "PostId", "Address", "ApprovedAt", "ApprovedBy", "BrandId", "CategoryCateId", "CreatedAt", "Description", "PostStatusId", "Price", "RejectReason", "SavedCount", "Status", "Title", "UserId", "ViewCount" },
-                values: new object[] { 1, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "Máy zin, pin 85%", 2, 10000000m, "", 5, "Đã Active", "IPhone 13 cũ", 3, 20 });
+                columns: new[] { "PostId", "Address", "ApprovedAt", "ApprovedBy", "BrandId", "CategoryCateId", "CreatedAt", "Description", "PostStatusId", "Price", "RejectReason", "RejectedAt", "RejectedBy", "SavedCount", "Status", "Title", "UserId", "ViewCount" },
+                values: new object[] { 1, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "Máy zin, pin 85%", 2, 10000000m, "", null, null, 5, "Đã Active", "IPhone 13 cũ", 3, 20 });
 
             migrationBuilder.InsertData(
                 table: "Ratings",
@@ -871,8 +924,8 @@ namespace ChoRe.Migrations
 
             migrationBuilder.InsertData(
                 table: "UserSubUsages",
-                columns: new[] { "UsuId", "RemainingSubFPF", "RemainingSubPost", "UserId" },
-                values: new object[] { 1, 0m, 4, 3 });
+                columns: new[] { "UsuId", "RemainingFreePost", "RemainingSubFPF", "RemainingSubPost", "UserId" },
+                values: new object[] { 1, 2, 0m, 4, 3 });
 
             migrationBuilder.InsertData(
                 table: "UserSubscriptions",
@@ -1106,6 +1159,11 @@ namespace ChoRe.Migrations
                 column: "Price");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Posts_RejectedBy",
+                table: "Posts",
+                column: "RejectedBy");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Posts_Status_Created",
                 table: "Posts",
                 columns: new[] { "PostStatusId", "CreatedAt" });
@@ -1149,6 +1207,21 @@ namespace ChoRe.Migrations
                 name: "IX_Specifications_CateId",
                 table: "Specifications",
                 column: "CateId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SubscriptionOrders_OrdStatusId",
+                table: "SubscriptionOrders",
+                column: "OrdStatusId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SubscriptionOrders_SubPlanId",
+                table: "SubscriptionOrders",
+                column: "SubPlanId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SubscriptionOrders_UserId",
+                table: "SubscriptionOrders",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",
@@ -1222,6 +1295,9 @@ namespace ChoRe.Migrations
 
             migrationBuilder.DropTable(
                 name: "SavedPosts");
+
+            migrationBuilder.DropTable(
+                name: "SubscriptionOrders");
 
             migrationBuilder.DropTable(
                 name: "UserSubscriptions");

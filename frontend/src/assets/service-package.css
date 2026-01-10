@@ -1,0 +1,218 @@
+.package-container {
+    width: 100%;
+    height: calc(100vh - 75px);
+    background-color: #f0f2f5;
+    padding: 10px;
+}
+
+.package-container h2 {
+    margin-top: 20px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 30px;
+}
+
+.package-container h4 {
+    font-size: 20px;
+    color: #595959;
+}
+
+.package-card-header {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.package-card-header h2 {
+    font-size: 28px;
+    margin-bottom: 0;
+}
+
+.package-card-header span {
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.package-card-body {
+    flex: 8;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    padding: 10px 20px;
+}
+
+.package-card-body .package-card-price {
+    font-size: 18px;
+    color: #595959;
+    margin-bottom: 10px;
+}
+
+.package-card-price strong {
+    font-size: 22px;
+    color: black;
+}
+
+.promo-text {
+    height: 40px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background-color: #e6dfdf;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+}
+
+.package-card-btn {
+    width: 100%;
+    padding: 5px 0;
+    font-size: 18px;
+    font-weight: bold;
+    border: 1px solid #eee;
+    background-color: var(--primary-color);
+    color: var(--primary-color-text);
+    border-radius: 10px;
+}
+
+.package-card-btn.disabled {
+    opacity: 0.6;
+    pointer-events: all;
+}
+
+.package-card-btn:hover:not(.disabled) {
+    opacity: 0.7;
+}
+
+.package-card-summary {
+    width: 100%;
+    padding: 5px;
+    margin-top: 10px;
+}
+
+.package-card-summary .summary-item {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #c7b9b9;
+}
+
+.package-card-summary .summary-item:last-child {
+    border: none;
+}
+
+.summary-item .summary-item-active,
+.summary-item .summary-item-inactive {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    text-align: center;
+    background-color: green;
+    color: var(--primary-color-text);
+}
+
+.summary-item .summary-item-inactive {
+    background-color: red;
+}
+
+.summary-item:has(.summary-item-inactive) {
+    opacity: 0.6;
+}
+
+.summary-item .summary-item-label {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 14px;
+
+}
+
+
+
+
+
+
+.service-swiper {
+    width: 100%;
+    max-width: 1200px;
+    padding: 50px 0;
+    margin-top: 40px;
+}
+
+.service-swiper .swiper-slide {
+    position: relative;
+    /* width: 260px; */
+    /* Nhỏ hơn để bên lộ ít */
+    display: flex;
+    flex-direction: column;
+    height: 410px;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
+    transition: all 0.6s ease;
+    opacity: 0.3;
+    /* Mờ mạnh hơn */
+    transition: all 0.4s ease;
+    margin: 5px;
+    padding: 8px;
+    z-index: 10;
+}
+
+.service-swiper .swiper-slide:not(.swiper-slide-active) {
+    transform: scale(0.8);
+}
+
+.swiper-slide.active {
+    position: relative;
+    border: 3px solid var(--primary-color);
+}
+
+.swiper-slide.active::after {
+    content: "Đang dùng";
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: var(--primary-color);
+    color: var(--primary-color-text);
+    padding: 3px 5px;
+    border-bottom-left-radius: 10px;
+    border-top-right-radius: 20px;
+    z-index: 20;
+
+}
+
+.service-swiper .swiper-slide-active {
+    opacity: 1;
+    transform: scale(1);
+    z-index: 10;
+}
+
+.service-swiper .swiper-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+.svpkgManager-contianer {
+    width: 100%;
+    height: calc(100vh - 75px);
+    background-color: #f0f2f5;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    /* align-items: center; */
+}
+.svpkgManager-contianer .package-manager{
+    width: 900px;
+    height: 400px;
+    background-color: white;
+    border-radius: 10px;
+    margin-top: 40px;
+}

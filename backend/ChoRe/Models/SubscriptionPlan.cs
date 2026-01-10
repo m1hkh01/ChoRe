@@ -11,6 +11,11 @@ namespace ChoRe.Models
         [Required(ErrorMessage = "Tên gói là bắt buộc")]
         [StringLength(100, ErrorMessage = "Tên gói không được vượt quá 100 ký tự")]
         public string SubPlanName { get; set; }
+        [Required(ErrorMessage = "Mô tả gói là bắt buộc")]
+        [StringLength(100, ErrorMessage = "Mô tả gói không được vượt quá 100 ký tự")]
+        public string SubPlanTitle { get; set; }
+        [StringLength(100, ErrorMessage = "Nội dung quảng cáo gói không được vượt quá 100 ký tự")]
+        public string? SubPlanPromo { get; set; }
 
         [Required(ErrorMessage = "Giá gói là bắt buộc")]
         [Range(0, double.MaxValue, ErrorMessage = "Giá phải lớn hơn hoặc bằng 0")]
@@ -25,11 +30,14 @@ namespace ChoRe.Models
         [Range(0, int.MaxValue, ErrorMessage = "Số bài đăng phải lớn hơn hoặc bằng 0")]
         public int MaxPostPerSub { get; set; }
 
-        [Range(0, double.MaxValue, ErrorMessage = "Phí miễn phí tối đa phải lớn hơn hoặc bằng 0")]
+        [Range(0, double.MaxValue, ErrorMessage = "Phí giao dịch trung gian tối đa phải lớn hơn hoặc bằng 0")]
         [Column(TypeName = "decimal(18,2)")]
         public decimal MaxFreePlatformFeePerSub { get; set; }
+        [Range(0, double.MaxValue, ErrorMessage = "Lượt đăng bài miễn phí tối đa phải lớn hơn hoặc bằng 0")]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal MaxFreePost { get; set; }
 
         // Navigation properties
-        public virtual ICollection<UserSubscription> UserSubscriptions { get; set; }
+        public virtual ICollection<UserSubscription>? UserSubscriptions { get; set; }
     }
 }

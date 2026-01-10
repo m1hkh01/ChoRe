@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChoRe.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260101044812_Init")]
+    [Migration("20260109075712_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -611,14 +611,32 @@ namespace ChoRe.Migrations
                         new
                         {
                             OrdStatusId = 1,
-                            Description = "",
+                            Description = "Chờ thanh toán",
                             OrdStatusName = "Pending"
                         },
                         new
                         {
                             OrdStatusId = 2,
-                            Description = "",
-                            OrdStatusName = "Completed"
+                            Description = "Đã thanh toán",
+                            OrdStatusName = "Paid"
+                        },
+                        new
+                        {
+                            OrdStatusId = 3,
+                            Description = "Đã huỷ",
+                            OrdStatusName = "Cancelled"
+                        },
+                        new
+                        {
+                            OrdStatusId = 4,
+                            Description = "Hết hạn thanh toán",
+                            OrdStatusName = "Expired"
+                        },
+                        new
+                        {
+                            OrdStatusId = 5,
+                            Description = "Thanh toán thất bại",
+                            OrdStatusName = "Failed"
                         });
                 });
 
@@ -668,6 +686,12 @@ namespace ChoRe.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<DateTime?>("RejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("RejectedBy")
+                        .HasColumnType("int");
+
                     b.Property<int>("SavedCount")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -708,6 +732,8 @@ namespace ChoRe.Migrations
 
                     b.HasIndex("Price")
                         .HasDatabaseName("IX_Posts_Price");
+
+                    b.HasIndex("RejectedBy");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("IX_Posts_UserId");
@@ -1207,6 +1233,51 @@ namespace ChoRe.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChoRe.Models.SubscriptionOrder", b =>
+                {
+                    b.Property<int>("OrderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpiredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OrdStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OrderCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SubPlanId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("OrderId");
+
+                    b.HasIndex("OrdStatusId");
+
+                    b.HasIndex("SubPlanId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SubscriptionOrders");
+                });
+
             modelBuilder.Entity("ChoRe.Models.SubscriptionPlan", b =>
                 {
                     b.Property<int>("SubPlanId")
@@ -1221,6 +1292,9 @@ namespace ChoRe.Migrations
                     b.Property<decimal>("MaxFreePlatformFeePerSub")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal>("MaxFreePost")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("MaxPostPerSub")
                         .HasColumnType("int");
 
@@ -1233,6 +1307,15 @@ namespace ChoRe.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("SubPlanPromo")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SubPlanTitle")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.HasKey("SubPlanId");
 
                     b.ToTable("SubscriptionPlans");
@@ -1243,36 +1326,48 @@ namespace ChoRe.Migrations
                             SubPlanId = 1,
                             DurationDays = 30,
                             MaxFreePlatformFeePerSub = 0m,
+                            MaxFreePost = 2m,
                             MaxPostPerSub = 5,
                             SubPlanName = "ChoRe Free",
-                            SubPlanPrice = 0m
+                            SubPlanPrice = 0m,
+                            SubPlanPromo = "Tiết kiệm 16% so với giá mua lẻ (*)",
+                            SubPlanTitle = "Gói mặc định cho người mới đăng ký"
                         },
                         new
                         {
                             SubPlanId = 2,
                             DurationDays = 30,
                             MaxFreePlatformFeePerSub = 4m,
+                            MaxFreePost = 5m,
                             MaxPostPerSub = 10,
                             SubPlanName = "ChoRe Vip",
-                            SubPlanPrice = 150000m
+                            SubPlanPrice = 150000m,
+                            SubPlanPromo = "Tiết kiệm 16% so với giá mua lẻ (*)",
+                            SubPlanTitle = "Gói VIP cho người dành cho người bán chuyên nghiệp"
                         },
                         new
                         {
                             SubPlanId = 3,
                             DurationDays = 30,
                             MaxFreePlatformFeePerSub = 12m,
+                            MaxFreePost = 10m,
                             MaxPostPerSub = 30,
                             SubPlanName = "ChoRe Premium",
-                            SubPlanPrice = 350000m
+                            SubPlanPrice = 350000m,
+                            SubPlanPromo = "Tiết kiệm 16% so với giá mua lẻ (*)",
+                            SubPlanTitle = "Gói Premium cho người bán có quy mô lớn"
                         },
                         new
                         {
                             SubPlanId = 4,
                             DurationDays = 40,
                             MaxFreePlatformFeePerSub = 30m,
+                            MaxFreePost = 18m,
                             MaxPostPerSub = 100,
                             SubPlanName = "ChoRe Bussiness",
-                            SubPlanPrice = 1000000m
+                            SubPlanPrice = 1000000m,
+                            SubPlanPromo = "Tiết kiệm 16% so với giá mua lẻ (*)",
+                            SubPlanTitle = "Gói Bussiness cho người bán là doanh nghiệp"
                         });
                 });
 
@@ -1424,6 +1519,9 @@ namespace ChoRe.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UsuId"));
 
+                    b.Property<int>("RemainingFreePost")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("RemainingSubFPF")
                         .HasColumnType("decimal(18,2)");
 
@@ -1443,6 +1541,7 @@ namespace ChoRe.Migrations
                         new
                         {
                             UsuId = 1,
+                            RemainingFreePost = 2,
                             RemainingSubFPF = 0m,
                             RemainingSubPost = 4,
                             UserId = 3
@@ -1714,6 +1813,11 @@ namespace ChoRe.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ChoRe.Models.User", "RejectedByUser")
+                        .WithMany()
+                        .HasForeignKey("RejectedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ChoRe.Models.User", "User")
                         .WithMany("Posts")
                         .HasForeignKey("UserId")
@@ -1725,6 +1829,8 @@ namespace ChoRe.Migrations
                     b.Navigation("Brand");
 
                     b.Navigation("PostStatusNavigation");
+
+                    b.Navigation("RejectedByUser");
 
                     b.Navigation("User");
                 });
@@ -1851,6 +1957,33 @@ namespace ChoRe.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("ChoRe.Models.SubscriptionOrder", b =>
+                {
+                    b.HasOne("ChoRe.Models.OrderStatus", "OrderStatus")
+                        .WithMany()
+                        .HasForeignKey("OrdStatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ChoRe.Models.SubscriptionPlan", "SubscriptionPlan")
+                        .WithMany()
+                        .HasForeignKey("SubPlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ChoRe.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("OrderStatus");
+
+                    b.Navigation("SubscriptionPlan");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ChoRe.Models.User", b =>

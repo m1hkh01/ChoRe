@@ -38,7 +38,7 @@ function Header() {
             {/* LOGO */}
             <Link to="/" className="logo">
                 <div className="logo-text">
-                    Chó<span>Rẻ</span>
+                    Chợ<span>Rẻ</span>
                 </div>
             </Link>
 
@@ -71,9 +71,9 @@ function Header() {
                 )}
 
                 {/* GIỎ HÀNG */}
-                <button className="cart-btn">
-                    Giỏ hàng <span>0</span>
-                </button>
+                <Link to="/service-package" className="servicePackage-btn">
+                    Gói <span>PRO</span>
+                </Link>
 
                 {/* AUTH */}
                 {!user ? (
@@ -98,6 +98,9 @@ function Header() {
                         <div className="dropdown-menu dropdown-menu-end">
                             <Link className="dropdown-item" to="/profile">
                                 Trang cá nhân
+                            </Link>
+                            <Link className="dropdown-item" to="/service-package-manager">
+                                Quản lý Gói
                             </Link>
 
                             {renderDashboardLink()}

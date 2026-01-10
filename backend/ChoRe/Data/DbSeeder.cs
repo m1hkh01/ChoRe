@@ -84,7 +84,7 @@ namespace ChoReDB.Data
 
             // ================= BRAND =================
             modelBuilder.Entity<Brand>().HasData(
-                new Brand { BrandId = 1, BrandName = "Apple" , Description = "", BrandLogo = "apple-logo.jpg"},
+                new Brand { BrandId = 1, BrandName = "Apple", Description = "", BrandLogo = "apple-logo.jpg" },
                 new Brand { BrandId = 2, BrandName = "Samsung", Description = "", BrandLogo = "samsung-logo.jpg" }
             );
 
@@ -301,8 +301,36 @@ namespace ChoReDB.Data
 
             // ================= ORDER =================
             modelBuilder.Entity<OrderStatus>().HasData(
-                new OrderStatus { OrdStatusId = 1, OrdStatusName = "Pending", Description = "" },
-                new OrderStatus { OrdStatusId = 2, OrdStatusName = "Completed", Description = "" }
+                new OrderStatus
+                {
+                    OrdStatusId = 1,
+                    OrdStatusName = "Pending",
+                    Description = "Chờ thanh toán"
+                },
+                new OrderStatus
+                {
+                    OrdStatusId = 2,
+                    OrdStatusName = "Paid",
+                    Description = "Đã thanh toán"
+                },
+                new OrderStatus
+                {
+                    OrdStatusId = 3,
+                    OrdStatusName = "Cancelled",
+                    Description = "Đã huỷ"
+                },
+                new OrderStatus
+                {
+                    OrdStatusId = 4,
+                    OrdStatusName = "Expired",
+                    Description = "Hết hạn thanh toán"
+                },
+                new OrderStatus
+                {
+                    OrdStatusId = 5,
+                    OrdStatusName = "Failed",
+                    Description = "Thanh toán thất bại"
+                }
             );
 
             modelBuilder.Entity<Order>().HasData(
@@ -375,37 +403,49 @@ namespace ChoReDB.Data
                 {
                     SubPlanId = 1,
                     SubPlanName = "ChoRe Free",
+                    SubPlanTitle = "Gói mặc định cho người mới đăng ký",
+                    SubPlanPromo = "Tiết kiệm 16% so với giá mua lẻ (*)",
                     SubPlanPrice = 0,
                     DurationDays = 30,
                     MaxPostPerSub = 5,
-                    MaxFreePlatformFeePerSub = 0
+                    MaxFreePlatformFeePerSub = 0,
+                    MaxFreePost = 2
                 },
                 new SubscriptionPlan
                 {
                     SubPlanId = 2,
                     SubPlanName = "ChoRe Vip",
+                    SubPlanTitle = "Gói VIP cho người dành cho người bán chuyên nghiệp",
+                    SubPlanPromo = "Tiết kiệm 16% so với giá mua lẻ (*)",
                     SubPlanPrice = 150000,
                     DurationDays = 30,
                     MaxPostPerSub = 10,
-                    MaxFreePlatformFeePerSub = 4
+                    MaxFreePlatformFeePerSub = 4,
+                    MaxFreePost = 5
                 },
                 new SubscriptionPlan
                 {
                     SubPlanId = 3,
                     SubPlanName = "ChoRe Premium",
+                    SubPlanTitle = "Gói Premium cho người bán có quy mô lớn",
+                    SubPlanPromo = "Tiết kiệm 16% so với giá mua lẻ (*)",
                     SubPlanPrice = 350000,
                     DurationDays = 30,
                     MaxPostPerSub = 30,
-                    MaxFreePlatformFeePerSub = 12
+                    MaxFreePlatformFeePerSub = 12,
+                    MaxFreePost = 10
                 },
                 new SubscriptionPlan
                 {
                     SubPlanId = 4,
                     SubPlanName = "ChoRe Bussiness",
+                    SubPlanTitle = "Gói Bussiness cho người bán là doanh nghiệp",
+                    SubPlanPromo = "Tiết kiệm 16% so với giá mua lẻ (*)",
                     SubPlanPrice = 1000000,
                     DurationDays = 40,
                     MaxPostPerSub = 100,
-                    MaxFreePlatformFeePerSub = 30
+                    MaxFreePlatformFeePerSub = 30,
+                    MaxFreePost = 18
                 }
             );
 
@@ -428,6 +468,7 @@ namespace ChoReDB.Data
                     UserId = 3,
                     RemainingSubFPF = 0,
                     RemainingSubPost = 4,
+                    RemainingFreePost = 2,
                 }
             );
         }

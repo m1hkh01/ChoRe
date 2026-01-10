@@ -70,7 +70,7 @@ namespace ChoRe.Models
         public virtual ICollection<ChatRoom>? ChatRoomsUser1 { get; set; }
         public virtual ICollection<ChatRoom>? ChatRoomsUser2 { get; set; }
         public virtual ICollection<ChatMessage>? ChatMessages { get; set; }
-        public virtual ICollection<UserSubscription>? UserSubscriptions { get; set; }
-        public virtual ICollection<UserSubUsage>? UserSubUsages { get; set; }
+        public virtual UserSubscription? UserSubscription { get; set; }
+        public virtual UserSubUsage? UserSubUsage { get; set; }
     }
 }

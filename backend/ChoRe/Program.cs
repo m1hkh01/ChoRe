@@ -40,7 +40,10 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<IPackageService, PackageService>();
 builder.Services.AddScoped<HtmlSanitizer>();
+
+builder.Services.AddHostedService<OrderExpireService>();
 
 builder.Services.AddCors(options =>
                         options.AddDefaultPolicy(
@@ -117,6 +120,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 app.Run();
 
 

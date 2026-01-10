@@ -116,6 +116,9 @@ namespace ChoRe.Data
 
         /// <summary>Bảng UserSubUsages - Theo dõi usage còn lại của gói đăng ký</summary>
         public DbSet<UserSubUsage> UserSubUsages { get; set; }
+        /// <summary>Bảng SubscriptionOrder - Các đơn đăng ký gói</summary>
+        public DbSet<SubscriptionOrder> SubscriptionOrders { get; set; }
+
 
         #endregion
 
@@ -333,8 +336,8 @@ namespace ChoRe.Data
             // User -> UserSubscription
             modelBuilder.Entity<UserSubscription>()
                 .HasOne(us => us.User)
-                .WithMany(u => u.UserSubscriptions)
-                .HasForeignKey(us => us.UserId)
+                .WithOne(u => u.UserSubscription)
+                .HasForeignKey<UserSubscription>(us => us.UserId)
                 .OnDelete(DeleteBehavior.Cascade); // Xóa User -> xóa subscription
 
             // SubscriptionPlan -> UserSubscription
@@ -344,12 +347,36 @@ namespace ChoRe.Data
                 .HasForeignKey(us => us.SubPlanId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // --- SUBSCRIPTION ORDER ---
+
+            //SubscriptionOrder -> OrderStatus
+            modelBuilder.Entity<SubscriptionOrder>()
+                .HasOne(o => o.OrderStatus)
+                .WithMany()
+                .HasForeignKey(o => o.OrdStatusId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            //SubscriptionOrder -> User
+            modelBuilder.Entity<SubscriptionOrder>()
+                .HasOne(o => o.User)
+                .WithMany()
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            //SubscriptionOrder -> OrderStatus
+            modelBuilder.Entity<SubscriptionOrder>()
+                .HasOne(o => o.SubscriptionPlan)
+                .WithMany()
+                .HasForeignKey(o => o.SubPlanId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
             // --- USER SUB USAGE ---
             // User -> UserSubUsage
             modelBuilder.Entity<UserSubUsage>()
                 .HasOne(usu => usu.User)
-                .WithMany(u => u.UserSubUsages)
-                .HasForeignKey(usu => usu.UserId)
+                .WithOne(u => u.UserSubUsage)
+                .HasForeignKey<UserSubUsage>(usu => usu.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
 
