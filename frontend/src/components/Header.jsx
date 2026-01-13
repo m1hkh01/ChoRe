@@ -66,7 +66,7 @@ function Header() {
                         to="/post/create"
                         className="login-btn"
                     >
-                        + Đăng tin
+                        Đăng tin
                     </Link>
                 )}
 

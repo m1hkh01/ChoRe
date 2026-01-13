@@ -6,22 +6,98 @@ import PostGrid from "@/components/Post/PostGrid";
 
 function Home() {
   const [posts, setPosts] = useState([]);
-
-  // 👉 THÊM STATE CHO DB
+  const [allPosts, setAllPosts] = useState([]); // 👉 LƯU TẤT CẢ POSTS ĐỂ PHÂN TÍCH
+  const [postCates, setPostCates] = useState([]); // 👉 THÊM STATE CHO POSTCATES
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
-
-  // 👉 THÊM STATE CHO GIÁ TỐI ĐA
   const [maxPriceInDB, setMaxPriceInDB] = useState(0);
 
-  // 👉 FILTER (Thay maxPrice thành priceRange)
   const [filters, setFilters] = useState({
     keyword: "",
     brandId: null,
     categoryId: null,
-    priceRange: [0, 0], // Sẽ được update sau khi load max price
+    priceRange: [0, 0],
     time: null
   });
+
+  // 👉 LẤY POSTS PHÙ HỢP VỚI FILTER HIỆN TẠI (CORE LOGIC)
+  const getFilteredPostsForRelation = () => {
+    let filtered = allPosts;
+
+    const categoryId = filters.categoryId ? Number(filters.categoryId) : null;
+    const brandId = filters.brandId ? Number(filters.brandId) : null;
+
+    if (categoryId) {
+      const postIdsInCategory = postCates
+        .filter(pc => (pc.cateId || pc.CateId) === categoryId)
+        .map(pc => pc.postId || pc.PostId);
+
+      filtered = filtered.filter(p =>
+        postIdsInCategory.includes(p.postId || p.PostId)
+      );
+    }
+
+    if (brandId) {
+      filtered = filtered.filter(
+        p => (p.brandId || p.BrandId) === brandId
+      );
+    }
+
+    return filtered;
+  };
+
+  // 👉 HÀM TÍNH CÁC BRAND KHẢ DỤNG - DỰA TRÊN CATEGORY ĐÃ CHỌN
+  const getAvailableBrands = () => {
+    // ⛔ CHƯA LOAD XONG DATA → KHÔNG DISABLE GÌ HẾT
+    if (!postCates.length || !allPosts.length) {
+      return brands.map(b => ({ ...b, isDisabled: false }));
+    }
+
+    const filteredPosts = getFilteredPostsForRelation();
+
+    const validBrandIds = [...new Set(
+      filteredPosts.map(p => p.brandId || p.BrandId)
+    )];
+
+    return brands.map(brand => {
+      const brandId = brand.brandId || brand.BrandId;
+      return {
+        ...brand,
+        isDisabled:
+          filters.categoryId !== null &&
+          !validBrandIds.includes(brandId)
+      };
+    });
+  };
+
+
+  // 👉 HÀM TÍNH CÁC CATEGORY KHẢ DỤNG - DỰA TRÊN BRAND ĐÃ CHỌN
+ const getAvailableCategories = () => {
+  if (!postCates.length || !allPosts.length) {
+    return categories.map(c => ({ ...c, isDisabled: false }));
+  }
+
+  const filteredPosts = getFilteredPostsForRelation();
+  const validPostIds = filteredPosts.map(p => p.postId || p.PostId);
+
+  const validCategoryIds = [...new Set(
+    postCates
+      .filter(pc =>
+        validPostIds.includes(pc.postId || pc.PostId)
+      )
+      .map(pc => pc.cateId || pc.CateId)
+  )];
+
+  return categories.map(category => {
+    const cateId = category.cateId || category.CateId;
+    return {
+      ...category,
+      isDisabled:
+        filters.brandId !== null &&
+        !validCategoryIds.includes(cateId)
+    };
+  });
+};
 
   // 👉 LOAD POSTS
   const loadPosts = () => {
@@ -38,15 +114,13 @@ function Home() {
       .then(res => {
         setPosts(res.data);
 
-        // 👉 TỰ ĐỘNG TÍNH MAX PRICE TỪ POSTS
+        // TỰ ĐỘNG TÍNH MAX PRICE TỪ POSTS
         if (res.data && res.data.length > 0) {
           const calculatedMax = Math.max(...res.data.map(p => p.price));
 
-          // Chỉ update maxPriceInDB nếu giá mới cao hơn
           if (calculatedMax > maxPriceInDB) {
             setMaxPriceInDB(calculatedMax);
 
-            // Update filter range nếu đang ở mặc định
             if (filters.priceRange[1] === maxPriceInDB || filters.priceRange[1] === 0) {
               setFilters(prev => ({
                 ...prev,
@@ -59,18 +133,32 @@ function Home() {
       .catch(err => console.error("Lỗi load posts:", err));
   };
 
-  // 👉 LOAD DATA BAN ĐẦU (brands, categories)
+  // 👉 LOAD DATA BAN ĐẦU
   useEffect(() => {
     api.get("api/brands").then(res => setBrands(res.data));
     api.get("api/categories").then(res => setCategories(res.data));
+    api.get("api/postcates").then(res => setPostCates(res.data));
 
-    // Load posts ban đầu để tính max price
-    loadPosts();
+    // 👉 LOAD TẤT CẢ POSTS (KHÔNG FILTER) ĐỂ PHÂN TÍCH RELATIONSHIP
+    api.get("/api/posts/all", { params: {} })
+      .then(res => {
+        setAllPosts(res.data);
+        setPosts(res.data);
+
+        if (res.data && res.data.length > 0) {
+          const calculatedMax = Math.max(...res.data.map(p => p.price));
+          setMaxPriceInDB(calculatedMax);
+          setFilters(prev => ({
+            ...prev,
+            priceRange: [0, calculatedMax]
+          }));
+        }
+      })
+      .catch(err => console.error("Lỗi load all posts:", err));
   }, []);
 
-  // 👉 AUTO-LOAD KHI FILTER THAY ĐỔI (với debounce) - Bỏ qua lần đầu tiên
+  // 👉 AUTO-LOAD KHI FILTER THAY ĐỔI
   useEffect(() => {
-    // Bỏ qua nếu maxPriceInDB chưa được set (tức là lần render đầu tiên)
     if (maxPriceInDB === 0) return;
 
     const timer = setTimeout(() => {
@@ -88,6 +176,10 @@ function Home() {
     return `${(price / 1000).toFixed(0)}k`;
   };
 
+  // 👉 LẤY DANH SÁCH ĐÃ LỌC
+  const availableBrands = getAvailableBrands();
+  const availableCategories = getAvailableCategories();
+
   return (
     <main className="container my-5">
 
@@ -96,12 +188,12 @@ function Home() {
         <h2 className="fw-semibold display-6">
           Chào mừng đến với <span style={{ color: "#22c55e" }}>Chợ Rẻ</span>
         </h2>
-        <p className="text-muted mt-2">
+        <p className="text-muted mt-2" style={{ fontWeight: "600" }}>
           Nền tảng mua bán đồ điện tử cũ nhanh chóng – minh bạch – tiết kiệm
         </p>
       </section>
 
-      {/* 🔍 FILTER BAR - Chợ Tốt Style Compact */}
+      {/* 🔍 FILTER BAR */}
       <section className="mb-4">
         <div className="row justify-content-center">
           <div className="col-lg-8 col-md-10">
@@ -116,7 +208,6 @@ function Home() {
               }}
             >
 
-              {/* KEYWORD INPUT */}
               <input
                 className="form-control border-0"
                 placeholder="Tìm sản phẩm..."
@@ -130,7 +221,6 @@ function Home() {
                 }}
               />
 
-              {/* FILTER DROPDOWN BUTTON - CHỈ CÒN GIÁ & THỜI GIAN */}
               <div className="dropdown">
                 <button
                   className="btn btn-sm btn-outline-secondary dropdown-toggle border-0"
@@ -146,7 +236,7 @@ function Home() {
                     gap: "6px"
                   }}
                 >
-                  <span>Lọc</span>
+                  <span style={{ fontWeight: "600" }}>Lọc</span>
                   {(filters.priceRange[0] > 0 || filters.priceRange[1] < maxPriceInDB ||
                     filters.time) && (
                       <span className="badge bg-success rounded-pill" style={{ fontSize: "10px" }}>
@@ -158,16 +248,13 @@ function Home() {
                     )}
                 </button>
 
-                {/* DROPDOWN MENU - CHỈ GIÁ & THỜI GIAN */}
                 <div className="dropdown-menu dropdown-menu-end p-3" style={{ minWidth: "320px" }}>
 
-                  {/* PRICE RANGE SLIDER */}
                   <div className="mb-3">
                     <label className="form-label fw-semibold small text-muted mb-2">
                       Khoảng giá
                     </label>
 
-                    {/* Display current range */}
                     <div className="d-flex justify-content-between align-items-center mb-2">
                       <span className="badge bg-light text-dark">
                         {formatPrice(filters.priceRange[0])}đ
@@ -178,7 +265,6 @@ function Home() {
                       </span>
                     </div>
 
-                    {/* Min Price Slider */}
                     <div className="mb-2">
                       <label className="form-label small text-muted" style={{ fontSize: "11px" }}>
                         Từ: {filters.priceRange[0].toLocaleString()}đ
@@ -199,13 +285,10 @@ function Home() {
                             });
                           }
                         }}
-                        style={{
-                          accentColor: "#22c55e"
-                        }}
+                        style={{ accentColor: "#22c55e" }}
                       />
                     </div>
 
-                    {/* Max Price Slider */}
                     <div>
                       <label className="form-label small text-muted" style={{ fontSize: "11px" }}>
                         Đến: {filters.priceRange[1].toLocaleString()}đ
@@ -226,14 +309,11 @@ function Home() {
                             });
                           }
                         }}
-                        style={{
-                          accentColor: "#22c55e"
-                        }}
+                        style={{ accentColor: "#22c55e" }}
                       />
                     </div>
                   </div>
 
-                  {/* TIME */}
                   <div className="mb-3">
                     <label className="form-label fw-semibold small text-muted mb-1">Thời gian đăng</label>
                     <select
@@ -250,7 +330,6 @@ function Home() {
                     </select>
                   </div>
 
-                  {/* RESET BUTTON */}
                   {(filters.priceRange[0] > 0 || filters.priceRange[1] < maxPriceInDB ||
                     filters.time) && (
                       <button
@@ -268,7 +347,6 @@ function Home() {
                 </div>
               </div>
 
-              {/* SEARCH BUTTON */}
               <button
                 className="btn btn-success btn-sm"
                 style={{
@@ -284,7 +362,7 @@ function Home() {
 
             </div>
 
-            {/* 🏷️ PHÂN LOẠI & HÃNG - GOM CHUNG 1 BOX */}
+            {/* 🏷️ PHÂN LOẠI & HÃNG */}
             <div className="mb-3">
               <div
                 style={{
@@ -296,7 +374,7 @@ function Home() {
               >
                 {/* PHÂN LOẠI */}
                 <div className="mb-3">
-                  <h6 className="fw-semibold mb-2" style={{ fontSize: "13px", color: "#6b7280" }}>Phân loại</h6>
+                  <h6 className="fw-semibold mb-2" style={{ fontWeight: 600, fontSize: "13px", color: "#484141ff" }}>Phân loại</h6>
                   <div
                     style={{
                       display: "grid",
@@ -304,7 +382,7 @@ function Home() {
                       gap: "8px"
                     }}
                   >
-                    {/* TẤT CẢ */}
+                    {/* TẤT CẢ CATEGORY */}
                     <div
                       onClick={() => setFilters({ ...filters, categoryId: null })}
                       style={{
@@ -337,29 +415,35 @@ function Home() {
                       </span>
                     </div>
 
-                    {/* CATEGORIES */}
-                    {categories.map(c => (
+                    {/* CATEGORIES - CHỈ DISABLE NẾU BRAND ĐÃ CHỌN VÀ KHÔNG CÓ SẢN PHẨM */}
+                    {availableCategories.map(c => (
                       <div
                         key={c.cateId}
-                        onClick={() => setFilters({ ...filters, categoryId: c.cateId })}
+                        onClick={() => {
+                          if (!c.isDisabled) {
+                            setFilters({ ...filters, categoryId: c.cateId });
+                          }
+                        }}
                         style={{
                           height: "40px",
                           border: filters.categoryId == c.cateId ? "2px solid #22c55e" : "1px solid #e0e0e0",
                           borderRadius: "8px",
                           backgroundColor: filters.categoryId == c.cateId ? "#f0fdf4" : "#fafafa",
-                          cursor: "pointer",
+                          cursor: c.isDisabled ? "not-allowed" : "pointer",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           transition: "all 0.2s",
-                          padding: "0 8px"
+                          padding: "0 8px",
+                          opacity: c.isDisabled ? 0.4 : 1,
+                          filter: c.isDisabled ? "grayscale(100%)" : "none"
                         }}
                         onMouseEnter={e => {
-                          if (filters.categoryId == c.cateId) return;
+                          if (filters.categoryId == c.cateId || c.isDisabled) return;
                           e.currentTarget.style.borderColor = "#22c55e";
                         }}
                         onMouseLeave={e => {
-                          if (filters.categoryId == c.cateId) return;
+                          if (filters.categoryId == c.cateId || c.isDisabled) return;
                           e.currentTarget.style.borderColor = "#e0e0e0";
                         }}
                       >
@@ -381,7 +465,7 @@ function Home() {
 
                 {/* HÃNG */}
                 <div>
-                  <h6 className="fw-semibold mb-2" style={{ fontSize: "13px", color: "#6b7280" }}>Hãng</h6>
+                  <h6 className="fw-semibold mb-2" style={{ fontWeight: 600, fontSize: "13px", color: "#484141ff" }}>Hãng</h6>
                   <div
                     style={{
                       display: "grid",
@@ -389,7 +473,7 @@ function Home() {
                       gap: "10px"
                     }}
                   >
-                    {/* TẤT CẢ */}
+                    {/* TẤT CẢ BRAND */}
                     <div
                       onClick={() => setFilters({ ...filters, brandId: null })}
                       style={{
@@ -421,33 +505,38 @@ function Home() {
                       </span>
                     </div>
 
-                    {/* BRANDS - CHỈ LOGO */}
-                    {brands.map(b => (
+                    {/* BRANDS - CHỈ DISABLE NẾU CATEGORY ĐÃ CHỌN VÀ KHÔNG CÓ SẢN PHẨM */}
+                    {availableBrands.map(b => (
                       <div
                         key={b.brandId}
-                        onClick={() => setFilters({ ...filters, brandId: b.brandId })}
+                        onClick={() => {
+                          if (!b.isDisabled) {
+                            setFilters({ ...filters, brandId: b.brandId });
+                          }
+                        }}
                         style={{
                           height: "70px",
                           border: filters.brandId == b.brandId ? "2px solid #22c55e" : "1px solid #e0e0e0",
                           borderRadius: "8px",
                           backgroundColor: filters.brandId == b.brandId ? "#f0fdf4" : "#fafafa",
-                          cursor: "pointer",
+                          cursor: b.isDisabled ? "not-allowed" : "pointer",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           transition: "all 0.2s",
-                          padding: "8px"
+                          padding: "8px",
+                          opacity: b.isDisabled ? 0.4 : 1,
+                          filter: b.isDisabled ? "grayscale(100%)" : "none"
                         }}
                         onMouseEnter={e => {
-                          if (filters.brandId == b.brandId) return;
+                          if (filters.brandId == b.brandId || b.isDisabled) return;
                           e.currentTarget.style.borderColor = "#22c55e";
                         }}
                         onMouseLeave={e => {
-                          if (filters.brandId == b.brandId) return;
+                          if (filters.brandId == b.brandId || b.isDisabled) return;
                           e.currentTarget.style.borderColor = "#e0e0e0";
                         }}
                       >
-                        {/* CHỈ LOGO - KHÔNG TÊN */}
                         {b.brandLogo && (
                           <img
                             src={`http://localhost:5121/brands/${b.brandLogo}`}
@@ -473,7 +562,6 @@ function Home() {
 
       {/* POSTS */}
       <section>
-
         {posts.length === 0 ? (
           <div className="text-center text-muted py-5">
             Không tìm thấy sản phẩm nào phù hợp
@@ -484,40 +572,6 @@ function Home() {
               <h4 className="mb-4 fw-semibold">Tin đăng mới nhất</h4>
               <PostGrid posts={posts} />
             </section>
-
-            {/* {posts.map(post => (
-              <div
-                key={post.postId}
-                className="col-12 col-sm-6 col-md-4 col-lg-3"
-              >
-                <div className="post-card h-100">
-                  <div className="post-thumb">
-                    <img
-                      src={
-                        post.thumbnail
-                          ? `http://localhost:5121/uploads/${post.thumbnail}`
-                          : "/no-image.png"
-                      }
-                      alt={post.title}
-                    />
-                  </div>
-
-                  <div className="post-body">
-                    <h6 className="post-title">{post.title}</h6>
-                    <p className="post-desc">{post.shortDescription}</p>
-
-                    <div className="post-meta">
-                      <span className="price">
-                        {post.price.toLocaleString()} ₫
-                      </span>
-                      <span className="address">{post.address}</span>
-                    </div>
-
-                    <div className="post-user">👤 {post.userName}</div>
-                  </div>
-                </div>
-              </div>
-            ))} */}
           </div>
         )}
       </section>

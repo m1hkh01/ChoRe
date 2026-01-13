@@ -339,6 +339,24 @@ namespace ChoRe.Controllers
             return Ok(new { fileName = fileName });
 
         }
+        [AllowAnonymous]
+        [HttpGet("all")]
+        public IActionResult GetAllPosts([FromQuery] int[]? statusIds)
+        {
+            var query = _context.Posts.AsNoTracking();
+
+            if (statusIds != null && statusIds.Length > 0)
+            {
+                query = query.Where(p => statusIds.Contains(p.PostStatusId));
+            }
+
+            return Ok(query.Select(p => new
+            {
+                p.PostId,
+                p.BrandId,
+                p.Price
+            }).ToList());
+        }
 
         //[HttpGet("/admin-posts")]
         //public async Task<IActionResult> GetPostsByAdmin()

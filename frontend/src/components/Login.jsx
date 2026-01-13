@@ -68,7 +68,7 @@ export function Login() {
                         </Link>
                     </div>
 
-                    <button type="submit" className="btn auth-btn w-100">
+                    <button type="submit" className="login-btn w-100"  style={{ border: "none" }}>
                         Đăng nhập
                     </button>
                 </form>

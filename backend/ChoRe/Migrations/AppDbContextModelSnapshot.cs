@@ -1530,7 +1530,8 @@ namespace ChoRe.Migrations
 
                     b.HasKey("UsuId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("UserSubUsages");
 
@@ -1578,6 +1579,7 @@ namespace ChoRe.Migrations
                     b.HasIndex("SubPlanId");
 
                     b.HasIndex("UserId")
+                        .IsUnique()
                         .HasDatabaseName("IX_UserSubscriptions_UserId");
 
                     b.ToTable("UserSubscriptions");
@@ -1997,8 +1999,8 @@ namespace ChoRe.Migrations
             modelBuilder.Entity("ChoRe.Models.UserSubUsage", b =>
                 {
                     b.HasOne("ChoRe.Models.User", "User")
-                        .WithMany("UserSubUsages")
-                        .HasForeignKey("UserId")
+                        .WithOne("UserSubUsage")
+                        .HasForeignKey("ChoRe.Models.UserSubUsage", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2014,8 +2016,8 @@ namespace ChoRe.Migrations
                         .IsRequired();
 
                     b.HasOne("ChoRe.Models.User", "User")
-                        .WithMany("UserSubscriptions")
-                        .HasForeignKey("UserId")
+                        .WithOne("UserSubscription")
+                        .HasForeignKey("ChoRe.Models.UserSubscription", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2150,9 +2152,9 @@ namespace ChoRe.Migrations
 
                     b.Navigation("SavedPosts");
 
-                    b.Navigation("UserSubUsages");
+                    b.Navigation("UserSubUsage");
 
-                    b.Navigation("UserSubscriptions");
+                    b.Navigation("UserSubscription");
                 });
 #pragma warning restore 612, 618
         }

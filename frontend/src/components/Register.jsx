@@ -41,80 +41,94 @@ function Register() {
 
     return (
         <div className="auth-wrapper">
-            <div className="auth-card">
-                <h3 className="auth-title">Đăng ký</h3>
-                <p className="auth-subtitle">
-                    Tạo tài khoản để bắt đầu mua bán
-                </p>
+            <div className="auth-card" style={{ maxWidth: "900px" }}>
+                <div className="text-center mb-4">
+                    <h3 className="auth-title">Đăng ký tài khoản</h3>
+                    <p className="auth-subtitle">
+                        Tạo tài khoản để bắt đầu mua bán
+                    </p>
+                </div>
 
                 <form onSubmit={handleRegister}>
-                    <div className="mb-3">
-                        <label className="form-label">Tên tài khoản</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="mb-3">
-                        <label className="form-label">Họ và tên</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="mb-3">
-                        <label className="form-label">Email</label>
-                        <input
-                            type="email"
-                            className="form-control"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="mb-3">
-                        <label className="form-label">Số điện thoại</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="mb-3">
-                        <label className="form-label">Địa chỉ</label>
-                        <textarea
-                            className="form-control"
-                            rows="2"
-                            value={address}
-                            onChange={(e) => setAddress(e.target.value)}
-                            required
-                        />
-                    </div>
-
+                    {/* Thông tin tài khoản */}
                     <div className="mb-4">
-                        <label className="form-label">Mật khẩu</label>
-                        <input
-                            type="password"
-                            className="form-control"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
+                        <h6 className="mb-3" style={{ color: "#666", fontSize: "14px", fontWeight: "600" }}>
+                            THÔNG TIN TÀI KHOẢN
+                        </h6>
+                        <div className="row g-3">
+                            <div className="col-md-6">
+                                <label className="form-label">Tên tài khoản</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="col-md-6">
+                                <label className="form-label">Mật khẩu</label>
+                                <input
+                                    type="password"
+                                    className="form-control"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="mb-3 text-end">
+                    {/* Thông tin cá nhân */}
+                    <div className="mb-4">
+                        <h6 className="mb-3" style={{ color: "#666", fontSize: "14px", fontWeight: "600" }}>
+                            THÔNG TIN CÁ NHÂN
+                        </h6>
+                        <div className="row g-3">
+                            <div className="col-md-6">
+                                <label className="form-label">Họ và tên</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="col-md-6">
+                                <label className="form-label">Email</label>
+                                <input
+                                    type="email"
+                                    className="form-control"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="col-md-6">
+                                <label className="form-label">Số điện thoại</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="col-md-6">
+                                <label className="form-label">Địa chỉ</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={address}
+                                    onChange={(e) => setAddress(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="d-flex justify-content-between align-items-center mb-3">
                         <Link to="/login" className="auth-link">
                             Đã có tài khoản?
                         </Link>
@@ -122,7 +136,8 @@ function Register() {
 
                     <button
                         type="submit"
-                        className="btn auth-btn w-100"
+                        className="register-btn w-100" 
+                        style={{ border: "none" }}
                         disabled={loading}
                     >
                         {loading ? "Đang đăng ký..." : "Đăng ký"}
