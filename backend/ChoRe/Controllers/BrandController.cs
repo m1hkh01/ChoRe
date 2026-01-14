@@ -17,6 +17,7 @@ namespace ChoRe.Controllers
         {
             _context = context;
         }
+
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -34,6 +35,28 @@ namespace ChoRe.Controllers
 
             return Ok(brands);
         }
+
+        [HttpGet("tree")]
+        public async Task<IActionResult> GetBrandTree()
+        {
+            var brands = await _context.Brands
+                .Where(b => b.ParentBrandId == null)
+                .Include(b => b.SubBrands)
+                .Select(b => new
+                {
+                    b.BrandId,
+                    b.BrandName,
+                    SubBrands = b.SubBrands.Select(sb => new
+                    {
+                        sb.BrandId,
+                        sb.BrandName
+                    })
+                })
+                .ToListAsync();
+
+            return Ok(brands);
+        }
+
     }
 
 }

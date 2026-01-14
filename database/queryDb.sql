@@ -9,8 +9,20 @@ select * from UserSubscriptions
 
 select * from posts
 
-select * from
+select * from postimages
 
-select * from
+select * from comments
+
+select * from Categories
+
+select * from brands
+
+select * from brandcates
+
+select * from Specifications
+
+select * from PostSpecifications
+
+select * from poststatuses
 
 select * from

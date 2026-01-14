@@ -128,20 +128,24 @@ function Register() {
                         </div>
                     </div>
 
-                    <div className="d-flex justify-content-between align-items-center mb-3">
+                    {/* Dòng link bên phải */}
+                    <div className="d-flex justify-content-end mb-3">
                         <Link to="/login" className="auth-link">
                             Đã có tài khoản?
                         </Link>
                     </div>
 
-                    <button
-                        type="submit"
-                        className="register-btn w-100" 
-                        style={{ border: "none" }}
-                        disabled={loading}
-                    >
-                        {loading ? "Đang đăng ký..." : "Đăng ký"}
-                    </button>
+                    {/* Nút đăng ký ở giữa */}
+                    <div className="d-flex justify-content-center">
+                        <button
+                            type="submit"
+                            className="register-btn w-50"
+                            style={{ border: "none" }}
+                            disabled={loading}
+                        >
+                            {loading ? "Đang đăng ký..." : "Đăng ký"}
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

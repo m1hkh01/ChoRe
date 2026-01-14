@@ -77,23 +77,45 @@ namespace ChoReDB.Data
 
             // ================= CATEGORY =================
             modelBuilder.Entity<Category>().HasData(
-                new Category { CateId = 1, CateName = "Điện thoại", Description = "" },
-                new Category { CateId = 2, CateName = "Laptop", Description = "" },
-                new Category { CateId = 3, CateName = "IPhone", Description = "" }
+                new Category { CateId = 1, CateName = "Điện thoại", Description = "", ParentCateId = null },
+                new Category { CateId = 4, CateName = "Điện thoại thường", Description = "", ParentCateId = 1 },
+                new Category { CateId = 5, CateName = "Điện thoại gập", Description = "", ParentCateId = 1 },
+                new Category { CateId = 2, CateName = "Laptop", Description = "", ParentCateId = null },
+                new Category { CateId = 6, CateName = "Laptop mỏng nhẹ", Description = "", ParentCateId = 2 },
+                new Category { CateId = 7, CateName = "Laptop gaming", Description = "", ParentCateId = 2 },
+                new Category { CateId = 3, CateName = "Tai nghe", Description = "", ParentCateId = null },
+                new Category { CateId = 8, CateName = "Tai nghe không dây", Description = "", ParentCateId = 3 },
+                new Category { CateId = 9, CateName = "Tai nghe có dây", Description = "", ParentCateId = 3 }
             );
 
             // ================= BRAND =================
             modelBuilder.Entity<Brand>().HasData(
-                new Brand { BrandId = 1, BrandName = "Apple", Description = "", BrandLogo = "apple-logo.jpg" },
-                new Brand { BrandId = 2, BrandName = "Samsung", Description = "", BrandLogo = "samsung-logo.jpg" }
+                new Brand { BrandId = 1, BrandName = "Apple", Description = "", BrandLogo = "apple-logo.jpg", ParentBrandId = null },
+                new Brand { BrandId = 3, BrandName = "Iphone", Description = "", BrandLogo = "apple-logo.jpg", ParentBrandId = 1 },
+                new Brand { BrandId = 4, BrandName = "Macbook", Description = "", BrandLogo = "apple-logo.jpg", ParentBrandId = 1 },
+                new Brand { BrandId = 5, BrandName = "AirPod", Description = "", BrandLogo = "apple-logo.jpg", ParentBrandId = 1 },
+                new Brand { BrandId = 2, BrandName = "Samsung", Description = "", BrandLogo = "samsung-logo.jpg", ParentBrandId = null },
+                new Brand { BrandId = 6, BrandName = "Galaxy", Description = "", BrandLogo = "samsung-logo.jpg", ParentBrandId = 2 }
             );
 
             modelBuilder.Entity<BrandCate>().HasData(
-                new BrandCate { BrandId = 1, CateId = 1 },
-                new BrandCate { BrandId = 1, CateId = 2 },
-                new BrandCate { BrandId = 1, CateId = 3 },
-                new BrandCate { BrandId = 2, CateId = 1 },
-                new BrandCate { BrandId = 2, CateId = 2 }
+                // ===== APPLE =====
+                new BrandCate { BrandId = 3, CateId = 1 }, // Iphone → Điện thoại
+                new BrandCate { BrandId = 3, CateId = 4 }, // Iphone → Điện thoại thường
+                new BrandCate { BrandId = 3, CateId = 5 }, // Iphone → Điện thoại gập
+
+                new BrandCate { BrandId = 4, CateId = 2 }, // Macbook → Laptop
+                new BrandCate { BrandId = 4, CateId = 6 }, // Macbook → Laptop mỏng nhẹ
+                new BrandCate { BrandId = 4, CateId = 7 }, // Macbook → Laptop gaming
+
+                new BrandCate { BrandId = 5, CateId = 3 }, // AirPod → Tai nghe
+                new BrandCate { BrandId = 5, CateId = 8 }, // AirPod → Tai nghe không dây
+                new BrandCate { BrandId = 5, CateId = 9 }, // AirPod → Tai nghe có dây
+
+                // ===== SAMSUNG =====
+                new BrandCate { BrandId = 6, CateId = 1 }, // Galaxy → Điện thoại
+                new BrandCate { BrandId = 6, CateId = 4 }, // Galaxy → Điện thoại thường
+                new BrandCate { BrandId = 6, CateId = 5 }  // Galaxy → Điện thoại gập
             );
 
             // ================= POST STATUS =================

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ChoRe.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class CreateDb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -21,11 +21,18 @@ namespace ChoRe.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BrandName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    BrandLogo = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
+                    BrandLogo = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    ParentBrandId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Brands", x => x.BrandId);
+                    table.ForeignKey(
+                        name: "FK_Brands_Brands_ParentBrandId",
+                        column: x => x.ParentBrandId,
+                        principalTable: "Brands",
+                        principalColumn: "BrandId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -35,11 +42,18 @@ namespace ChoRe.Migrations
                     CateId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CateName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false)
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    ParentCateId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.CateId);
+                    table.ForeignKey(
+                        name: "FK_Categories_Categories_ParentCateId",
+                        column: x => x.ParentCateId,
+                        principalTable: "Categories",
+                        principalColumn: "CateId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -788,21 +802,21 @@ namespace ChoRe.Migrations
 
             migrationBuilder.InsertData(
                 table: "Brands",
-                columns: new[] { "BrandId", "BrandLogo", "BrandName", "Description" },
+                columns: new[] { "BrandId", "BrandLogo", "BrandName", "Description", "ParentBrandId" },
                 values: new object[,]
                 {
-                    { 1, "apple-logo.jpg", "Apple", "" },
-                    { 2, "samsung-logo.jpg", "Samsung", "" }
+                    { 1, "apple-logo.jpg", "Apple", "", null },
+                    { 2, "samsung-logo.jpg", "Samsung", "", null }
                 });
 
             migrationBuilder.InsertData(
                 table: "Categories",
-                columns: new[] { "CateId", "CateName", "Description" },
+                columns: new[] { "CateId", "CateName", "Description", "ParentCateId" },
                 values: new object[,]
                 {
-                    { 1, "Điện thoại", "" },
-                    { 2, "Laptop", "" },
-                    { 3, "IPhone", "" }
+                    { 1, "Điện thoại", "", null },
+                    { 2, "Laptop", "", null },
+                    { 3, "Tai nghe", "", null }
                 });
 
             migrationBuilder.InsertData(
@@ -877,15 +891,27 @@ namespace ChoRe.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "BrandCates",
-                columns: new[] { "BrandId", "CateId" },
+                table: "Brands",
+                columns: new[] { "BrandId", "BrandLogo", "BrandName", "Description", "ParentBrandId" },
                 values: new object[,]
                 {
-                    { 1, 1 },
-                    { 1, 2 },
-                    { 1, 3 },
-                    { 2, 1 },
-                    { 2, 2 }
+                    { 3, "apple-logo.jpg", "Iphone", "", 1 },
+                    { 4, "apple-logo.jpg", "Macbook", "", 1 },
+                    { 5, "apple-logo.jpg", "AirPod", "", 1 },
+                    { 6, "samsung-logo.jpg", "Galaxy", "", 2 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Categories",
+                columns: new[] { "CateId", "CateName", "Description", "ParentCateId" },
+                values: new object[,]
+                {
+                    { 4, "Điện thoại thường", "", 1 },
+                    { 5, "Điện thoại gập", "", 1 },
+                    { 6, "Laptop mỏng nhẹ", "", 2 },
+                    { 7, "Laptop gaming", "", 2 },
+                    { 8, "Tai nghe không dây", "", 3 },
+                    { 9, "Tai nghe có dây", "", 3 }
                 });
 
             migrationBuilder.InsertData(
@@ -910,6 +936,25 @@ namespace ChoRe.Migrations
                     { 1, "Thành phố Hồ Chí Minh", "avt-adminKhoi.jpg", "cccd-back.jpg", "cccd-front.jpg", "123123123123", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@gmail.com", "Nguyễn Admin", false, "", "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==", "0123123123", 1, "adminKhoi" },
                     { 2, "Đồng Nai", "avt-censorKhoi.jpg", "cccd-back.jpg", "cccd-front.jpg", "123123123123", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "user@gmail.com", "Nguyễn Censor", false, "", "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==", "0123123123", 2, "CensorKhoi" },
                     { 3, "Biên Hòa", "avt-userKhoi.jpg", "cccd-back.jpg", "cccd-front.jpg", "123123123123", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "user1@gmail.com", "Nguyễn User", false, "", "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==", "0123123123", 3, "userKhoi" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "BrandCates",
+                columns: new[] { "BrandId", "CateId" },
+                values: new object[,]
+                {
+                    { 3, 1 },
+                    { 3, 4 },
+                    { 3, 5 },
+                    { 4, 2 },
+                    { 4, 6 },
+                    { 4, 7 },
+                    { 5, 3 },
+                    { 5, 8 },
+                    { 5, 9 },
+                    { 6, 1 },
+                    { 6, 4 },
+                    { 6, 5 }
                 });
 
             migrationBuilder.InsertData(
@@ -1000,6 +1045,16 @@ namespace ChoRe.Migrations
                 name: "IX_BrandCates_CateId",
                 table: "BrandCates",
                 column: "CateId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Brands_ParentBrandId",
+                table: "Brands",
+                column: "ParentBrandId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Categories_ParentCateId",
+                table: "Categories",
+                column: "ParentCateId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ChatMessages_ChatRoomId",
@@ -1252,12 +1307,14 @@ namespace ChoRe.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_UserSubscriptions_UserId",
                 table: "UserSubscriptions",
-                column: "UserId");
+                column: "UserId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserSubUsages_UserId",
                 table: "UserSubUsages",
-                column: "UserId");
+                column: "UserId",
+                unique: true);
         }
 
         /// <inheritdoc />

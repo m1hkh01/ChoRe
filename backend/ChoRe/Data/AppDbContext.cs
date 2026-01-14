@@ -207,6 +207,20 @@ namespace ChoRe.Data
                 .HasIndex(p => p.BrandId)
                 .HasDatabaseName("IX_Posts_BrandId");
 
+            // Brand self-referencing relationship
+            modelBuilder.Entity<Brand>()
+                .HasOne(b => b.ParentBrand)
+                .WithMany(b => b.SubBrands)
+                .HasForeignKey(b => b.ParentBrandId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete
+
+            // Category self-referencing relationship
+            modelBuilder.Entity<Category>()
+                .HasOne(c => c.ParentCategory)
+                .WithMany(c => c.SubCategories)
+                .HasForeignKey(c => c.ParentCateId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete
+
             // Composite index cho query phức tạp: Status + CreatedAt
             // VD: Lấy tất cả bài Approved, sắp xếp theo ngày mới nhất
             modelBuilder.Entity<Post>()

@@ -35,6 +35,33 @@ namespace ChoRe.Controllers
 
             return Ok(cates);
         }
+
+        [HttpGet("tree/by-brand/{brandId}")]
+        public async Task<IActionResult> GetCategoryTreeByBrand(int brandId)
+        {
+            var cates = await _context.Categories
+                .Where(c =>
+                    c.ParentCateId == null &&
+                    c.BrandCates.Any(bc => bc.BrandId == brandId)
+                )
+                .Include(c => c.SubCategories)
+                .Select(c => new
+                {
+                    c.CateId,
+                    c.CateName,
+                    SubCategories = c.SubCategories
+                        .Where(sc => sc.BrandCates.Any(bc => bc.BrandId == brandId))
+                        .Select(sc => new
+                        {
+                            sc.CateId,
+                            sc.CateName
+                        })
+                })
+                .ToListAsync();
+
+            return Ok(cates);
+        }
+
     }
 
 }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChoRe.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260109075712_Init")]
-    partial class Init
+    [Migration("20260114041404_CreateDb")]
+    partial class CreateDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,7 +48,12 @@ namespace ChoRe.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<int?>("ParentBrandId")
+                        .HasColumnType("int");
+
                     b.HasKey("BrandId");
+
+                    b.HasIndex("ParentBrandId");
 
                     b.ToTable("Brands");
 
@@ -62,10 +67,42 @@ namespace ChoRe.Migrations
                         },
                         new
                         {
+                            BrandId = 3,
+                            BrandLogo = "apple-logo.jpg",
+                            BrandName = "Iphone",
+                            Description = "",
+                            ParentBrandId = 1
+                        },
+                        new
+                        {
+                            BrandId = 4,
+                            BrandLogo = "apple-logo.jpg",
+                            BrandName = "Macbook",
+                            Description = "",
+                            ParentBrandId = 1
+                        },
+                        new
+                        {
+                            BrandId = 5,
+                            BrandLogo = "apple-logo.jpg",
+                            BrandName = "AirPod",
+                            Description = "",
+                            ParentBrandId = 1
+                        },
+                        new
+                        {
                             BrandId = 2,
                             BrandLogo = "samsung-logo.jpg",
                             BrandName = "Samsung",
                             Description = ""
+                        },
+                        new
+                        {
+                            BrandId = 6,
+                            BrandLogo = "samsung-logo.jpg",
+                            BrandName = "Galaxy",
+                            Description = "",
+                            ParentBrandId = 2
                         });
                 });
 
@@ -88,28 +125,63 @@ namespace ChoRe.Migrations
                     b.HasData(
                         new
                         {
-                            BrandId = 1,
+                            BrandId = 3,
                             CateId = 1
                         },
                         new
                         {
-                            BrandId = 1,
+                            BrandId = 3,
+                            CateId = 4
+                        },
+                        new
+                        {
+                            BrandId = 3,
+                            CateId = 5
+                        },
+                        new
+                        {
+                            BrandId = 4,
                             CateId = 2
                         },
                         new
                         {
-                            BrandId = 1,
+                            BrandId = 4,
+                            CateId = 6
+                        },
+                        new
+                        {
+                            BrandId = 4,
+                            CateId = 7
+                        },
+                        new
+                        {
+                            BrandId = 5,
                             CateId = 3
                         },
                         new
                         {
-                            BrandId = 2,
+                            BrandId = 5,
+                            CateId = 8
+                        },
+                        new
+                        {
+                            BrandId = 5,
+                            CateId = 9
+                        },
+                        new
+                        {
+                            BrandId = 6,
                             CateId = 1
                         },
                         new
                         {
-                            BrandId = 2,
-                            CateId = 2
+                            BrandId = 6,
+                            CateId = 4
+                        },
+                        new
+                        {
+                            BrandId = 6,
+                            CateId = 5
                         });
                 });
 
@@ -131,7 +203,12 @@ namespace ChoRe.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<int?>("ParentCateId")
+                        .HasColumnType("int");
+
                     b.HasKey("CateId");
+
+                    b.HasIndex("ParentCateId");
 
                     b.ToTable("Categories");
 
@@ -144,15 +221,57 @@ namespace ChoRe.Migrations
                         },
                         new
                         {
+                            CateId = 4,
+                            CateName = "Điện thoại thường",
+                            Description = "",
+                            ParentCateId = 1
+                        },
+                        new
+                        {
+                            CateId = 5,
+                            CateName = "Điện thoại gập",
+                            Description = "",
+                            ParentCateId = 1
+                        },
+                        new
+                        {
                             CateId = 2,
                             CateName = "Laptop",
                             Description = ""
                         },
                         new
                         {
+                            CateId = 6,
+                            CateName = "Laptop mỏng nhẹ",
+                            Description = "",
+                            ParentCateId = 2
+                        },
+                        new
+                        {
+                            CateId = 7,
+                            CateName = "Laptop gaming",
+                            Description = "",
+                            ParentCateId = 2
+                        },
+                        new
+                        {
                             CateId = 3,
-                            CateName = "IPhone",
+                            CateName = "Tai nghe",
                             Description = ""
+                        },
+                        new
+                        {
+                            CateId = 8,
+                            CateName = "Tai nghe không dây",
+                            Description = "",
+                            ParentCateId = 3
+                        },
+                        new
+                        {
+                            CateId = 9,
+                            CateName = "Tai nghe có dây",
+                            Description = "",
+                            ParentCateId = 3
                         });
                 });
 
@@ -1533,7 +1652,8 @@ namespace ChoRe.Migrations
 
                     b.HasKey("UsuId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("UserSubUsages");
 
@@ -1581,6 +1701,7 @@ namespace ChoRe.Migrations
                     b.HasIndex("SubPlanId");
 
                     b.HasIndex("UserId")
+                        .IsUnique()
                         .HasDatabaseName("IX_UserSubscriptions_UserId");
 
                     b.ToTable("UserSubscriptions");
@@ -1595,6 +1716,16 @@ namespace ChoRe.Migrations
                             SubPlanId = 1,
                             UserId = 3
                         });
+                });
+
+            modelBuilder.Entity("ChoRe.Models.Brand", b =>
+                {
+                    b.HasOne("ChoRe.Models.Brand", "ParentBrand")
+                        .WithMany("SubBrands")
+                        .HasForeignKey("ParentBrandId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ParentBrand");
                 });
 
             modelBuilder.Entity("ChoRe.Models.BrandCate", b =>
@@ -1614,6 +1745,16 @@ namespace ChoRe.Migrations
                     b.Navigation("Brand");
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("ChoRe.Models.Category", b =>
+                {
+                    b.HasOne("ChoRe.Models.Category", "ParentCategory")
+                        .WithMany("SubCategories")
+                        .HasForeignKey("ParentCateId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ParentCategory");
                 });
 
             modelBuilder.Entity("ChoRe.Models.ChatMessage", b =>
@@ -2000,8 +2141,8 @@ namespace ChoRe.Migrations
             modelBuilder.Entity("ChoRe.Models.UserSubUsage", b =>
                 {
                     b.HasOne("ChoRe.Models.User", "User")
-                        .WithMany("UserSubUsages")
-                        .HasForeignKey("UserId")
+                        .WithOne("UserSubUsage")
+                        .HasForeignKey("ChoRe.Models.UserSubUsage", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2017,8 +2158,8 @@ namespace ChoRe.Migrations
                         .IsRequired();
 
                     b.HasOne("ChoRe.Models.User", "User")
-                        .WithMany("UserSubscriptions")
-                        .HasForeignKey("UserId")
+                        .WithOne("UserSubscription")
+                        .HasForeignKey("ChoRe.Models.UserSubscription", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2032,6 +2173,8 @@ namespace ChoRe.Migrations
                     b.Navigation("BrandCates");
 
                     b.Navigation("Posts");
+
+                    b.Navigation("SubBrands");
                 });
 
             modelBuilder.Entity("ChoRe.Models.Category", b =>
@@ -2043,6 +2186,8 @@ namespace ChoRe.Migrations
                     b.Navigation("Posts");
 
                     b.Navigation("Specifications");
+
+                    b.Navigation("SubCategories");
                 });
 
             modelBuilder.Entity("ChoRe.Models.ChatMessage", b =>
@@ -2153,9 +2298,9 @@ namespace ChoRe.Migrations
 
                     b.Navigation("SavedPosts");
 
-                    b.Navigation("UserSubUsages");
+                    b.Navigation("UserSubUsage");
 
-                    b.Navigation("UserSubscriptions");
+                    b.Navigation("UserSubscription");
                 });
 #pragma warning restore 612, 618
         }
