@@ -37,8 +37,12 @@ function Header() {
         <header className="site-header">
             {/* LOGO */}
             <Link to="/" className="logo">
-                <div className="logo-text">
-                    Chợ<span>Rẻ</span>
+                <div className="logo-wrapper">
+                    <img 
+                        src="/src/Images/logo1.png" 
+                        alt="ChoRẻ Logo" 
+                        className="logo-img"
+                    />
                 </div>
             </Link>
 
@@ -50,16 +54,13 @@ function Header() {
                 <Link to="#">Khuyến mãi</Link>
             </nav>
 
-            {/* SEARCH */}
-            <div className="search-bar">
-                <input
-                    type="text"
-                    placeholder="Tìm đồ công nghệ giá hời..."
-                />
-            </div>
-
             {/* ACTIONS */}
             <div className="actions">
+                {/* GIỎ HÀNG */}
+                <Link to="/service-package" className="servicePackage-btn">
+                    Gói <span>PRO</span>
+                </Link>
+
                 {/* USER ĐƯỢC ĐĂNG TIN */}
                 {user && user.role === "User" && (
                     <Link
@@ -69,11 +70,6 @@ function Header() {
                         Đăng tin
                     </Link>
                 )}
-
-                {/* GIỎ HÀNG */}
-                <Link to="/service-package" className="servicePackage-btn">
-                    Gói <span>PRO</span>
-                </Link>
 
                 {/* AUTH */}
                 {!user ? (

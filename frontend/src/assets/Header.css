@@ -1,41 +1,70 @@
 .site-header {
-  background-color: var(--primary-color);
-  height: 72px;
+  background: var(--primary-color);
   display: flex;
   align-items: center;
   padding: 0 5%;
-  position: sticky;
+  height: 60px;
   top: 0;
   z-index: 100;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(34, 197, 94, 0.25);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  /* position: sticky; */
 }
 
 /* LOGO */
 .logo {
   text-decoration: none;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
-.logo-text {
+.logo-wrapper {
+  height: 45px;
+  width: auto;
+  min-width: 100px;
+  background-color: #F4F4F4;
+  padding: 6px 6px;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-img {
+  height: 100px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* .logo-text {
   font-size: 24px;
-  font-weight: 700;
-  color: white;
-  letter-spacing: -0.5px;
-}
-
-.logo-text span {
   color: #22c55e;
-}
+  letter-spacing: -0.5px;
+  background-color: #F4F4F4;
+  padding: 0px 13px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-decoration: none;
+} */
+
+/* .logo-text span {
+  color: #22c55e;
+} */
 
 /* NAV */
 .main-nav {
-  margin-left: 50px;
   display: flex;
-  gap: 24px;
+  justify-content: center;
+  align-items: center;
+  padding-left: 140px;
+  flex: 1;
+  opacity: 0.5;
 }
 
 .main-nav a {
-  color: var(--primary-color-text);
+  color: whitesmoke;
   text-decoration: none;
   font-size: 15px;
   font-weight: 500;
@@ -75,8 +104,8 @@
 /* ACTIONS */
 .actions {
   display: flex;
-  align-items: center;
-  gap: 20px;
+  align-items: center;                                                            
+  gap: 10px;
 }
 
 .servicePackage-btn {
@@ -84,10 +113,11 @@
   cursor: pointer;
   background: none;
   border: none;
-  color: var(--primary-color-text);
+  color: #ffffff;
   font-size: 18px;
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 600;;
+  border-radius: 15px;
 }
 .servicePackage-btn span{
   color: gold;
@@ -97,7 +127,7 @@
   background: #22c55e;
   color: #0f172a;
   padding: 8px 20px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
   text-decoration: none;
   font-size: 14px;
@@ -108,7 +138,7 @@
   background: #22c55e;
   color: #0f172a;
   padding: 8px 20px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
   text-decoration: none;
   font-size: 14px;
@@ -124,5 +154,6 @@
 }
 .auth-buttons {
   display: flex;
+  border-radius: 20px;
   gap: 8px; /* khoảng cách nhỏ giữa 2 nút */
 }
