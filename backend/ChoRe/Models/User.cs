@@ -38,14 +38,14 @@ namespace ChoRe.Models
         [ForeignKey("Role")]
         public int RoleId { get; set; }
 
-        //[StringLength(12, ErrorMessage = "Số CMND/CCCD không hợp lệ")]
-        //public string? CitizenIdNumber { get; set; }
+        // [StringLength(12, ErrorMessage = "Số CMND/CCCD không hợp lệ")]
+        // public string? CitizenIdNumber { get; set; }
 
-        //[StringLength(255)]
-        //public string? CitizenIdFrontImage { get; set; }
+        // [StringLength(255)]
+        // public string? CitizenIdFrontImage { get; set; }
 
-        //[StringLength(255)]
-        //public string? CitizenIdBackImage { get; set; }
+        // [StringLength(255)]
+        // public string? CitizenIdBackImage { get; set; }
 
         public DateTime CreateAt { get; set; } = DateTime.Now;
 
@@ -72,5 +72,6 @@ namespace ChoRe.Models
         public virtual ICollection<ChatMessage>? ChatMessages { get; set; }
         public virtual UserSubscription? UserSubscription { get; set; }
         public virtual UserSubUsage? UserSubUsage { get; set; }
+        public virtual ICollection<Review>? Reviews { get; set; }
     }
 }

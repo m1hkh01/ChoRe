@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChoRe.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260119025020_RmvCitizenId")]
-    partial class RmvCitizenId
+    [Migration("20260119145503_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1697,6 +1697,105 @@ namespace ChoRe.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ReportReview", b =>
+                {
+                    b.Property<int>("ReportReviewId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportReviewId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ReporterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReviewId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ReportReviewId");
+
+                    b.HasIndex("ReporterId");
+
+                    b.HasIndex("ReviewId", "ReporterId")
+                        .IsUnique();
+
+                    b.ToTable("ReportReviews");
+                });
+
+            modelBuilder.Entity("Review", b =>
+                {
+                    b.Property<int>("ReviewId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReviewId"));
+
+                    b.Property<int>("ChatRoomId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReviewerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SellerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ReviewId");
+
+                    b.HasIndex("ChatRoomId")
+                        .IsUnique();
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("ReviewerId");
+
+                    b.HasIndex("SellerId");
+
+                    b.ToTable("Reviews");
+                });
+
+            modelBuilder.Entity("ReviewImage", b =>
+                {
+                    b.Property<int>("ReviewImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReviewImageId"));
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("ReviewId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ReviewImageId");
+
+                    b.HasIndex("ReviewId");
+
+                    b.ToTable("ReviewImages");
+                });
+
             modelBuilder.Entity("ChoRe.Models.Brand", b =>
                 {
                     b.HasOne("ChoRe.Models.Brand", "ParentBrand")
@@ -2147,6 +2246,70 @@ namespace ChoRe.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ReportReview", b =>
+                {
+                    b.HasOne("ChoRe.Models.User", "Reporter")
+                        .WithMany()
+                        .HasForeignKey("ReporterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Review", "Review")
+                        .WithMany()
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reporter");
+
+                    b.Navigation("Review");
+                });
+
+            modelBuilder.Entity("Review", b =>
+                {
+                    b.HasOne("ChoRe.Models.ChatRoom", "ChatRoom")
+                        .WithMany()
+                        .HasForeignKey("ChatRoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ChoRe.Models.Post", "Post")
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ChoRe.Models.User", "Reviewer")
+                        .WithMany("Reviews")
+                        .HasForeignKey("ReviewerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ChoRe.Models.User", "Seller")
+                        .WithMany()
+                        .HasForeignKey("SellerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ChatRoom");
+
+                    b.Navigation("Post");
+
+                    b.Navigation("Reviewer");
+
+                    b.Navigation("Seller");
+                });
+
+            modelBuilder.Entity("ReviewImage", b =>
+                {
+                    b.HasOne("Review", "Review")
+                        .WithMany("ReviewImages")
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Review");
+                });
+
             modelBuilder.Entity("ChoRe.Models.Brand", b =>
                 {
                     b.Navigation("BrandCates");
@@ -2275,11 +2438,18 @@ namespace ChoRe.Migrations
 
                     b.Navigation("ReportedPost");
 
+                    b.Navigation("Reviews");
+
                     b.Navigation("SavedPosts");
 
                     b.Navigation("UserSubUsage");
 
                     b.Navigation("UserSubscription");
+                });
+
+            modelBuilder.Entity("Review", b =>
+                {
+                    b.Navigation("ReviewImages");
                 });
 #pragma warning restore 612, 618
         }

@@ -4,6 +4,7 @@ import { faCheck, faX, faEye } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
 import PostPreviewModal from "./PostPreviewModal";
 import api from "../../api";
+import { useAuthStore } from "../../store/auth";
 
 function PostManager() {
     const [posts, setPosts] = useState([]);
@@ -12,6 +13,8 @@ function PostManager() {
     const [rejectReason, setRejectReason] = useState("");
     const [cancelPostId, setCancelPostId] = useState(null);
     const [showRejectReason, setShowRejectReason] = useState(false);
+    const { user } = useAuthStore();
+    const role = user?.role.toLowerCase() || "";
 
     function debounce(fn, delay = 300) {
         let timer;
@@ -36,7 +39,7 @@ function PostManager() {
     // ✅ DUYỆT BÀI
     const acceptPost = async (id) => {
         try {
-            await api.post(`/api/admin/posts/${id}/accept`);
+            await api.post(`/api/${role}/posts/${id}/accept`);
             setPosts(prev => prev.filter(p => p.postId !== id));
             setSelectedPost(null);
         } catch (err) {
@@ -56,7 +59,7 @@ function PostManager() {
 
         try {
             await api.post(
-                `/api/admin/posts/${cancelPostId}/reject`,
+                `/api/${role}/posts/${cancelPostId}/reject`,
                 JSON.stringify(rejectReason),
                 { headers: { "Content-Type": "application/json" } }
             );
@@ -74,7 +77,7 @@ function PostManager() {
     // 📥 LOAD DATA
     useEffect(() => {
         async function fetchData() {
-            const res = await api.get("/api/admin/posts");
+            const res = await api.get(`/api/${role}/posts`);
             setPosts(res.data);
             setPostsFilter(res.data);
         }

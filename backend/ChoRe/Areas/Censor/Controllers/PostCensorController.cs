@@ -16,7 +16,6 @@ namespace ChoRe.Areas.Censor.Controllers
             _service = service;
         }
 
-        [HttpGet("/censor-posts")]
         public async Task<IActionResult> GetPostsByCensor()
         {
             var posts = await _service.GetPostsByAsync();

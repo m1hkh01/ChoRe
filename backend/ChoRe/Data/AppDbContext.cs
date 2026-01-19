@@ -118,6 +118,12 @@ namespace ChoRe.Data
         public DbSet<UserSubUsage> UserSubUsages { get; set; }
         /// <summary>Bảng SubscriptionOrder - Các đơn đăng ký gói</summary>
         public DbSet<SubscriptionOrder> SubscriptionOrders { get; set; }
+        /// <summary>Bảng Reviews - Đánh giá giữa người mua và người bán</summary>
+        public DbSet<Review> Reviews { get; set; }
+        /// <summary>Bảng ReviewImages - Hình ảnh kèm theo đánh giá</summary>
+        public DbSet<ReviewImage> ReviewImages { get; set; }
+        /// <summary> Bảng ReportReview - Báo cáo đánh giá vi phạm </summary>
+        public DbSet<ReportReview> ReportReviews { get; set; }
 
 
         #endregion
@@ -369,14 +375,14 @@ namespace ChoRe.Data
                 .WithMany()
                 .HasForeignKey(o => o.OrdStatusId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             //SubscriptionOrder -> User
             modelBuilder.Entity<SubscriptionOrder>()
                 .HasOne(o => o.User)
                 .WithMany()
                 .HasForeignKey(o => o.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             //SubscriptionOrder -> OrderStatus
             modelBuilder.Entity<SubscriptionOrder>()
                 .HasOne(o => o.SubscriptionPlan)
@@ -392,6 +398,54 @@ namespace ChoRe.Data
                 .WithOne(u => u.UserSubUsage)
                 .HasForeignKey<UserSubUsage>(usu => usu.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Review -> Reviewer (User viết đánh giá)
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Reviewer)
+                .WithMany(u => u.Reviews)
+                .HasForeignKey(r => r.ReviewerId)
+                .OnDelete(DeleteBehavior.Restrict);
+            // Review -> Seller (User được đánh giá)
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Seller)
+                .WithMany()
+                .HasForeignKey(r => r.SellerId)
+                .OnDelete(DeleteBehavior.Restrict);
+            // Review - Post 
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Post)
+                .WithMany()
+                .HasForeignKey(r => r.PostId)
+                .OnDelete(DeleteBehavior.SetNull);
+            // Review - ChatRoom
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.ChatRoom)
+                .WithMany()
+                .HasForeignKey(r => r.ChatRoomId)
+                .OnDelete(DeleteBehavior.Restrict);
+            // Đảm bảo mỗi ChatRoom chỉ có 1 Review
+            modelBuilder.Entity<Review>()
+                .HasIndex(r => r.ChatRoomId)
+                .IsUnique();
+
+            // ReportReview -> Reporter (User báo cáo đánh giá)
+            modelBuilder.Entity<ReportReview>()
+                .HasOne(rr => rr.Reporter)
+                .WithMany()
+                .HasForeignKey(rr => rr.ReporterId)
+                .OnDelete(DeleteBehavior.Restrict);
+            // ReportReview -> Review (Đánh giá bị báo cáo)
+            modelBuilder.Entity<ReportReview>()
+                .HasOne(rr => rr.Review)
+                .WithMany()
+                .HasForeignKey(rr => rr.ReviewId)
+                .OnDelete(DeleteBehavior.Cascade);
+            // Đảm bảo mỗi User chỉ được báo cáo 1 lần cho mỗi Review
+            modelBuilder.Entity<ReportReview>()
+                .HasIndex(rr => new { rr.ReviewId, rr.ReporterId })
+                .IsUnique();
+
+
         }
 
         /// <summary>

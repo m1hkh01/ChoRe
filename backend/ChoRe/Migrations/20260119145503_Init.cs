@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ChoRe.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateDb : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -218,9 +218,6 @@ namespace ChoRe.Migrations
                     Address = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     RoleId = table.Column<int>(type: "int", nullable: false),
-                    CitizenIdNumber = table.Column<string>(type: "nvarchar(12)", maxLength: 12, nullable: true),
-                    CitizenIdFrontImage = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    CitizenIdBackImage = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()"),
                     IsLocked = table.Column<bool>(type: "bit", nullable: false),
                     LockReason = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
@@ -653,6 +650,49 @@ namespace ChoRe.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Reviews",
+                columns: table => new
+                {
+                    ReviewId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Rating = table.Column<int>(type: "int", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ReviewerId = table.Column<int>(type: "int", nullable: false),
+                    SellerId = table.Column<int>(type: "int", nullable: false),
+                    ChatRoomId = table.Column<int>(type: "int", nullable: false),
+                    PostId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reviews", x => x.ReviewId);
+                    table.ForeignKey(
+                        name: "FK_Reviews_ChatRooms_ChatRoomId",
+                        column: x => x.ChatRoomId,
+                        principalTable: "ChatRooms",
+                        principalColumn: "ChatRoomId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Reviews_Posts_PostId",
+                        column: x => x.PostId,
+                        principalTable: "Posts",
+                        principalColumn: "PostId",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Reviews_Users_ReviewerId",
+                        column: x => x.ReviewerId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Reviews_Users_SellerId",
+                        column: x => x.SellerId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "SavedPosts",
                 columns: table => new
                 {
@@ -768,6 +808,54 @@ namespace ChoRe.Migrations
                         column: x => x.OrderId,
                         principalTable: "Orders",
                         principalColumn: "OrderId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReportReviews",
+                columns: table => new
+                {
+                    ReportReviewId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ReviewId = table.Column<int>(type: "int", nullable: false),
+                    ReporterId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReportReviews", x => x.ReportReviewId);
+                    table.ForeignKey(
+                        name: "FK_ReportReviews_Reviews_ReviewId",
+                        column: x => x.ReviewId,
+                        principalTable: "Reviews",
+                        principalColumn: "ReviewId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ReportReviews_Users_ReporterId",
+                        column: x => x.ReporterId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReviewImages",
+                columns: table => new
+                {
+                    ReviewImageId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ImageUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    ReviewId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReviewImages", x => x.ReviewImageId);
+                    table.ForeignKey(
+                        name: "FK_ReviewImages_Reviews_ReviewId",
+                        column: x => x.ReviewId,
+                        principalTable: "Reviews",
+                        principalColumn: "ReviewId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -930,12 +1018,12 @@ namespace ChoRe.Migrations
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "UserId", "Address", "Avatar", "CitizenIdBackImage", "CitizenIdFrontImage", "CitizenIdNumber", "CreateAt", "Email", "FullName", "IsLocked", "LockReason", "PasswordHash", "PhoneNumber", "RoleId", "UserName" },
+                columns: new[] { "UserId", "Address", "Avatar", "CreateAt", "Email", "FullName", "IsLocked", "LockReason", "PasswordHash", "PhoneNumber", "RoleId", "UserName" },
                 values: new object[,]
                 {
-                    { 1, "Thành phố Hồ Chí Minh", "avt-adminKhoi.jpg", "cccd-back.jpg", "cccd-front.jpg", "123123123123", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@gmail.com", "Nguyễn Admin", false, "", "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==", "0123123123", 1, "adminKhoi" },
-                    { 2, "Đồng Nai", "avt-censorKhoi.jpg", "cccd-back.jpg", "cccd-front.jpg", "123123123123", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "user@gmail.com", "Nguyễn Censor", false, "", "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==", "0123123123", 2, "CensorKhoi" },
-                    { 3, "Biên Hòa", "avt-userKhoi.jpg", "cccd-back.jpg", "cccd-front.jpg", "123123123123", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "user1@gmail.com", "Nguyễn User", false, "", "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==", "0123123123", 3, "userKhoi" }
+                    { 1, "Thành phố Hồ Chí Minh", "avt-adminKhoi.jpg", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@gmail.com", "Nguyễn Admin", false, "", "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==", "0123123123", 1, "adminKhoi" },
+                    { 2, "Đồng Nai", "avt-censorKhoi.jpg", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "user@gmail.com", "Nguyễn Censor", false, "", "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==", "0123123123", 2, "CensorKhoi" },
+                    { 3, "Biên Hòa", "avt-userKhoi.jpg", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "user1@gmail.com", "Nguyễn User", false, "", "AQAAAAIAAYagAAAAEB2mXId9Va/60Jh7iS8QwZK1iRarnCpm6fx6NfKXcoel4pB4hVPl5PnQOTconzLlxA==", "0123123123", 3, "userKhoi" }
                 });
 
             migrationBuilder.InsertData(
@@ -1249,6 +1337,43 @@ namespace ChoRe.Migrations
                 column: "ToUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ReportReviews_ReporterId",
+                table: "ReportReviews",
+                column: "ReporterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReportReviews_ReviewId_ReporterId",
+                table: "ReportReviews",
+                columns: new[] { "ReviewId", "ReporterId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReviewImages_ReviewId",
+                table: "ReviewImages",
+                column: "ReviewId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_ChatRoomId",
+                table: "Reviews",
+                column: "ChatRoomId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_PostId",
+                table: "Reviews",
+                column: "PostId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_ReviewerId",
+                table: "Reviews",
+                column: "ReviewerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_SellerId",
+                table: "Reviews",
+                column: "SellerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SavedPosts_PostId",
                 table: "SavedPosts",
                 column: "PostId");
@@ -1351,6 +1476,12 @@ namespace ChoRe.Migrations
                 name: "Ratings");
 
             migrationBuilder.DropTable(
+                name: "ReportReviews");
+
+            migrationBuilder.DropTable(
+                name: "ReviewImages");
+
+            migrationBuilder.DropTable(
                 name: "SavedPosts");
 
             migrationBuilder.DropTable(
@@ -1376,6 +1507,9 @@ namespace ChoRe.Migrations
 
             migrationBuilder.DropTable(
                 name: "Specifications");
+
+            migrationBuilder.DropTable(
+                name: "Reviews");
 
             migrationBuilder.DropTable(
                 name: "SubscriptionPlans");
