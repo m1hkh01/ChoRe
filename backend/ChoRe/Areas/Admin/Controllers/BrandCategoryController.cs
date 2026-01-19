@@ -16,6 +16,36 @@ namespace ChoRe.Controllers.Admin
         {
             _context = context;
         }
+        [HttpGet("tree")]
+        public async Task<IActionResult> GetTree()
+        {
+            var categories = await _context.Categories.ToListAsync();
+
+            var dict = categories.ToDictionary(
+                c => c.CateId,
+                c => new CategoryTreeDto
+                {
+                    CateId = c.CateId,
+                    CateName = c.CateName,
+                    ParentCateId = c.ParentCateId
+                });
+
+            List<CategoryTreeDto> roots = new();
+
+            foreach (var item in dict.Values)
+            {
+                if (item.ParentCateId == null)
+                {
+                    roots.Add(item);
+                }
+                else if (dict.ContainsKey(item.ParentCateId.Value))
+                {
+                    dict[item.ParentCateId.Value].Children.Add(item);
+                }
+            }
+
+            return Ok(roots);
+        }
 
         // GET CATEGORY BY BRAND
         [HttpGet("{brandId}")]

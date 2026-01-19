@@ -19,6 +19,37 @@ namespace ChoRe.Controllers.Admin
         {
             _context = context;
         }
+        // GET CATEGORY TREE (CHA - CON)
+        [HttpGet("tree")]
+        public async Task<IActionResult> GetTree()
+        {
+            var categories = await _context.Categories
+                .Select(c => new
+                {
+                    c.CateId,
+                    c.CateName,
+                    c.ParentCateId
+                })
+                .ToListAsync();
+
+            // Build tree
+            List<CategoryTreeDto> BuildTree(int? parentId)
+            {
+                return categories
+                    .Where(c => c.ParentCateId == parentId)
+                    .Select(c => new CategoryTreeDto
+                    {
+                        CateId = c.CateId,
+                        CateName = c.CateName,
+                        Children = BuildTree(c.CateId)
+                    })
+                    .ToList();
+            }
+
+            var tree = BuildTree(null);
+
+            return Ok(tree);
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
