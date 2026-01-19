@@ -3,10 +3,16 @@ import api from "@/api";
 
 function CategoryManager() {
     const [categories, setCategories] = useState([]);
-    const [form, setForm] = useState({ cateId: null, cateName: "", description: "" });
+    const [form, setForm] = useState({
+        cateId: null,
+        cateName: "",
+        description: "",
+        parentCateId: ""
+    });
     const [isEditing, setIsEditing] = useState(false);
     const [error, setError] = useState("");
 
+    // Load danh sách
     const loadData = async () => {
         const res = await api.get("/api/admin/categories");
         setCategories(res.data);
@@ -16,16 +22,24 @@ function CategoryManager() {
         loadData();
     }, []);
 
+    // Submit thêm / sửa
     const submit = async () => {
         if (!form.cateName.trim())
             return setError("Tên danh mục là bắt buộc");
 
         try {
+            const payload = {
+                cateName: form.cateName,
+                description: form.description,
+                parentCateId: form.parentCateId || null
+            };
+
             if (isEditing) {
-                await api.put(`/api/admin/categories/${form.cateId}`, form);
+                await api.put(`/api/admin/categories/${form.cateId}`, payload);
             } else {
-                await api.post("/api/admin/categories", form);
+                await api.post("/api/admin/categories", payload);
             }
+
             resetForm();
             loadData();
         } catch (err) {
@@ -33,11 +47,18 @@ function CategoryManager() {
         }
     };
 
+    // Edit
     const edit = (c) => {
         setIsEditing(true);
-        setForm(c);
+        setForm({
+            cateId: c.cateId,
+            cateName: c.cateName,
+            description: c.description || "",
+            parentCateId: c.parentCateId || ""
+        });
     };
 
+    // Delete
     const del = async (id) => {
         if (!confirm("Xóa danh mục này?")) return;
         try {
@@ -49,10 +70,18 @@ function CategoryManager() {
     };
 
     const resetForm = () => {
-        setForm({ cateId: null, cateName: "", description: "" });
+        setForm({
+            cateId: null,
+            cateName: "",
+            description: "",
+            parentCateId: ""
+        });
         setIsEditing(false);
         setError("");
     };
+
+    // Lấy danh mục cha
+    const parentCategories = categories.filter(c => c.parentCateId == null);
 
     return (
         <div className="p-4">
@@ -60,10 +89,12 @@ function CategoryManager() {
 
             {error && <div className="alert alert-danger">{error}</div>}
 
+            {/* FORM */}
             <div className="card mb-4">
                 <div className="card-body">
                     <h5>{isEditing ? "Cập nhật" : "Thêm mới"} danh mục</h5>
 
+                    {/* Tên */}
                     <input
                         className="form-control mb-2"
                         placeholder="Tên danh mục"
@@ -71,12 +102,27 @@ function CategoryManager() {
                         onChange={e => setForm({ ...form, cateName: e.target.value })}
                     />
 
+                    {/* Mô tả */}
                     <textarea
                         className="form-control mb-2"
                         placeholder="Mô tả"
                         value={form.description}
                         onChange={e => setForm({ ...form, description: e.target.value })}
                     />
+
+                    {/* Chọn danh mục cha */}
+                    <select
+                        className="form-control mb-3"
+                        value={form.parentCateId || ""}
+                        onChange={e => setForm({ ...form, parentCateId: e.target.value || "" })}
+                    >
+                        <option value="">-- Danh mục gốc --</option>
+                        {parentCategories.map(c => (
+                            <option key={c.cateId} value={c.cateId}>
+                                {c.cateName}
+                            </option>
+                        ))}
+                    </select>
 
                     <button className="btn btn-primary" onClick={submit}>
                         {isEditing ? "Cập nhật" : "Thêm"}
@@ -90,6 +136,7 @@ function CategoryManager() {
                 </div>
             </div>
 
+            {/* TABLE */}
             <table className="table table-bordered">
                 <thead>
                     <tr>
@@ -99,17 +146,58 @@ function CategoryManager() {
                         <th width="120">Thao tác</th>
                     </tr>
                 </thead>
+
                 <tbody>
-                    {categories.map(c => (
-                        <tr key={c.cateId}>
-                            <td>{c.cateName}</td>
-                            <td>{c.description || "-"}</td>
-                            <td>{c.brandCount}</td>
-                            <td>
-                                <button className="btn btn-sm btn-warning me-1" onClick={() => edit(c)}>Sửa</button>
-                                <button className="btn btn-sm btn-danger" onClick={() => del(c.cateId)}>Xóa</button>
-                            </td>
-                        </tr>
+                    {parentCategories.map(parent => (
+                        <>
+                            {/* Dòng cha */}
+                            <tr key={parent.cateId} className="table-primary">
+                                <td><strong>{parent.cateName}</strong></td>
+                                <td>{parent.description || "-"}</td>
+                                <td>{parent.brandCount}</td>
+                                <td>
+                                    <button
+                                        className="btn btn-sm btn-warning me-1"
+                                        onClick={() => edit(parent)}
+                                    >
+                                        Sửa
+                                    </button>
+                                    <button
+                                        className="btn btn-sm btn-danger"
+                                        onClick={() => del(parent.cateId)}
+                                    >
+                                        Xóa
+                                    </button>
+                                </td>
+                            </tr>
+
+                            {/* Dòng con */}
+                            {categories
+                                .filter(c => c.parentCateId === parent.cateId)
+                                .map(child => (
+                                    <tr key={child.cateId}>
+                                        <td style={{ paddingLeft: "30px" }}>
+                                            ↳ {child.cateName}
+                                        </td>
+                                        <td>{child.description || "-"}</td>
+                                        <td>{child.brandCount}</td>
+                                        <td>
+                                            <button
+                                                className="btn btn-sm btn-warning me-1"
+                                                onClick={() => edit(child)}
+                                            >
+                                                Sửa
+                                            </button>
+                                            <button
+                                                className="btn btn-sm btn-danger"
+                                                onClick={() => del(child.cateId)}
+                                            >
+                                                Xóa
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                        </>
                     ))}
                 </tbody>
             </table>

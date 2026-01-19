@@ -29,7 +29,9 @@ namespace ChoRe.Controllers.Admin
                     cateId = c.CateId,
                     cateName = c.CateName,
                     description = c.Description,
-                    parentCateId = c.ParentCateId
+                    parentCateId = c.ParentCateId,
+                    parentCateName = c.ParentCategory != null ? c.ParentCategory.CateName : null,
+                    brandCount = c.BrandCates.Count()
                 })
                 .ToListAsync();
 
@@ -81,10 +83,14 @@ namespace ChoRe.Controllers.Admin
         public async Task<IActionResult> Delete(int id)
         {
             var cate = await _context.Categories
+                .Include(c => c.SubCategories)
                 .Include(c => c.BrandCates)
                 .FirstOrDefaultAsync(c => c.CateId == id);
 
             if (cate == null) return NotFound();
+
+            if (cate.SubCategories.Any())
+                return BadRequest("Danh mục còn danh mục con, không thể xoá");
 
             if (cate.BrandCates.Any())
                 return BadRequest("Danh mục đang được sử dụng, không thể xóa");
@@ -94,5 +100,6 @@ namespace ChoRe.Controllers.Admin
 
             return Ok();
         }
+
     }
 }
