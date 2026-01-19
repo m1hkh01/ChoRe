@@ -1504,18 +1504,6 @@ namespace ChoRe.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<string>("CitizenIdBackImage")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("CitizenIdFrontImage")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("CitizenIdNumber")
-                        .HasMaxLength(12)
-                        .HasColumnType("nvarchar(12)");
-
                     b.Property<DateTime>("CreateAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -1576,9 +1564,6 @@ namespace ChoRe.Migrations
                             UserId = 1,
                             Address = "Thành phố Hồ Chí Minh",
                             Avatar = "avt-adminKhoi.jpg",
-                            CitizenIdBackImage = "cccd-back.jpg",
-                            CitizenIdFrontImage = "cccd-front.jpg",
-                            CitizenIdNumber = "123123123123",
                             CreateAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@gmail.com",
                             FullName = "Nguyễn Admin",
@@ -1594,9 +1579,6 @@ namespace ChoRe.Migrations
                             UserId = 2,
                             Address = "Đồng Nai",
                             Avatar = "avt-censorKhoi.jpg",
-                            CitizenIdBackImage = "cccd-back.jpg",
-                            CitizenIdFrontImage = "cccd-front.jpg",
-                            CitizenIdNumber = "123123123123",
                             CreateAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "user@gmail.com",
                             FullName = "Nguyễn Censor",
@@ -1612,9 +1594,6 @@ namespace ChoRe.Migrations
                             UserId = 3,
                             Address = "Biên Hòa",
                             Avatar = "avt-userKhoi.jpg",
-                            CitizenIdBackImage = "cccd-back.jpg",
-                            CitizenIdFrontImage = "cccd-front.jpg",
-                            CitizenIdNumber = "123123123123",
                             CreateAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "user1@gmail.com",
                             FullName = "Nguyễn User",

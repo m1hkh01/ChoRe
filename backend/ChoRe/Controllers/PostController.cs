@@ -172,12 +172,12 @@ namespace ChoRe.Controllers
                 return BadRequest("Tài khoản đang bị khóa!");
 
             /* ===================== 3️⃣ CHECK XÁC MINH CCCD ===================== */
-            if (string.IsNullOrEmpty(user.CitizenIdNumber)
-                || string.IsNullOrEmpty(user.CitizenIdFrontImage)
-                || string.IsNullOrEmpty(user.CitizenIdBackImage))
-            {
-                return BadRequest("Bạn phải xác minh tài khoản trước khi đăng tin!");
-            }
+            //if (string.IsNullOrEmpty(user.CitizenIdNumber)
+            //    || string.IsNullOrEmpty(user.CitizenIdFrontImage)
+            //    || string.IsNullOrEmpty(user.CitizenIdBackImage))
+            //{
+            //    return BadRequest("Bạn phải xác minh tài khoản trước khi đăng tin!");
+            //}
 
             /* ===================== 4️⃣ CHECK LƯỢT ĐĂNG TIN ===================== */
             var usage = await _context.UserSubUsages

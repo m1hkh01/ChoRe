@@ -1,46 +1,47 @@
 import { useEffect, useState } from "react";
-import api, { API_BASE_URL } from "@/api"; 
+import api, { API_BASE_URL } from "@/api";
 import "@/assets/brand-manager.css";
 
 function BrandManager() {
-    const [brands, setBrands] = useState([]);
+    const [brands, setBrands] = useState([]);            // flat list (admin list)
+    const [brandTree, setBrandTree] = useState([]);      // parent–child tree
     const [categories, setCategories] = useState([]);
+
     const [form, setForm] = useState({
         brandId: null,
         brandName: "",
         description: "",
+        parentBrandId: "",
         cateIds: []
     });
+
     const [logo, setLogo] = useState(null);
     const [error, setError] = useState("");
     const [isEditing, setIsEditing] = useState(false);
 
+    // ================= LOAD DATA =================
     const loadBrands = async () => {
-        try {
-            const res = await api.get("/api/admin/brands");
-            setBrands(res.data);
-        } catch (err) {
-            console.error("Load brands error:", err);
-        }
+        const res = await api.get("/api/admin/brands");
+        setBrands(res.data);
+    };
+
+    const loadBrandTree = async () => {
+        const res = await api.get("/api/admin/brands/tree");
+        setBrandTree(res.data);
     };
 
     const loadCategories = async () => {
-        try {
-            const res = await api.get("/api/categories");
-            setCategories(res.data);
-        } catch (err) {
-            console.error("Load categories error:", err);
-        }
+        const res = await api.get("/api/admin/categories");
+        setCategories(res.data);
     };
 
     useEffect(() => {
-        const fetchData = async () => {            
-            await loadBrands();
-            await loadCategories();
-        }
-        fetchData();
+        loadBrands();
+        loadBrandTree();
+        loadCategories();
     }, []);
-    // ================= CREATE / UPDATE =================
+
+    // ================= SUBMIT =================
     const submit = async (e) => {
         e.preventDefault();
         setError("");
@@ -54,33 +55,32 @@ function BrandManager() {
         const fd = new FormData();
         fd.append("BrandName", form.brandName);
         fd.append("Description", form.description || "");
+        if (form.parentBrandId)
+            fd.append("ParentBrandId", Number(form.parentBrandId));
+        // nếu không chọn cha → KHÔNG append gì cả
+
         form.cateIds.forEach(id => fd.append("CateIds", Number(id)));
         if (logo) fd.append("logo", logo);
 
         try {
             if (isEditing) {
-                // UPDATE
                 await api.put(`/api/admin/brands/${form.brandId}`, fd);
             } else {
-                // CREATE
                 await api.post("/api/admin/brands", fd);
             }
 
             resetForm();
             loadBrands();
+            loadBrandTree();
         } catch (err) {
             const errorData = err.response?.data;
 
-            if (typeof errorData === 'string') {
-                setError(errorData);
-            } else if (errorData?.title) {
-                setError(errorData.title);
-            } else if (errorData?.errors) {
+            if (typeof errorData === 'string') setError(errorData);
+            else if (errorData?.title) setError(errorData.title);
+            else if (errorData?.errors) {
                 const messages = Object.values(errorData.errors).flat();
                 setError(messages.join(", "));
-            } else {
-                setError("Có lỗi xảy ra");
-            }
+            } else setError("Có lỗi xảy ra");
 
             console.error("API Error:", errorData);
         }
@@ -90,14 +90,15 @@ function BrandManager() {
     const editBrand = (brand) => {
         setIsEditing(true);
         setError("");
-        
+
         setForm({
             brandId: brand.brandId,
             brandName: brand.brandName,
             description: brand.description || "",
-            cateIds: [] // User cần chọn lại danh mục
+            parentBrandId: brand.parentBrandId || "",
+            cateIds: brand.cateIds || []
         });
-        
+
         setLogo(null);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -109,18 +110,20 @@ function BrandManager() {
         try {
             await api.delete(`/api/admin/brands/${id}`);
             loadBrands();
+            loadBrandTree();
         } catch (err) {
             const errorData = err.response?.data;
             alert(typeof errorData === 'string' ? errorData : "Không thể xóa thương hiệu");
         }
     };
 
-    // ================= RESET FORM =================
+    // ================= RESET =================
     const resetForm = () => {
         setForm({
             brandId: null,
             brandName: "",
             description: "",
+            parentBrandId: "",
             cateIds: []
         });
         setLogo(null);
@@ -128,18 +131,24 @@ function BrandManager() {
         setIsEditing(false);
     };
 
+    // ================= RENDER TREE OPTIONS =================
+    const renderTreeOptions = (nodes, level = 0) => {
+        return nodes.flatMap(b => [
+            <option key={`brand-${b.brandId}`} value={b.brandId}>
+                {"—".repeat(level)} {b.brandName}
+            </option>,
+            ...(b.subBrands ? renderTreeOptions(b.subBrands, level + 1) : [])
+        ]);
+    };
+
     return (
         <div className="p-4">
-            <h3 className="mb-4">Quản lý thương hiệu</h3>
+            <h3 className="mb-4">Quản lý thương hiệu (Cha – Con)</h3>
 
             {error && (
                 <div className="alert alert-danger alert-dismissible fade show">
                     {error}
-                    <button 
-                        type="button" 
-                        className="btn-close" 
-                        onClick={() => setError("")}
-                    ></button>
+                    <button type="button" className="btn-close" onClick={() => setError("")}></button>
                 </div>
             )}
 
@@ -160,6 +169,18 @@ function BrandManager() {
                     </div>
 
                     <div className="mb-3">
+                        <label className="form-label">Thương hiệu cha</label>
+                        <select
+                            className="form-control"
+                            value={form.parentBrandId}
+                            onChange={e => setForm({ ...form, parentBrandId: e.target.value })}
+                        >
+                            <option value="">-- Không có (Brand gốc) --</option>
+                            {renderTreeOptions(brandTree)}
+                        </select>
+                    </div>
+
+                    <div className="mb-3">
                         <label className="form-label">Mô tả</label>
                         <textarea
                             className="form-control"
@@ -170,20 +191,13 @@ function BrandManager() {
                     </div>
 
                     <div className="mb-3">
-                        <label className="form-label">
-                            Logo {isEditing && "(Bỏ trống nếu không đổi)"}
-                        </label>
+                        <label className="form-label">Logo</label>
                         <input
                             type="file"
                             className="form-control"
                             accept="image/*"
                             onChange={e => setLogo(e.target.files?.[0] || null)}
                         />
-                        {logo && (
-                            <small className="text-success d-block mt-1">
-                                Đã chọn: {logo.name}
-                            </small>
-                        )}
                     </div>
 
                     <div className="mb-3">
@@ -204,25 +218,14 @@ function BrandManager() {
                                 </option>
                             ))}
                         </select>
-                        <small className="text-muted d-block mt-1">
-                            Giữ Ctrl (Windows) / Cmd (Mac) để chọn nhiều
-                        </small>
                     </div>
 
                     <div className="d-flex gap-2">
-                        <button
-                            type="button"
-                            className="btn btn-primary"
-                            onClick={submit}
-                        >
+                        <button type="button" className="btn btn-primary" onClick={submit}>
                             {isEditing ? "Cập nhật" : "Thêm mới"}
                         </button>
                         {isEditing && (
-                            <button
-                                type="button"
-                                className="btn btn-secondary"
-                                onClick={resetForm}
-                            >
+                            <button type="button" className="btn btn-secondary" onClick={resetForm}>
                                 Hủy
                             </button>
                         )}
@@ -234,79 +237,38 @@ function BrandManager() {
             <div className="card">
                 <div className="card-body">
                     <h5 className="card-title mb-3">Danh sách thương hiệu</h5>
-                    <div className="table-responsive">
-                        <table className="table table-bordered table-hover align-middle">
-                            <thead className="table-light">
-                                <tr>
-                                    <th width="80">Logo</th>
-                                    <th>Tên</th>
-                                    <th>Mô tả</th>
-                                    <th>Danh mục</th>
-                                    <th width="150" className="text-center">Thao tác</th>
+                    <table className="table table-bordered align-middle">
+                        <thead className="table-light">
+                            <tr>
+                                <th width="80">Logo</th>
+                                <th>Tên</th>
+                                <th>Cha</th>
+                                <th width="150">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {brands.map(b => (
+                                <tr key={b.brandId}>
+                                    <td className="text-center">
+                                        {b.brandLogo ? (
+                                            <img
+                                                src={`${API_BASE_URL}/brands/${b.brandLogo}`}
+                                                width={50}
+                                                height={50}
+                                                style={{ objectFit: "contain" }}
+                                            />
+                                        ) : "-"}
+                                    </td>
+                                    <td>{b.brandName}</td>
+                                    <td>{b.parentBrandName || "-"}</td>
+                                    <td className="text-center">
+                                        <button className="btn btn-sm btn-warning me-2" onClick={() => editBrand(b)}>Sửa</button>
+                                        <button className="btn btn-sm btn-danger" onClick={() => deleteBrand(b.brandId)}>Xóa</button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {brands.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={5} className="text-center text-muted py-4">
-                                            Chưa có thương hiệu nào
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    brands.map(b => (
-                                        <tr key={b.brandId}>
-                                            <td className="text-center">
-                                                {b.brandLogo ? (
-                                                    <img
-                                                        src={`${API_BASE_URL}/brands/${b.brandLogo}`}
-                                                        alt={b.brandName}
-                                                        width={50}
-                                                        height={50}
-                                                        style={{
-                                                            objectFit: "contain",
-                                                            border: "1px solid #ddd",
-                                                            borderRadius: "4px",
-                                                            padding: "4px"
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <span className="text-muted">-</span>
-                                                )}
-                                            </td>
-                                            <td>
-                                                <strong>{b.brandName}</strong>
-                                            </td>
-                                            <td>
-                                                <small className="text-muted">
-                                                    {b.description || "-"}
-                                                </small>
-                                            </td>
-                                            <td>
-                                                {b.categories?.length > 0
-                                                    ? b.categories.join(", ")
-                                                    : "-"
-                                                }
-                                            </td>
-                                            <td className="text-center">
-                                                <button
-                                                    className="btn btn-sm btn-warning me-2"
-                                                    onClick={() => editBrand(b)}
-                                                >
-                                                    Sửa
-                                                </button>
-                                                <button
-                                                    className="btn btn-sm btn-danger"
-                                                    onClick={() => deleteBrand(b.brandId)}
-                                                >
-                                                    Xóa
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

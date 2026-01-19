@@ -15,7 +15,7 @@ function CreatePost() {
     const [cateParents, setCateParents] = useState([]);
     const [cateChildren, setCateChildren] = useState([]);
     const [parentCateId, setParentCateId] = useState("");
-    const [cateId, setCateId] = useState("");
+    const [cateIds, setCateIds] = useState([]); // nhiều danh mục con
 
     /* ===================== SPEC ===================== */
     const [specs, setSpecs] = useState([]);
@@ -47,11 +47,12 @@ function CreatePost() {
         const parent = brandParents.find(b => b.brandId === Number(parentBrandId));
         setBrandChildren(parent ? parent.subBrands : []);
 
+        // reset toàn bộ phía dưới
         setBrandId("");
         setCateParents([]);
         setCateChildren([]);
         setParentCateId("");
-        setCateId("");
+        setCateIds([]);
         setSpecs([]);
         setSpecValues({});
     }, [parentBrandId]);
@@ -60,13 +61,12 @@ function CreatePost() {
     useEffect(() => {
         if (!brandId) return;
 
-        axios
-            .get(`/api/categories/tree/by-brand/${brandId}`)
+        axios.get(`/api/categories/tree/by-brand/${brandId}`)
             .then(res => {
                 setCateParents(res.data);
                 setParentCateId("");
                 setCateChildren([]);
-                setCateId("");
+                setCateIds([]);
                 setSpecs([]);
                 setSpecValues({});
             })
@@ -78,23 +78,35 @@ function CreatePost() {
         const parent = cateParents.find(c => c.cateId === Number(parentCateId));
         setCateChildren(parent ? parent.subCategories : []);
 
-        setCateId("");
+        setCateIds([]);
         setSpecs([]);
         setSpecValues({});
     }, [parentCateId]);
 
-    /* ===================== CATEGORY CON → SPEC ===================== */
+    /* ===================== LOAD SPEC THEO NHIỀU CATEGORY ===================== */
     useEffect(() => {
-        if (!cateId) return;
+        if (cateIds.length === 0) {
+            setSpecs([]);
+            setSpecValues({});
+            return;
+        }
 
-        axios
-            .get(`/api/specifications/by-category/${cateId}`)
-            .then(res => {
-                setSpecs(res.data);
-                setSpecValues({});
-            })
-            .catch(err => console.error(err));
-    }, [cateId]);
+        Promise.all(
+            cateIds.map(id =>
+                axios.get(`/api/specifications/by-category/${id}`)
+            )
+        ).then(results => {
+            const merged = results.flatMap(r => r.data);
+
+            // loại trùng specId
+            const unique = Array.from(
+                new Map(merged.map(s => [s.specId, s])).values()
+            );
+
+            setSpecs(unique);
+            setSpecValues({});
+        }).catch(err => console.error(err));
+    }, [cateIds]);
 
     /* ===================== HANDLERS ===================== */
     const handleChange = e => {
@@ -134,8 +146,8 @@ function CreatePost() {
         e.preventDefault();
         setErrorMsg("");
 
-        if (!brandId || !cateId) {
-            setErrorMsg("Vui lòng chọn đầy đủ hãng và danh mục");
+        if (!brandId || cateIds.length === 0) {
+            setErrorMsg("Vui lòng chọn ít nhất 1 danh mục con");
             return;
         }
 
@@ -150,7 +162,7 @@ function CreatePost() {
             ...form,
             price: Number(form.price),
             brandId: Number(brandId),
-            cateIds: [Number(cateId)],
+            cateIds: cateIds.map(id => Number(id)),
             specifications: specValues,
             images
         });
@@ -167,7 +179,12 @@ function CreatePost() {
             {errorMsg && <div className="alert alert-danger">{errorMsg}</div>}
 
             <form onSubmit={handleSubmit}>
-                <input type="file" multiple accept="image/*"
+
+                {/* UPLOAD ẢNH */}
+                <input
+                    type="file"
+                    multiple
+                    accept="image/*"
                     className="form-control mb-2"
                     onChange={handleImageChange}
                 />
@@ -181,7 +198,8 @@ function CreatePost() {
                                 height={100}
                                 style={{ objectFit: "cover", borderRadius: 6 }}
                             />
-                            <button type="button"
+                            <button
+                                type="button"
                                 onClick={() => setImages(images.filter((_, idx) => idx !== i))}
                                 style={{
                                     position: "absolute",
@@ -193,13 +211,15 @@ function CreatePost() {
                                     background: "red",
                                     color: "white",
                                     border: "none"
-                                }}>
+                                }}
+                            >
                                 ×
                             </button>
                         </div>
                     ))}
                 </div>
 
+                {/* THÔNG TIN CƠ BẢN */}
                 <input name="title" className="form-control mb-2" placeholder="Tiêu đề" onChange={handleChange} />
                 <textarea name="description" className="form-control mb-2" placeholder="Mô tả" onChange={handleChange} />
                 <input name="price" type="number" className="form-control mb-2" placeholder="Giá" onChange={handleChange} />
@@ -230,7 +250,7 @@ function CreatePost() {
                     ))}
                 </select>
 
-                {/* CATEGORY */}
+                {/* CATEGORY CHA */}
                 <select className="form-control mb-2" disabled={!brandId}
                     value={parentCateId} onChange={e => setParentCateId(e.target.value)}>
                     <option value="">-- Danh mục chính --</option>
@@ -239,24 +259,84 @@ function CreatePost() {
                     ))}
                 </select>
 
-                <select className="form-control mb-3" disabled={!parentCateId}
-                    value={cateId} onChange={e => setCateId(e.target.value)}>
-                    <option value="">-- Danh mục con --</option>
-                    {cateChildren.map(c => (
-                        <option key={c.cateId} value={c.cateId}>{c.cateName}</option>
-                    ))}
-                </select>
+                {/* CATEGORY CON - CHECKBOX */}
+                {parentCateId && cateChildren.length > 0 && (
+                    <div className="border rounded p-3 mb-3">
+                        <h6 className="fw-bold mb-2">Chọn danh mục con</h6>
 
+                        {cateChildren.map(c => (
+                            <div key={c.cateId} className="form-check">
+                                <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    checked={cateIds.includes(String(c.cateId))}
+                                    onChange={e => {
+                                        const id = String(c.cateId);
+
+                                        if (e.target.checked) {
+                                            setCateIds(prev => [...prev, id]);
+                                        } else {
+                                            setCateIds(prev => prev.filter(x => x !== id));
+                                        }
+                                    }}
+                                />
+                                <label className="form-check-label">
+                                    {c.cateName}
+                                </label>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* HIỂN THỊ DANH MỤC ĐÃ CHỌN */}
+                {cateIds.length > 0 && (
+                    <div className="mb-3">
+                        <strong>Danh mục đã chọn:</strong>
+                        <div className="d-flex flex-wrap gap-2 mt-2">
+                            {cateIds.map(id => {
+                                const cate = cateChildren.find(c => String(c.cateId) === id);
+                                return (
+                                    <span key={id}
+                                        className="badge bg-primary d-flex align-items-center gap-2"
+                                        style={{ padding: "8px 12px", borderRadius: 20 }}
+                                    >
+                                        {cate?.cateName}
+                                        <button
+                                            type="button"
+                                            onClick={() => setCateIds(cateIds.filter(x => x !== id))}
+                                            style={{
+                                                border: "none",
+                                                background: "transparent",
+                                                color: "white",
+                                                fontWeight: "bold",
+                                                cursor: "pointer"
+                                            }}
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* SPEC */}
                 {specs.length > 0 && (
                     <div className="border rounded p-3 mb-3">
                         <h6 className="fw-bold">Thông số kỹ thuật</h6>
                         {specs.map(s => (
-                            <input key={s.specId}
-                                className="form-control mb-2"
-                                placeholder={s.specName}
-                                value={specValues[s.specId] || ""}
-                                onChange={e => handleSpecChange(s.specId, e.target.value)}
-                            />
+                            <div key={s.specId} className="mb-2">
+                                <input
+                                    className={`form-control ${!specValues[s.specId] ? "border-danger" : ""}`}
+                                    placeholder={s.specName + " *"}
+                                    value={specValues[s.specId] || ""}
+                                    onChange={e => handleSpecChange(s.specId, e.target.value)}
+                                />
+                                {!specValues[s.specId] && (
+                                    <small className="text-danger">Bắt buộc nhập</small>
+                                )}
+                            </div>
                         ))}
                     </div>
                 )}

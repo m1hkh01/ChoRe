@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace ChoRe.Controllers.Admin
 {
     [ApiController]
+    [Authorize(Roles = "Admin")]
     [Route("api/admin/categories")]
     public class CategoryController : ControllerBase
     {
@@ -18,17 +20,16 @@ namespace ChoRe.Controllers.Admin
             _context = context;
         }
 
-        // GET ALL
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var data = await _context.Categories
                 .Select(c => new
                 {
-                    c.CateId,
-                    c.CateName,
-                    c.Description,
-                    BrandCount = c.BrandCates.Count
+                    cateId = c.CateId,
+                    cateName = c.CateName,
+                    description = c.Description,
+                    parentCateId = c.ParentCateId
                 })
                 .ToListAsync();
 
@@ -48,7 +49,8 @@ namespace ChoRe.Controllers.Admin
             var cate = new Category
             {
                 CateName = dto.CateName,
-                Description = dto.Description
+                Description = dto.Description,
+                ParentCateId = dto.ParentCateId
             };
 
             _context.Categories.Add(cate);

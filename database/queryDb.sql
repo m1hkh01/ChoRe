@@ -9,6 +9,8 @@ select * from UserSubscriptions
 
 select * from posts
 
+select * from postcates
+
 select * from postimages
 
 select * from comments
