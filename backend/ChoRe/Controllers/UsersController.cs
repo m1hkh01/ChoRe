@@ -54,7 +54,7 @@ namespace ChoRe.Controllers
             var user = new User
             {
                 UserName = dto.UserName,
-                Avatar = dto.Avatar,
+                //Avatar = dto.Avatar,
                 FullName = dto.FullName,
                 Email = dto.Email,
                 PhoneNumber = dto.PhoneNumber,

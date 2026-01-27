@@ -1,0 +1,67 @@
+.avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+
+.badge {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.role-admin {
+    background: #ffba53;
+    color: #9a5b00;
+}
+
+.role-user {
+    background: #4dff89;
+    color: #16794c;
+}
+
+.role-censor {
+    background: #54a7ff;
+    color: #1d5fa7;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.modal-backdrop-custom {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.modal-card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 420px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.action-cell {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    /* canh giữa theo chiều dọc */
+    justify-content: center;
+    /* optional: canh giữa ngang */
+}
+
+.action-cell .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+}

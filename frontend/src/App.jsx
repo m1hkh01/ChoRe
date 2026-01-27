@@ -13,6 +13,7 @@ import CensorLayout from './Layout/CensorLayout'
 import ProtectedRoute from "./routes/ProtectedRoute"
 import RequireRole from './routes/RequireRole'
 
+import UserManager from './components/AdminComponents/UserManager.jsx'
 import PostManager from './components/AdminComponents/PostManager'
 import BrandManager from './components/AdminComponents/BrandManager.jsx'
 import CategoryManager from './components/AdminComponents/CategoryManager.jsx'
@@ -70,8 +71,15 @@ function App() {
       >
         <Route path="post-manager"
           element={
-            <RequireRole roles={["Admin","Censor"]}>
+            <RequireRole roles={["Admin", "Censor"]}>
               <PostManager />
+            </RequireRole>
+          }
+        />
+        <Route path="user-manager"
+          element={
+            <RequireRole roles={["Admin"]}>
+              <UserManager />
             </RequireRole>
           }
         />

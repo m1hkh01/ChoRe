@@ -29,6 +29,9 @@ function AdminLayout() {
                     <Link to="/admin/post-manager" className="menu-item">
                         Quản lý bài viết
                     </Link>
+                    <Link to="/admin/user-manager" className="menu-item">
+                        Quản lý người dùng
+                    </Link>
                     <Link to="/admin/brand-manager" className="menu-item">
                         Quản lý hãng
                     </Link>
