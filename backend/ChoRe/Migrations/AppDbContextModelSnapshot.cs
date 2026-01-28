@@ -1405,6 +1405,9 @@ namespace ChoRe.Migrations
                     b.Property<int>("DurationDays")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<decimal>("MaxFreePlatformFeePerSub")
                         .HasColumnType("decimal(18,2)");
 
@@ -1441,6 +1444,7 @@ namespace ChoRe.Migrations
                         {
                             SubPlanId = 1,
                             DurationDays = 30,
+                            IsActive = true,
                             MaxFreePlatformFeePerSub = 0m,
                             MaxFreePost = 2m,
                             MaxPostPerSub = 5,
@@ -1453,6 +1457,7 @@ namespace ChoRe.Migrations
                         {
                             SubPlanId = 2,
                             DurationDays = 30,
+                            IsActive = true,
                             MaxFreePlatformFeePerSub = 4m,
                             MaxFreePost = 5m,
                             MaxPostPerSub = 10,
@@ -1465,6 +1470,7 @@ namespace ChoRe.Migrations
                         {
                             SubPlanId = 3,
                             DurationDays = 30,
+                            IsActive = true,
                             MaxFreePlatformFeePerSub = 12m,
                             MaxFreePost = 10m,
                             MaxPostPerSub = 30,
@@ -1477,6 +1483,7 @@ namespace ChoRe.Migrations
                         {
                             SubPlanId = 4,
                             DurationDays = 40,
+                            IsActive = true,
                             MaxFreePlatformFeePerSub = 30m,
                             MaxFreePost = 18m,
                             MaxPostPerSub = 100,

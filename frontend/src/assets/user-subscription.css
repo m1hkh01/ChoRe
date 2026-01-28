@@ -1,0 +1,13 @@
+.badge-active {
+    background: #16a34a;
+    color: #ecfdf5;
+    padding: 6px 12px;
+    border-radius: 999px;
+}
+
+.badge-expired {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 6px 12px;
+    border-radius: 999px;
+}

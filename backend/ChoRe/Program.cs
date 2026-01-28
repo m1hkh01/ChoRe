@@ -41,6 +41,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IPackageService, PackageService>();
+builder.Services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>();
+builder.Services.AddScoped<IUserSubscriptionService, UserSubscriptionService>();
 builder.Services.AddScoped<HtmlSanitizer>();
 
 builder.Services.AddHostedService<OrderExpireService>();

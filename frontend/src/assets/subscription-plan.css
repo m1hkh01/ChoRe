@@ -1,0 +1,18 @@
+.badge-active {
+    background: #16a34a;
+    color: #ecfdf5;
+    padding: 6px 12px;
+    border-radius: 999px;
+}
+
+.badge-inactive {
+    background: #e5e7eb;
+    color: #374151;
+    padding: 6px 12px;
+    border-radius: 999px;
+}
+.table td,
+.table th {
+    vertical-align: middle;
+}
+

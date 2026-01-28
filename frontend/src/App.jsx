@@ -14,6 +14,8 @@ import ProtectedRoute from "./routes/ProtectedRoute"
 import RequireRole from './routes/RequireRole'
 
 import UserManager from './components/AdminComponents/UserManager.jsx'
+import SubscriptionPlanManager from './components/AdminComponents/SubscriptionPlanManager.jsx'
+import UserSubscriptionManager from './components/AdminComponents/UserSubscriptionManager.jsx'
 import PostManager from './components/AdminComponents/PostManager'
 import BrandManager from './components/AdminComponents/BrandManager.jsx'
 import CategoryManager from './components/AdminComponents/CategoryManager.jsx'
@@ -73,6 +75,20 @@ function App() {
           element={
             <RequireRole roles={["Admin", "Censor"]}>
               <PostManager />
+            </RequireRole>
+          }
+        />
+        <Route path="sub-manager"
+          element={
+            <RequireRole roles={["Admin"]}>
+              <SubscriptionPlanManager />
+            </RequireRole>
+          }
+        />
+        <Route path="user-subscriptions"
+          element={
+            <RequireRole roles={["Admin"]}>
+              <UserSubscriptionManager />
             </RequireRole>
           }
         />
