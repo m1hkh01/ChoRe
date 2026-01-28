@@ -27,6 +27,19 @@ public class AccountService
         user.Address = _sanitizer.Sanitize(user.Address);
         user.Email = _sanitizer.Sanitize(user.Email);
         user.RoleId = 3;
+        user.UserSubscription = new UserSubscription
+        {
+            SubPlanId = 1,
+            StartDate = DateTime.Now,
+            EndDate = DateTime.Now.AddDays(30),
+            IsActive = true
+        };
+        user.UserSubUsage = new UserSubUsage
+        {
+            RemainingSubFPF = 0,
+            RemainingSubPost = 4,
+            RemainingFreePost = 2,
+        };
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
