@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api";
 import "@/assets/Auth.css";
+import OtpInput from "./OtpInput";
 
 function Register() {
     const navigate = useNavigate();
@@ -13,10 +14,20 @@ function Register() {
     const [phone, setPhone] = useState("");
     const [address, setAddress] = useState("");
     const [password, setPassword] = useState("");
+    const [otpSent, setOtpSent] = useState(false);
 
-    const handleRegister = async (e) => {
+    const handleSendOtp = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        try {
+            await api.post("/send-otp", { email: email });
+            setOtpSent(true);
+        } catch (err) {
+            alert(err.response?.data?.error || "Gửi OTP thất bại");
+        }
+    };
+
+    const handleRegister = async (otp) => {
+        // setLoading(true);
 
         const data = {
             username: name,
@@ -24,7 +35,8 @@ function Register() {
             email: email,
             phonenumber: phone,
             address: address,
-            passwordhash: password
+            passwordhash: password,
+            otpCode: otp
         };
 
         try {
@@ -42,21 +54,16 @@ function Register() {
     return (
         <div className="auth-wrapper">
             <div className="auth-card" style={{ maxWidth: "900px" }}>
-                <div className="text-center mb-4">
-                    <h3 className="auth-title">Đăng ký tài khoản</h3>
-                    <p className="auth-subtitle">
-                        Tạo tài khoản để bắt đầu mua bán
-                    </p>
-                </div>
-
-                <form onSubmit={handleRegister}>
-                    {/* Thông tin tài khoản */}
-                    <div className="mb-4">
-                        <h6 className="mb-3" style={{ color: "#666", fontSize: "14px", fontWeight: "600" }}>
-                            THÔNG TIN TÀI KHOẢN
-                        </h6>
-                        <div className="row g-3">
-                            <div className="col-md-6">
+                {!otpSent ? (
+                    <>
+                        <div className="text-center mb-4">
+                            <h3 className="auth-title">Đăng ký tài khoản</h3>
+                            <p className="auth-subtitle">
+                                Tạo tài khoản để bắt đầu mua bán
+                            </p>
+                        </div>
+                        <form onSubmit={handleSendOtp}>
+                            <div className="mb-3">
                                 <label className="form-label">Tên tài khoản</label>
                                 <input
                                     type="text"
@@ -66,7 +73,7 @@ function Register() {
                                     required
                                 />
                             </div>
-                            <div className="col-md-6">
+                            <div className="mb-3">
                                 <label className="form-label">Mật khẩu</label>
                                 <input
                                     type="password"
@@ -76,16 +83,7 @@ function Register() {
                                     required
                                 />
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Thông tin cá nhân */}
-                    <div className="mb-4">
-                        <h6 className="mb-3" style={{ color: "#666", fontSize: "14px", fontWeight: "600" }}>
-                            THÔNG TIN CÁ NHÂN
-                        </h6>
-                        <div className="row g-3">
-                            <div className="col-md-6">
+                            <div className="mb-3">
                                 <label className="form-label">Họ và tên</label>
                                 <input
                                     type="text"
@@ -95,7 +93,7 @@ function Register() {
                                     required
                                 />
                             </div>
-                            <div className="col-md-6">
+                            <div className="mb-3">
                                 <label className="form-label">Email</label>
                                 <input
                                     type="email"
@@ -105,17 +103,7 @@ function Register() {
                                     required
                                 />
                             </div>
-                            <div className="col-md-6">
-                                <label className="form-label">Số điện thoại</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="col-md-6">
+                            <div className="mb-3">
                                 <label className="form-label">Địa chỉ</label>
                                 <input
                                     type="text"
@@ -125,30 +113,34 @@ function Register() {
                                     required
                                 />
                             </div>
-                        </div>
-                    </div>
 
-                    {/* Dòng link bên phải */}
-                    <div className="d-flex justify-content-end mb-3">
-                        <Link to="/login" className="auth-link">
-                            Đã có tài khoản?
-                        </Link>
-                    </div>
+                            {/* Dòng link bên phải */}
+                            <div className="d-flex justify-content-end mb-3">
+                                <Link to="/login" className="auth-link">
+                                    Đã có tài khoản?
+                                </Link>
+                            </div>
 
-                    {/* Nút đăng ký ở giữa */}
-                    <div className="d-flex justify-content-center">
-                        <button
-                            type="submit"
-                            className="register-btn w-50"
-                            style={{ border: "none" }}
-                            disabled={loading}
-                        >
-                            {loading ? "Đang đăng ký..." : "Đăng ký"}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                            {/* Nút đăng ký ở giữa */}
+                            <div className="d-flex justify-content-center">
+                                <button
+                                    type="submit"
+                                    className="register-btn w-50"
+                                    style={{ border: "none" }}
+                                    disabled={loading}
+                                >
+                                    {loading ? "Đang đăng ký..." : "Đăng ký"}
+                                </button>
+                            </div>
+                        </form >
+                    </>
+                ) : (
+                    <OtpInput length={6} onComplete={(otp) => handleRegister(otp)}></OtpInput>
+                )
+                }
+
+            </div >
+        </div >
     );
 }
 

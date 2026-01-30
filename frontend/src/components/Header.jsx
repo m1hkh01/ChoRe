@@ -1,11 +1,38 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/auth";
-import "@/assets/Header.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faAngleDown, faSearch, faMobileScreen, faAngleRight, faList } from "@fortawesome/free-solid-svg-icons";
+import { faComment, faBell, faHeart } from "@fortawesome/free-regular-svg-icons";
+import { useEffect, useRef, useState } from "react";
+
+
 
 function Header() {
     const { user, logout } = useAuthStore();
+    const [open, setOpen] = useState(false);
+    const dropdownRef = useRef(null);
     const navigate = useNavigate();
 
+    // Đóng khi click ra ngoài
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setOpen(false);
+            }
+        };
+
+        const handleEsc = (e) => {
+            if (e.key === "Escape") setOpen(false);
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("keydown", handleEsc);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleEsc);
+        };
+    }, []);
     const handleLogout = () => {
         logout();
         navigate("/login");
@@ -16,7 +43,10 @@ function Header() {
 
         if (user.role === "Admin") {
             return (
-                <Link to="/admin/post-manager" className="dropdown-item">
+                <Link
+                    to="/admin/post-manager"
+                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                >
                     Trang quản trị Admin
                 </Link>
             );
@@ -24,7 +54,10 @@ function Header() {
 
         if (user.role === "Censor") {
             return (
-                <Link to="/censor/post-censor" className="dropdown-item">
+                <Link
+                    to="/censor/post-censor"
+                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                >
                     Trang kiểm duyệt
                 </Link>
             );
@@ -34,38 +67,110 @@ function Header() {
     };
 
     return (
-        <header className="site-header">
+        <header className="flex items-center h-15 bg-green-600 p-4 border-b border-green-500/25 shadow-sm z-50">
             {/* LOGO */}
-            <Link to="/" className="logo">
-                <div className="logo-wrapper">
-                    <img 
-                        src="/src/Images/logo1.png" 
-                        alt="ChoRẻ Logo" 
-                        className="logo-img"
-                    />
+            <Link to="/" className="flex items-center text-decoration-none w-37.5 mx-2">
+                <div className="h-11.25 min-w-25 px-8 rounded-full flex items-center justify-center text-2xl font-bold text-white">
+                    Chợ
+                    <span className="text-green-700">Rẻ</span>
                 </div>
             </Link>
+            <div className="relative" ref={dropdownRef}>
+                <div className="flex items-center 
+                                rounded-2 bg-(--primary-color) 
+                                w-auto p-2 text-md 
+                                font-semibold text-white
+                                cursor-pointer"
+                    onClick={() => setOpen(!open)}
+                >
+                    <FontAwesomeIcon icon={faList} />
+                    <span onClick={(e) => { e.stopPropagation(); setOpen((prev) => !prev) }}>Danh mục</span>
+                    <FontAwesomeIcon icon={faAngleDown} />
+                </div>
 
+                {open && (
+                    <>
+                        <div className="absolute right-0 z-100 mt-2 w-48 bg-white rounded-lg shadow-lg">
+                            <div className="flex justify-between items-center p-2 text-[16px] font-semibold hover:bg-gray-100">
+                                <FontAwesomeIcon icon={faMobileScreen} />
+                                <span className="px-2 flex-1">Điện thoại</span>
+                                <FontAwesomeIcon icon={faAngleRight} />
+                            </div>
+                            <div className="flex justify-between items-center p-2 text-[16px] font-semibold hover:bg-gray-100">
+                                <FontAwesomeIcon icon={faMobileScreen} />
+                                <span className="px-2 flex-1">Laptop</span>
+                                <FontAwesomeIcon icon={faAngleRight} />
+                            </div>
+                            <div className="flex justify-between items-center p-2 text-[16px] font-semibold hover:bg-gray-100">
+                                <FontAwesomeIcon icon={faMobileScreen} />
+                                <span className="px-2 flex-1">Bàn phím</span>
+                                <FontAwesomeIcon icon={faAngleRight} />
+                            </div>
+                            <div className="flex justify-between items-center p-2 text-[16px] font-semibold hover:bg-gray-100">
+                                <FontAwesomeIcon icon={faMobileScreen} />
+                                <span className="px-2 flex-1">PC, Màn hình</span>
+                                <FontAwesomeIcon icon={faAngleRight} />
+                            </div>
+                            <div className="flex justify-between items-center p-2 text-[16px] font-semibold hover:bg-gray-100">
+                                <FontAwesomeIcon icon={faMobileScreen} />
+                                <span className="px-2 flex-1">Âm thanh, mic thu âm</span>
+                                <FontAwesomeIcon icon={faAngleRight} />
+                            </div>
+                            <div className="flex justify-between items-center p-2 text-[16px] font-semibold hover:bg-gray-100">
+                                <FontAwesomeIcon icon={faMobileScreen} />
+                                <span className="px-2 flex-1">Phụ kiện</span>
+                                <FontAwesomeIcon icon={faAngleRight} />
+                            </div>
+                            <div className="flex justify-between items-center p-2 text-[16px] font-semibold hover:bg-gray-100">
+                                <FontAwesomeIcon icon={faMobileScreen} />
+                                <span className="px-2 flex-1">Đồng hồ thông minh</span>
+                                <FontAwesomeIcon icon={faAngleRight} />
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
             {/* NAV */}
-            <nav className="main-nav">
-                <Link to="#">Điện thoại</Link>
-                <Link to="#">Laptop</Link>
-                <Link to="#">Phụ kiện</Link>
-                <Link to="#">Khuyến mãi</Link>
+            <nav className="flex-1 flex justify-center items-center gap-6">
+                <div className="w-[calc(100%-200px)] flex-1 mx-5 h-12 rounded-4xl bg-[white] flex items-center justify-between">
+                    <div className="w-7.5 flex justify-end">
+                        <FontAwesomeIcon icon={faSearch} />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm sản phẩm, danh mục hay thương hiệu mong muốn ..."
+                        className="w-full h-full rounded-4xl px-4 outline-none border-none"
+                    />
+                </div>
             </nav>
 
             {/* ACTIONS */}
-            <div className="actions">
-                {/* GIỎ HÀNG */}
-                <Link to="/service-package" className="servicePackage-btn">
-                    Gói <span>PRO</span>
+            <div className="flex items-center gap-2">
+                {/* Nhắn tin */}
+                <Link to="/chat" className="w-10 h-10 text-black rounded-circle d-flex justify-center items-center bg-white cursor-pointer">
+                    <FontAwesomeIcon icon={faComment} className="text-xl" />
+                </Link>
+                {/* Tin yêu thích */}
+                <div className="w-10 h-10 rounded-circle d-flex justify-center items-center bg-white cursor-pointer">
+                    <FontAwesomeIcon icon={faHeart} className="text-xl" />
+                </div>
+                {/* Thông báo */}
+                <div className="w-10 h-10 rounded-circle d-flex justify-center items-center bg-white cursor-pointer">
+                    <FontAwesomeIcon icon={faBell} className="text-xl " />
+                </div>
+                {/* GÓI PRO */}
+                <Link
+                    to="/service-package"
+                    className="text-black text-decoration-none font-semibold text-xl px-3"
+                >
+                    Gói <span className="text-yellow-400">PRO</span>
                 </Link>
 
-                {/* USER ĐƯỢC ĐĂNG TIN */}
+                {/* ĐĂNG TIN */}
                 {user && user.role === "User" && (
                     <Link
                         to="/post/create"
-                        className="login-btn"
+                        className="bg-green-500 text-white p-2 px-3 text-decoration-none rounded-3xl font-semibold text-sm hover:opacity-95 hover:-translate-y-px transition"
                     >
                         Đăng tin
                     </Link>
@@ -73,43 +178,46 @@ function Header() {
 
                 {/* AUTH */}
                 {!user ? (
-                    <div className="auth-buttons">
-                        <Link to="/login" className="login-btn">
+                    <div className="flex gap-2">
+                        <Link
+                            to="/login"
+                            className="bg-[#1A6A3A] text-sm text-decoration-none text-white px-3 py-2 rounded-lg font-bold hover:opacity-95 hover:-translate-y-px transition"
+                        >
                             Đăng nhập
-                        </Link>
-                        <Link to="/register" className="register-btn">
-                            Đăng ký
                         </Link>
                     </div>
                 ) : (
-                    <div className="dropdown">
-                        <span
-                            className="login-btn dropdown-toggle"
-                            data-bs-toggle="dropdown"
-                            role="button"
-                        >
-                            {user.userName}
-                        </span>
+                    <div className="relative group">
+                        <div className="w-10 h-10 rounded-circle bg-(--primary-color) flex justify-center items-center text-xl">
+                            <img src="https://i.pravatar.cc/40" className="w-full h-full p-1 rounded-circle" />
+                        </div>
 
-                        <div className="dropdown-menu dropdown-menu-end">
-                            <Link className="dropdown-item" to="/profile">
+                        {/* DROPDOWN */}
+                        <div className="absolute right-0 top-8 z-10 mt-2 w-52 bg-white rounded-lg shadow-lg hidden group-hover:block">
+                            <Link
+                                to="/profile"
+                                className="block px-4 py-2 text-sm rounded-lg hover:bg-gray-100"
+                            >
                                 Trang cá nhân
                             </Link>
-                            <Link className="dropdown-item" to="/service-package-manager">
+
+                            <Link
+                                to="/service-package-manager"
+                                className="block px-4 py-2 text-sm hover:bg-gray-100"
+                            >
                                 Quản lý Gói
                             </Link>
 
                             {renderDashboardLink()}
 
-                            <div className="dropdown-divider"></div>
+                            <div className="border-t my-1"></div>
 
-                            <span
-                                className="dropdown-item text-danger"
-                                role="button"
+                            <button
                                 onClick={handleLogout}
+                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                             >
                                 Đăng xuất
-                            </span>
+                            </button>
                         </div>
                     </div>
                 )}

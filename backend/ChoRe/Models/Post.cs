@@ -40,7 +40,7 @@ namespace ChoRe.Models
         public int PostStatusId { get; set; } = 1;
 
         [ForeignKey("ApprovedByUser")]
-        public int? ApprovedBy { get; set; } 
+        public int? ApprovedBy { get; set; }
 
         public DateTime? ApprovedAt { get; set; }
 
@@ -72,7 +72,8 @@ namespace ChoRe.Models
         public virtual ICollection<SavedPost> SavedPosts { get; set; }
         public virtual ICollection<Comment> Comments { get; set; }
         public virtual ICollection<PostSpecification> PostSpecifications { get; set; }
-        public virtual ICollection<Order> Orders { get; set; }
+        public virtual ICollection<EscrowTransation> EscrowTransations { get; set; }
         public virtual ICollection<PostReport> Reports { get; set; }
+        public virtual ICollection<ChatRoom> ChatRooms { get; set; }
     }
 }

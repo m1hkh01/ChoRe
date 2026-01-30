@@ -321,68 +321,35 @@ namespace ChoReDB.Data
                 }
             );
 
-            // ================= ORDER =================
-            modelBuilder.Entity<OrderStatus>().HasData(
-                new OrderStatus
-                {
-                    OrdStatusId = 1,
-                    OrdStatusName = "Pending",
-                    Description = "Chờ thanh toán"
-                },
-                new OrderStatus
-                {
-                    OrdStatusId = 2,
-                    OrdStatusName = "Paid",
-                    Description = "Đã thanh toán"
-                },
-                new OrderStatus
-                {
-                    OrdStatusId = 3,
-                    OrdStatusName = "Cancelled",
-                    Description = "Đã huỷ"
-                },
-                new OrderStatus
-                {
-                    OrdStatusId = 4,
-                    OrdStatusName = "Expired",
-                    Description = "Hết hạn thanh toán"
-                },
-                new OrderStatus
-                {
-                    OrdStatusId = 5,
-                    OrdStatusName = "Failed",
-                    Description = "Thanh toán thất bại"
-                }
+            // ================= ESCROW TRANSACTION (was Order) =================
+            modelBuilder.Entity<EscrowTransStatus>().HasData(
+                new EscrowTransStatus { EscTransStatusId = 1, StatusName = "Confirming", Description = "Chờ 2 bên xác nhận" },
+                new EscrowTransStatus { EscTransStatusId = 2, StatusName = "Pending", Description = "Chờ thanh toán" },
+                new EscrowTransStatus { EscTransStatusId = 3, StatusName = "Paid", Description = "Đã thanh toán" },
+                new EscrowTransStatus { EscTransStatusId = 4, StatusName = "Cancelled", Description = "Đã huỷ" },
+                new EscrowTransStatus { EscTransStatusId = 5, StatusName = "Expired", Description = "Quá hạn" },
+                new EscrowTransStatus { EscTransStatusId = 6, StatusName = "Completed", Description = "Giao dịch hoàn tất" },
+                new EscrowTransStatus { EscTransStatusId = 7, StatusName = "Disputing", Description = "Tranh chấp" },
+                new EscrowTransStatus { EscTransStatusId = 8, StatusName = "Refunded", Description = "Đã hoàn tiền cho người mua" }
+
+            // new EscrowTransStatus { EscTransStatusId = 5, StatusName = "Failed", Description = "Thanh toán thất bại" }
             );
 
-            modelBuilder.Entity<Order>().HasData(
-                new Order
+            modelBuilder.Entity<EscrowTransation>().HasData(
+                new EscrowTransation
                 {
-                    OrderId = 1,
+                    EscrowTransId = 1,
                     BuyerUserId = 2,
                     SellerUserId = 3,
                     PostId = 1,
-                    OrdStatusId = 2,
-                    IsShippedBySeller = true,
-                    IsReceivedByBuyer = true,
-                    CreateAt = new DateTime(2025, 1, 3)
-                }
-            );
-
-            modelBuilder.Entity<EscrowStatus>().HasData(
-                new EscrowStatus { EscStatusId = 1, EscStatusName = "Holding", Description = "" },
-                new EscrowStatus { EscStatusId = 2, EscStatusName = "Released", Description = "" }
-            );
-
-            modelBuilder.Entity<Escrow>().HasData(
-                new Escrow
-                {
-                    EscrowId = 1,
-                    OrderId = 1,
+                    EscrowTransStatusId = 2,
+                    BuyerConfirmed = true,
+                    SellerConfirmed = true,
+                    CreateAt = new DateTime(2025, 1, 3),
+                    ExpiredAt = new DateTime(2025, 1, 4),
                     TotalAmount = 10300000,
                     PostPrice = 10000000,
-                    PlatformFee = 3,
-                    EscStatusId = 1
+                    PlatformFee = 3
                 }
             );
 
@@ -396,7 +363,7 @@ namespace ChoReDB.Data
                 new Dispute
                 {
                     DisputeId = 1,
-                    OrderId = 1,
+                    EscrowTransId = 1,
                     OpenedByUserId = 2,
                     DisputeReason = "Hàng không đúng mô tả",
                     StatusId = 1,

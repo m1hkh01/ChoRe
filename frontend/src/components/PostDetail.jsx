@@ -32,7 +32,7 @@ function PostDetail() {
 
                 {/* RIGHT */}
                 <div className="col-md-5">
-                    <PostSeller user={post.user} />
+                    <PostSeller user={post.user} postId={post.postId} />
                     <PostComments postId={post.postId} />
                 </div>
             </div>

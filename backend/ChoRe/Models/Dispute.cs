@@ -8,9 +8,9 @@ namespace ChoRe.Models
         [Key]
         public int DisputeId { get; set; }
 
-        [ForeignKey("Order")]
-        [Required(ErrorMessage = "Đơn hàng là bắt buộc")]
-        public int OrderId { get; set; }
+        [ForeignKey("EscrowTransation")]
+        [Required(ErrorMessage = "Giao dịch là bắt buộc")]
+        public int EscrowTransId { get; set; }
 
         [ForeignKey("OpenedByUser")]
         [Required(ErrorMessage = "Người mở tranh chấp là bắt buộc")]
@@ -36,7 +36,7 @@ namespace ChoRe.Models
         public DateTime CreateAt { get; set; } = DateTime.Now;
 
         // Navigation properties
-        public virtual Order Order { get; set; }
+        public virtual EscrowTransation EscrowTransation { get; set; }
         public virtual User OpenedByUser { get; set; }
         public virtual User AssignedByAdmin { get; set; }
         public virtual DisputeStatus DisputeStatus { get; set; }

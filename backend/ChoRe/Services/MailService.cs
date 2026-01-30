@@ -10,6 +10,7 @@ public interface ISendMailService
     Task SendMail(MailContent mailContent);
 
     Task SendEmailAsync(string email, string subject, string htmlMessage);
+    string GenerateOtp(int length = 6);
 }
 
 public class SendMailService : ISendMailService
@@ -81,4 +82,13 @@ public class SendMailService : ISendMailService
             Body = htmlMessage
         });
     }
+    public string GenerateOtp(int length = 6)
+    {
+        var random = new Random();
+        return string.Concat(
+            Enumerable.Range(0, length)
+                .Select(_ => random.Next(0, 10))
+        );
+    }
+
 }

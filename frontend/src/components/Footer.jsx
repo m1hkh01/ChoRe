@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import "@/assets/Footer.css";
 function Footer() {
     return (
-        <footer style={styles.footer}>
+        <footer className="bg-gray-900 mt-auto">
             <div style={styles.container}>
                 <div style={styles.grid}>
                     {/* Về chúng tôi */}
@@ -112,7 +112,7 @@ const styles = {
     container: {
         maxWidth: "1200px",
         margin: "0 auto",
-        padding: "0 20px"
+        padding: "20px"
     },
     grid: {
         display: "grid",

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChoRe.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260127074745_CreateDb")]
-    partial class CreateDb
+    [Migration("20260130042221_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -299,6 +299,13 @@ namespace ChoRe.Migrations
                     b.Property<int>("FromUserId")
                         .HasColumnType("int");
 
+                    b.Property<string>("MessageType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("TransationId")
+                        .HasColumnType("int");
+
                     b.HasKey("ChatMessId");
 
                     b.HasIndex("ChatRoomId")
@@ -308,6 +315,10 @@ namespace ChoRe.Migrations
                         .HasDatabaseName("IX_ChatMessages_CreatedAt");
 
                     b.HasIndex("FromUserId");
+
+                    b.HasIndex("TransationId")
+                        .IsUnique()
+                        .HasFilter("[TransationId] IS NOT NULL");
 
                     b.ToTable("ChatMessages");
                 });
@@ -320,24 +331,35 @@ namespace ChoRe.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ChatRoomId"));
 
+                    b.Property<int>("BuyerId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreateAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("User1Id")
+                    b.Property<DateTime?>("LastMessageAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastMessageContent")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PostId")
                         .HasColumnType("int");
 
-                    b.Property<int>("User2Id")
+                    b.Property<int>("SellerId")
                         .HasColumnType("int");
 
                     b.HasKey("ChatRoomId");
 
-                    b.HasIndex("User1Id")
-                        .HasDatabaseName("IX_ChatRooms_User1Id");
+                    b.HasIndex("BuyerId")
+                        .HasDatabaseName("IX_ChatRooms_BuyerId");
 
-                    b.HasIndex("User2Id")
-                        .HasDatabaseName("IX_ChatRooms_User2Id");
+                    b.HasIndex("PostId");
 
-                    b.HasIndex("User1Id", "User2Id")
+                    b.HasIndex("SellerId")
+                        .HasDatabaseName("IX_ChatRooms_SellerId");
+
+                    b.HasIndex("BuyerId", "SellerId", "PostId")
                         .IsUnique()
                         .HasDatabaseName("IX_ChatRooms_Users");
 
@@ -418,10 +440,10 @@ namespace ChoRe.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
-                    b.Property<int>("OpenedByUserId")
+                    b.Property<int>("EscrowTransId")
                         .HasColumnType("int");
 
-                    b.Property<int>("OrderId")
+                    b.Property<int>("OpenedByUserId")
                         .HasColumnType("int");
 
                     b.Property<int>("StatusId")
@@ -431,9 +453,9 @@ namespace ChoRe.Migrations
 
                     b.HasIndex("AssignedByAdminUserId");
 
-                    b.HasIndex("OpenedByUserId");
+                    b.HasIndex("EscrowTransId");
 
-                    b.HasIndex("OrderId");
+                    b.HasIndex("OpenedByUserId");
 
                     b.HasIndex("StatusId");
 
@@ -447,8 +469,8 @@ namespace ChoRe.Migrations
                             Decision = "",
                             DecisionNote = "",
                             DisputeReason = "Hàng không đúng mô tả",
+                            EscrowTransId = 1,
                             OpenedByUserId = 2,
-                            OrderId = 1,
                             StatusId = 1
                         });
                 });
@@ -537,94 +559,167 @@ namespace ChoRe.Migrations
                         });
                 });
 
-            modelBuilder.Entity("ChoRe.Models.Escrow", b =>
+            modelBuilder.Entity("ChoRe.Models.EscrowTransStatus", b =>
                 {
-                    b.Property<int>("EscrowId")
+                    b.Property<int>("EscTransStatusId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EscrowId"));
-
-                    b.Property<int>("EscStatusId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("PlatformFee")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<decimal>("PostPrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("EscrowId");
-
-                    b.HasIndex("EscStatusId");
-
-                    b.HasIndex("OrderId")
-                        .IsUnique();
-
-                    b.ToTable("Escrows");
-
-                    b.HasData(
-                        new
-                        {
-                            EscrowId = 1,
-                            EscStatusId = 1,
-                            OrderId = 1,
-                            PlatformFee = 3m,
-                            PostPrice = 10000000m,
-                            TotalAmount = 10300000m
-                        });
-                });
-
-            modelBuilder.Entity("ChoRe.Models.EscrowStatus", b =>
-                {
-                    b.Property<int>("EscStatusId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EscStatusId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EscTransStatusId"));
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<string>("EscStatusName")
+                    b.Property<string>("StatusName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.HasKey("EscStatusId");
+                    b.HasKey("EscTransStatusId");
 
-                    b.ToTable("EscrowStatuses");
+                    b.ToTable("EscrowTransStatuses");
 
                     b.HasData(
                         new
                         {
-                            EscStatusId = 1,
-                            Description = "",
-                            EscStatusName = "Holding"
+                            EscTransStatusId = 1,
+                            Description = "Chờ 2 bên xác nhận",
+                            StatusName = "Confirming"
                         },
                         new
                         {
-                            EscStatusId = 2,
-                            Description = "",
-                            EscStatusName = "Released"
+                            EscTransStatusId = 2,
+                            Description = "Chờ thanh toán",
+                            StatusName = "Pending"
+                        },
+                        new
+                        {
+                            EscTransStatusId = 3,
+                            Description = "Đã thanh toán",
+                            StatusName = "Paid"
+                        },
+                        new
+                        {
+                            EscTransStatusId = 4,
+                            Description = "Đã huỷ",
+                            StatusName = "Cancelled"
+                        },
+                        new
+                        {
+                            EscTransStatusId = 5,
+                            Description = "Quá hạn",
+                            StatusName = "Expired"
+                        },
+                        new
+                        {
+                            EscTransStatusId = 6,
+                            Description = "Giao dịch hoàn tất",
+                            StatusName = "Completed"
+                        },
+                        new
+                        {
+                            EscTransStatusId = 7,
+                            Description = "Tranh chấp",
+                            StatusName = "Disputing"
+                        },
+                        new
+                        {
+                            EscTransStatusId = 8,
+                            Description = "Đã hoàn tiền cho người mua",
+                            StatusName = "Refunded"
+                        });
+                });
+
+            modelBuilder.Entity("ChoRe.Models.EscrowTransation", b =>
+                {
+                    b.Property<int>("EscrowTransId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EscrowTransId"));
+
+                    b.Property<bool>("BuyerConfirmed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("BuyerUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.Property<int>("EscrowTransStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ExpiredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("PlatformFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PostPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("SellerConfirmed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("SellerUserId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("EscrowTransId");
+
+                    b.HasIndex("BuyerUserId")
+                        .HasDatabaseName("IX_EscrowTransations_BuyerUserId");
+
+                    b.HasIndex("EscrowTransStatusId")
+                        .HasDatabaseName("IX_EscrowTransations_EscrowTransStatusId");
+
+                    b.HasIndex("PostId")
+                        .HasDatabaseName("IX_EscrowTransations_PostId");
+
+                    b.HasIndex("SellerUserId")
+                        .HasDatabaseName("IX_EscrowTransations_SellerUserId");
+
+                    b.ToTable("EscrowTransations");
+
+                    b.HasData(
+                        new
+                        {
+                            EscrowTransId = 1,
+                            BuyerConfirmed = true,
+                            BuyerUserId = 2,
+                            CreateAt = new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            EscrowTransStatusId = 2,
+                            ExpiredAt = new DateTime(2025, 1, 4, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            PlatformFee = 3m,
+                            PostId = 1,
+                            PostPrice = 10000000m,
+                            SellerConfirmed = true,
+                            SellerUserId = 3,
+                            TotalAmount = 10300000m
                         });
                 });
 
             modelBuilder.Entity("ChoRe.Models.MessageImage", b =>
                 {
                     b.Property<int>("MessageImgId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MessageImgId"));
 
                     b.Property<int>("ChatMessId")
                         .HasColumnType("int");
@@ -636,127 +731,9 @@ namespace ChoRe.Migrations
 
                     b.HasKey("MessageImgId");
 
+                    b.HasIndex("ChatMessId");
+
                     b.ToTable("MessageImages");
-                });
-
-            modelBuilder.Entity("ChoRe.Models.Order", b =>
-                {
-                    b.Property<int>("OrderId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
-
-                    b.Property<int>("BuyerUserId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreateAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
-
-                    b.Property<bool>("IsReceivedByBuyer")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("IsShippedBySeller")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<int>("OrdStatusId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PostId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SellerUserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("OrderId");
-
-                    b.HasIndex("BuyerUserId")
-                        .HasDatabaseName("IX_Orders_BuyerUserId");
-
-                    b.HasIndex("OrdStatusId")
-                        .HasDatabaseName("IX_Orders_OrdStatusId");
-
-                    b.HasIndex("PostId")
-                        .HasDatabaseName("IX_Orders_PostId");
-
-                    b.HasIndex("SellerUserId")
-                        .HasDatabaseName("IX_Orders_SellerUserId");
-
-                    b.ToTable("Orders");
-
-                    b.HasData(
-                        new
-                        {
-                            OrderId = 1,
-                            BuyerUserId = 2,
-                            CreateAt = new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsReceivedByBuyer = true,
-                            IsShippedBySeller = true,
-                            OrdStatusId = 2,
-                            PostId = 1,
-                            SellerUserId = 3
-                        });
-                });
-
-            modelBuilder.Entity("ChoRe.Models.OrderStatus", b =>
-                {
-                    b.Property<int>("OrdStatusId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrdStatusId"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("OrdStatusName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("OrdStatusId");
-
-                    b.ToTable("OrderStatuses");
-
-                    b.HasData(
-                        new
-                        {
-                            OrdStatusId = 1,
-                            Description = "Chờ thanh toán",
-                            OrdStatusName = "Pending"
-                        },
-                        new
-                        {
-                            OrdStatusId = 2,
-                            Description = "Đã thanh toán",
-                            OrdStatusName = "Paid"
-                        },
-                        new
-                        {
-                            OrdStatusId = 3,
-                            Description = "Đã huỷ",
-                            OrdStatusName = "Cancelled"
-                        },
-                        new
-                        {
-                            OrdStatusId = 4,
-                            Description = "Hết hạn thanh toán",
-                            OrdStatusName = "Expired"
-                        },
-                        new
-                        {
-                            OrdStatusId = 5,
-                            Description = "Thanh toán thất bại",
-                            OrdStatusName = "Failed"
-                        });
                 });
 
             modelBuilder.Entity("ChoRe.Models.Post", b =>
@@ -1408,6 +1385,9 @@ namespace ChoRe.Migrations
                     b.Property<int>("DurationDays")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<decimal>("MaxFreePlatformFeePerSub")
                         .HasColumnType("decimal(18,2)");
 
@@ -1444,6 +1424,7 @@ namespace ChoRe.Migrations
                         {
                             SubPlanId = 1,
                             DurationDays = 30,
+                            IsActive = true,
                             MaxFreePlatformFeePerSub = 0m,
                             MaxFreePost = 2m,
                             MaxPostPerSub = 5,
@@ -1456,6 +1437,7 @@ namespace ChoRe.Migrations
                         {
                             SubPlanId = 2,
                             DurationDays = 30,
+                            IsActive = true,
                             MaxFreePlatformFeePerSub = 4m,
                             MaxFreePost = 5m,
                             MaxPostPerSub = 10,
@@ -1468,6 +1450,7 @@ namespace ChoRe.Migrations
                         {
                             SubPlanId = 3,
                             DurationDays = 30,
+                            IsActive = true,
                             MaxFreePlatformFeePerSub = 12m,
                             MaxFreePost = 10m,
                             MaxPostPerSub = 30,
@@ -1480,6 +1463,7 @@ namespace ChoRe.Migrations
                         {
                             SubPlanId = 4,
                             DurationDays = 40,
+                            IsActive = true,
                             MaxFreePlatformFeePerSub = 30m,
                             MaxFreePost = 18m,
                             MaxPostPerSub = 100,
@@ -1535,7 +1519,6 @@ namespace ChoRe.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasMaxLength(15)
                         .HasColumnType("nvarchar(15)");
 
@@ -1697,6 +1680,33 @@ namespace ChoRe.Migrations
                         });
                 });
 
+            modelBuilder.Entity("EmailOtp", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ExpiredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtpCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EmailOtps");
+                });
+
             modelBuilder.Entity("ReportReview", b =>
                 {
                     b.Property<int>("ReportReviewId")
@@ -1849,28 +1859,43 @@ namespace ChoRe.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ChoRe.Models.EscrowTransation", "EscrowTransation")
+                        .WithOne("ChatMessage")
+                        .HasForeignKey("ChoRe.Models.ChatMessage", "TransationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("ChatRoom");
+
+                    b.Navigation("EscrowTransation");
 
                     b.Navigation("FromUser");
                 });
 
             modelBuilder.Entity("ChoRe.Models.ChatRoom", b =>
                 {
-                    b.HasOne("ChoRe.Models.User", "User1")
+                    b.HasOne("ChoRe.Models.User", "Buyer")
                         .WithMany("ChatRoomsUser1")
-                        .HasForeignKey("User1Id")
+                        .HasForeignKey("BuyerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ChoRe.Models.User", "User2")
+                    b.HasOne("ChoRe.Models.Post", "Post")
+                        .WithMany("ChatRooms")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ChoRe.Models.User", "Seller")
                         .WithMany("ChatRoomsUser2")
-                        .HasForeignKey("User2Id")
+                        .HasForeignKey("SellerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("User1");
+                    b.Navigation("Buyer");
 
-                    b.Navigation("User2");
+                    b.Navigation("Post");
+
+                    b.Navigation("Seller");
                 });
 
             modelBuilder.Entity("ChoRe.Models.Comment", b =>
@@ -1899,15 +1924,15 @@ namespace ChoRe.Migrations
                         .HasForeignKey("AssignedByAdminUserId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("ChoRe.Models.User", "OpenedByUser")
-                        .WithMany("DisputesOpened")
-                        .HasForeignKey("OpenedByUserId")
+                    b.HasOne("ChoRe.Models.EscrowTransation", "EscrowTransation")
+                        .WithMany("Disputes")
+                        .HasForeignKey("EscrowTransId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ChoRe.Models.Order", "Order")
-                        .WithMany("Disputes")
-                        .HasForeignKey("OrderId")
+                    b.HasOne("ChoRe.Models.User", "OpenedByUser")
+                        .WithMany("DisputesOpened")
+                        .HasForeignKey("OpenedByUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1921,9 +1946,9 @@ namespace ChoRe.Migrations
 
                     b.Navigation("DisputeStatus");
 
-                    b.Navigation("OpenedByUser");
+                    b.Navigation("EscrowTransation");
 
-                    b.Navigation("Order");
+                    b.Navigation("OpenedByUser");
                 });
 
             modelBuilder.Entity("ChoRe.Models.DisputeEvidence", b =>
@@ -1945,37 +1970,7 @@ namespace ChoRe.Migrations
                     b.Navigation("SubmitByUser");
                 });
 
-            modelBuilder.Entity("ChoRe.Models.Escrow", b =>
-                {
-                    b.HasOne("ChoRe.Models.EscrowStatus", "EscrowStatus")
-                        .WithMany("Escrows")
-                        .HasForeignKey("EscStatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ChoRe.Models.Order", "Order")
-                        .WithOne("Escrow")
-                        .HasForeignKey("ChoRe.Models.Escrow", "OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EscrowStatus");
-
-                    b.Navigation("Order");
-                });
-
-            modelBuilder.Entity("ChoRe.Models.MessageImage", b =>
-                {
-                    b.HasOne("ChoRe.Models.ChatMessage", "ChatMessage")
-                        .WithMany("MessageImages")
-                        .HasForeignKey("MessageImgId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ChatMessage");
-                });
-
-            modelBuilder.Entity("ChoRe.Models.Order", b =>
+            modelBuilder.Entity("ChoRe.Models.EscrowTransation", b =>
                 {
                     b.HasOne("ChoRe.Models.User", "BuyerUser")
                         .WithMany("OrdersAsBuyer")
@@ -1983,14 +1978,14 @@ namespace ChoRe.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ChoRe.Models.OrderStatus", "OrderStatus")
-                        .WithMany("Orders")
-                        .HasForeignKey("OrdStatusId")
+                    b.HasOne("ChoRe.Models.EscrowTransStatus", "EscrowTransStatus")
+                        .WithMany("EscrowTransations")
+                        .HasForeignKey("EscrowTransStatusId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ChoRe.Models.Post", "Post")
-                        .WithMany("Orders")
+                        .WithMany("EscrowTransations")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -2003,11 +1998,22 @@ namespace ChoRe.Migrations
 
                     b.Navigation("BuyerUser");
 
-                    b.Navigation("OrderStatus");
+                    b.Navigation("EscrowTransStatus");
 
                     b.Navigation("Post");
 
                     b.Navigation("SellerUser");
+                });
+
+            modelBuilder.Entity("ChoRe.Models.MessageImage", b =>
+                {
+                    b.HasOne("ChoRe.Models.ChatMessage", "ChatMessage")
+                        .WithMany("MessageImages")
+                        .HasForeignKey("ChatMessId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChatMessage");
                 });
 
             modelBuilder.Entity("ChoRe.Models.Post", b =>
@@ -2180,7 +2186,7 @@ namespace ChoRe.Migrations
 
             modelBuilder.Entity("ChoRe.Models.SubscriptionOrder", b =>
                 {
-                    b.HasOne("ChoRe.Models.OrderStatus", "OrderStatus")
+                    b.HasOne("ChoRe.Models.EscrowTransStatus", "OrderStatus")
                         .WithMany()
                         .HasForeignKey("OrdStatusId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2352,29 +2358,26 @@ namespace ChoRe.Migrations
                     b.Navigation("Disputes");
                 });
 
-            modelBuilder.Entity("ChoRe.Models.EscrowStatus", b =>
+            modelBuilder.Entity("ChoRe.Models.EscrowTransStatus", b =>
                 {
-                    b.Navigation("Escrows");
+                    b.Navigation("EscrowTransations");
                 });
 
-            modelBuilder.Entity("ChoRe.Models.Order", b =>
+            modelBuilder.Entity("ChoRe.Models.EscrowTransation", b =>
                 {
-                    b.Navigation("Disputes");
-
-                    b.Navigation("Escrow")
+                    b.Navigation("ChatMessage")
                         .IsRequired();
-                });
 
-            modelBuilder.Entity("ChoRe.Models.OrderStatus", b =>
-                {
-                    b.Navigation("Orders");
+                    b.Navigation("Disputes");
                 });
 
             modelBuilder.Entity("ChoRe.Models.Post", b =>
                 {
+                    b.Navigation("ChatRooms");
+
                     b.Navigation("Comments");
 
-                    b.Navigation("Orders");
+                    b.Navigation("EscrowTransations");
 
                     b.Navigation("PostCates");
 

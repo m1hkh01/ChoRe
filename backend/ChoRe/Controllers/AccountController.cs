@@ -7,12 +7,26 @@ using Microsoft.AspNetCore.Mvc;
 public class AccountController : ControllerBase
 {
     private readonly AccountService _service;
+    public string OtpCode { get; set; } = null!;
     public AccountController(AccountService service)
     {
         _service = service;
     }
+    [HttpPost("/send-otp")]
+    public async Task<IActionResult> SendOtp(SendOtpRequest request)
+    {
+        try
+        {
+            OtpCode = await _service.SendOtpCode(request.Email);
+            return Ok(new { message = "Mã OTP đã được gửi đến email của bạn." });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Error = ex.Message });
+        }
+    }
     [HttpPost("/register")]
-    public async Task<IActionResult> Register(User newUser)
+    public async Task<IActionResult> Register(RegisterDto dto)
     {
         try
         {
@@ -20,12 +34,16 @@ public class AccountController : ControllerBase
             {
                 return BadRequest(ModelState);
             }
-            var user = await _service.Register(newUser);
+            var user = await _service.Register(dto);
             if (user == null)
             {
                 return BadRequest(new { Error = "Đăng ký không thành công" });
             }
             return Ok(new { message = "Đăng ký thành công" });
+        }
+        catch (EmailAlreadyExistsException ex)
+        {
+            return BadRequest(new { Error = ex.Message });
         }
         catch (Exception err)
         {

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ChoRe.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateDb : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -71,31 +71,33 @@ namespace ChoRe.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "EscrowStatuses",
+                name: "EmailOtps",
                 columns: table => new
                 {
-                    EscStatusId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    EscStatusName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OtpCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ExpiredAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsUsed = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EscrowStatuses", x => x.EscStatusId);
+                    table.PrimaryKey("PK_EmailOtps", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "OrderStatuses",
+                name: "EscrowTransStatuses",
                 columns: table => new
                 {
-                    OrdStatusId = table.Column<int>(type: "int", nullable: false)
+                    EscTransStatusId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    OrdStatusName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    StatusName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderStatuses", x => x.OrdStatusId);
+                    table.PrimaryKey("PK_EscrowTransStatuses", x => x.EscTransStatusId);
                 });
 
             migrationBuilder.CreateTable(
@@ -145,6 +147,7 @@ namespace ChoRe.Migrations
                 {
                     SubPlanId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
                     SubPlanName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     SubPlanTitle = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     SubPlanPromo = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
@@ -214,7 +217,7 @@ namespace ChoRe.Migrations
                     Avatar = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     FullName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: true),
                     Address = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     RoleId = table.Column<int>(type: "int", nullable: false),
@@ -230,33 +233,6 @@ namespace ChoRe.Migrations
                         column: x => x.RoleId,
                         principalTable: "Roles",
                         principalColumn: "RoleId",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ChatRooms",
-                columns: table => new
-                {
-                    ChatRoomId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    User1Id = table.Column<int>(type: "int", nullable: false),
-                    User2Id = table.Column<int>(type: "int", nullable: false),
-                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ChatRooms", x => x.ChatRoomId);
-                    table.ForeignKey(
-                        name: "FK_ChatRooms_Users_User1Id",
-                        column: x => x.User1Id,
-                        principalTable: "Users",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_ChatRooms_Users_User2Id",
-                        column: x => x.User2Id,
-                        principalTable: "Users",
-                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -373,10 +349,10 @@ namespace ChoRe.Migrations
                 {
                     table.PrimaryKey("PK_SubscriptionOrders", x => x.OrderId);
                     table.ForeignKey(
-                        name: "FK_SubscriptionOrders_OrderStatuses_OrdStatusId",
+                        name: "FK_SubscriptionOrders_EscrowTransStatuses_OrdStatusId",
                         column: x => x.OrdStatusId,
-                        principalTable: "OrderStatuses",
-                        principalColumn: "OrdStatusId",
+                        principalTable: "EscrowTransStatuses",
+                        principalColumn: "EscTransStatusId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_SubscriptionOrders_SubscriptionPlans_SubPlanId",
@@ -444,28 +420,36 @@ namespace ChoRe.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ChatMessages",
+                name: "ChatRooms",
                 columns: table => new
                 {
-                    ChatMessId = table.Column<int>(type: "int", nullable: false)
+                    ChatRoomId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ChatRoomId = table.Column<int>(type: "int", nullable: false),
-                    FromUserId = table.Column<int>(type: "int", nullable: false),
-                    ChatContent = table.Column<string>(type: "nvarchar(max)", maxLength: 5000, nullable: false),
-                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()")
+                    BuyerId = table.Column<int>(type: "int", nullable: false),
+                    SellerId = table.Column<int>(type: "int", nullable: false),
+                    PostId = table.Column<int>(type: "int", nullable: false),
+                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastMessageAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LastMessageContent = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ChatMessages", x => x.ChatMessId);
+                    table.PrimaryKey("PK_ChatRooms", x => x.ChatRoomId);
                     table.ForeignKey(
-                        name: "FK_ChatMessages_ChatRooms_ChatRoomId",
-                        column: x => x.ChatRoomId,
-                        principalTable: "ChatRooms",
-                        principalColumn: "ChatRoomId",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_ChatRooms_Posts_PostId",
+                        column: x => x.PostId,
+                        principalTable: "Posts",
+                        principalColumn: "PostId",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_ChatMessages_Users_FromUserId",
-                        column: x => x.FromUserId,
+                        name: "FK_ChatRooms_Users_BuyerId",
+                        column: x => x.BuyerId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ChatRooms_Users_SellerId",
+                        column: x => x.SellerId,
                         principalTable: "Users",
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.Restrict);
@@ -500,42 +484,46 @@ namespace ChoRe.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Orders",
+                name: "EscrowTransations",
                 columns: table => new
                 {
-                    OrderId = table.Column<int>(type: "int", nullable: false)
+                    EscrowTransId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BuyerUserId = table.Column<int>(type: "int", nullable: false),
                     SellerUserId = table.Column<int>(type: "int", nullable: false),
                     PostId = table.Column<int>(type: "int", nullable: false),
-                    OrdStatusId = table.Column<int>(type: "int", nullable: false),
-                    IsShippedBySeller = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    IsReceivedByBuyer = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()")
+                    EscrowTransStatusId = table.Column<int>(type: "int", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PostPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PlatformFee = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()"),
+                    ExpiredAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    BuyerConfirmed = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    SellerConfirmed = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Orders", x => x.OrderId);
+                    table.PrimaryKey("PK_EscrowTransations", x => x.EscrowTransId);
                     table.ForeignKey(
-                        name: "FK_Orders_OrderStatuses_OrdStatusId",
-                        column: x => x.OrdStatusId,
-                        principalTable: "OrderStatuses",
-                        principalColumn: "OrdStatusId",
+                        name: "FK_EscrowTransations_EscrowTransStatuses_EscrowTransStatusId",
+                        column: x => x.EscrowTransStatusId,
+                        principalTable: "EscrowTransStatuses",
+                        principalColumn: "EscTransStatusId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Orders_Posts_PostId",
+                        name: "FK_EscrowTransations_Posts_PostId",
                         column: x => x.PostId,
                         principalTable: "Posts",
                         principalColumn: "PostId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Orders_Users_BuyerUserId",
+                        name: "FK_EscrowTransations_Users_BuyerUserId",
                         column: x => x.BuyerUserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Orders_Users_SellerUserId",
+                        name: "FK_EscrowTransations_Users_SellerUserId",
                         column: x => x.SellerUserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
@@ -650,6 +638,33 @@ namespace ChoRe.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SavedPosts",
+                columns: table => new
+                {
+                    SavedPostId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    PostId = table.Column<int>(type: "int", nullable: false),
+                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SavedPosts", x => x.SavedPostId);
+                    table.ForeignKey(
+                        name: "FK_SavedPosts_Posts_PostId",
+                        column: x => x.PostId,
+                        principalTable: "Posts",
+                        principalColumn: "PostId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SavedPosts_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Reviews",
                 columns: table => new
                 {
@@ -693,49 +708,39 @@ namespace ChoRe.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SavedPosts",
+                name: "ChatMessages",
                 columns: table => new
                 {
-                    SavedPostId = table.Column<int>(type: "int", nullable: false)
+                    ChatMessId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    PostId = table.Column<int>(type: "int", nullable: false),
-                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()")
+                    ChatRoomId = table.Column<int>(type: "int", nullable: false),
+                    FromUserId = table.Column<int>(type: "int", nullable: false),
+                    ChatContent = table.Column<string>(type: "nvarchar(max)", maxLength: 5000, nullable: false),
+                    MessageType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()"),
+                    TransationId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SavedPosts", x => x.SavedPostId);
+                    table.PrimaryKey("PK_ChatMessages", x => x.ChatMessId);
                     table.ForeignKey(
-                        name: "FK_SavedPosts_Posts_PostId",
-                        column: x => x.PostId,
-                        principalTable: "Posts",
-                        principalColumn: "PostId",
+                        name: "FK_ChatMessages_ChatRooms_ChatRoomId",
+                        column: x => x.ChatRoomId,
+                        principalTable: "ChatRooms",
+                        principalColumn: "ChatRoomId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_SavedPosts_Users_UserId",
-                        column: x => x.UserId,
+                        name: "FK_ChatMessages_EscrowTransations_TransationId",
+                        column: x => x.TransationId,
+                        principalTable: "EscrowTransations",
+                        principalColumn: "EscrowTransId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ChatMessages_Users_FromUserId",
+                        column: x => x.FromUserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "MessageImages",
-                columns: table => new
-                {
-                    MessageImgId = table.Column<int>(type: "int", nullable: false),
-                    ImageUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    ChatMessId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MessageImages", x => x.MessageImgId);
-                    table.ForeignKey(
-                        name: "FK_MessageImages_ChatMessages_MessageImgId",
-                        column: x => x.MessageImgId,
-                        principalTable: "ChatMessages",
-                        principalColumn: "ChatMessId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -744,7 +749,7 @@ namespace ChoRe.Migrations
                 {
                     DisputeId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    OrderId = table.Column<int>(type: "int", nullable: false),
+                    EscrowTransId = table.Column<int>(type: "int", nullable: false),
                     OpenedByUserId = table.Column<int>(type: "int", nullable: false),
                     DisputeReason = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
                     StatusId = table.Column<int>(type: "int", nullable: false),
@@ -763,10 +768,10 @@ namespace ChoRe.Migrations
                         principalColumn: "DisStatusId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Disputes_Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Orders",
-                        principalColumn: "OrderId",
+                        name: "FK_Disputes_EscrowTransations_EscrowTransId",
+                        column: x => x.EscrowTransId,
+                        principalTable: "EscrowTransations",
+                        principalColumn: "EscrowTransId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Disputes_Users_AssignedByAdminUserId",
@@ -780,35 +785,6 @@ namespace ChoRe.Migrations
                         principalTable: "Users",
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Escrows",
-                columns: table => new
-                {
-                    EscrowId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    OrderId = table.Column<int>(type: "int", nullable: false),
-                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    PostPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    PlatformFee = table.Column<decimal>(type: "decimal(5,2)", precision: 5, scale: 2, nullable: false),
-                    EscStatusId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Escrows", x => x.EscrowId);
-                    table.ForeignKey(
-                        name: "FK_Escrows_EscrowStatuses_EscStatusId",
-                        column: x => x.EscStatusId,
-                        principalTable: "EscrowStatuses",
-                        principalColumn: "EscStatusId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Escrows_Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Orders",
-                        principalColumn: "OrderId",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -856,6 +832,26 @@ namespace ChoRe.Migrations
                         column: x => x.ReviewId,
                         principalTable: "Reviews",
                         principalColumn: "ReviewId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MessageImages",
+                columns: table => new
+                {
+                    MessageImgId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ImageUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    ChatMessId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MessageImages", x => x.MessageImgId);
+                    table.ForeignKey(
+                        name: "FK_MessageImages_ChatMessages_ChatMessId",
+                        column: x => x.ChatMessId,
+                        principalTable: "ChatMessages",
+                        principalColumn: "ChatMessId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -917,24 +913,18 @@ namespace ChoRe.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "EscrowStatuses",
-                columns: new[] { "EscStatusId", "Description", "EscStatusName" },
+                table: "EscrowTransStatuses",
+                columns: new[] { "EscTransStatusId", "Description", "StatusName" },
                 values: new object[,]
                 {
-                    { 1, "", "Holding" },
-                    { 2, "", "Released" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "OrderStatuses",
-                columns: new[] { "OrdStatusId", "Description", "OrdStatusName" },
-                values: new object[,]
-                {
-                    { 1, "Chờ thanh toán", "Pending" },
-                    { 2, "Đã thanh toán", "Paid" },
-                    { 3, "Đã huỷ", "Cancelled" },
-                    { 4, "Hết hạn thanh toán", "Expired" },
-                    { 5, "Thanh toán thất bại", "Failed" }
+                    { 1, "Chờ 2 bên xác nhận", "Confirming" },
+                    { 2, "Chờ thanh toán", "Pending" },
+                    { 3, "Đã thanh toán", "Paid" },
+                    { 4, "Đã huỷ", "Cancelled" },
+                    { 5, "Quá hạn", "Expired" },
+                    { 6, "Giao dịch hoàn tất", "Completed" },
+                    { 7, "Tranh chấp", "Disputing" },
+                    { 8, "Đã hoàn tiền cho người mua", "Refunded" }
                 });
 
             migrationBuilder.InsertData(
@@ -969,13 +959,13 @@ namespace ChoRe.Migrations
 
             migrationBuilder.InsertData(
                 table: "SubscriptionPlans",
-                columns: new[] { "SubPlanId", "DurationDays", "MaxFreePlatformFeePerSub", "MaxFreePost", "MaxPostPerSub", "SubPlanName", "SubPlanPrice", "SubPlanPromo", "SubPlanTitle" },
+                columns: new[] { "SubPlanId", "DurationDays", "IsActive", "MaxFreePlatformFeePerSub", "MaxFreePost", "MaxPostPerSub", "SubPlanName", "SubPlanPrice", "SubPlanPromo", "SubPlanTitle" },
                 values: new object[,]
                 {
-                    { 1, 30, 0m, 2m, 5, "ChoRe Free", 0m, "Tiết kiệm 16% so với giá mua lẻ (*)", "Gói mặc định cho người mới đăng ký" },
-                    { 2, 30, 4m, 5m, 10, "ChoRe Vip", 150000m, "Tiết kiệm 16% so với giá mua lẻ (*)", "Gói VIP cho người dành cho người bán chuyên nghiệp" },
-                    { 3, 30, 12m, 10m, 30, "ChoRe Premium", 350000m, "Tiết kiệm 16% so với giá mua lẻ (*)", "Gói Premium cho người bán có quy mô lớn" },
-                    { 4, 40, 30m, 18m, 100, "ChoRe Bussiness", 1000000m, "Tiết kiệm 16% so với giá mua lẻ (*)", "Gói Bussiness cho người bán là doanh nghiệp" }
+                    { 1, 30, true, 0m, 2m, 5, "ChoRe Free", 0m, "Tiết kiệm 16% so với giá mua lẻ (*)", "Gói mặc định cho người mới đăng ký" },
+                    { 2, 30, true, 4m, 5m, 10, "ChoRe Vip", 150000m, "Tiết kiệm 16% so với giá mua lẻ (*)", "Gói VIP cho người dành cho người bán chuyên nghiệp" },
+                    { 3, 30, true, 12m, 10m, 30, "ChoRe Premium", 350000m, "Tiết kiệm 16% so với giá mua lẻ (*)", "Gói Premium cho người bán có quy mô lớn" },
+                    { 4, 40, true, 30m, 18m, 100, "ChoRe Bussiness", 1000000m, "Tiết kiệm 16% so với giá mua lẻ (*)", "Gói Bussiness cho người bán là doanh nghiệp" }
                 });
 
             migrationBuilder.InsertData(
@@ -1071,9 +1061,9 @@ namespace ChoRe.Migrations
                 values: new object[] { 1, "Tôi muốn mua", new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, 1 });
 
             migrationBuilder.InsertData(
-                table: "Orders",
-                columns: new[] { "OrderId", "BuyerUserId", "CreateAt", "IsReceivedByBuyer", "IsShippedBySeller", "OrdStatusId", "PostId", "SellerUserId" },
-                values: new object[] { 1, 2, new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), true, true, 2, 1, 3 });
+                table: "EscrowTransations",
+                columns: new[] { "EscrowTransId", "BuyerConfirmed", "BuyerUserId", "CreateAt", "EscrowTransStatusId", "ExpiredAt", "PlatformFee", "PostId", "PostPrice", "SellerConfirmed", "SellerUserId", "TotalAmount" },
+                values: new object[] { 1, true, 2, new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, new DateTime(2025, 1, 4, 0, 0, 0, 0, DateTimeKind.Unspecified), 3m, 1, 10000000m, true, 3, 10300000m });
 
             migrationBuilder.InsertData(
                 table: "PostCates",
@@ -1116,13 +1106,8 @@ namespace ChoRe.Migrations
 
             migrationBuilder.InsertData(
                 table: "Disputes",
-                columns: new[] { "DisputeId", "AssignedByAdminUserId", "CreateAt", "Decision", "DecisionNote", "DisputeReason", "OpenedByUserId", "OrderId", "StatusId" },
-                values: new object[] { 1, null, new DateTime(2025, 1, 4, 0, 0, 0, 0, DateTimeKind.Unspecified), "", "", "Hàng không đúng mô tả", 2, 1, 1 });
-
-            migrationBuilder.InsertData(
-                table: "Escrows",
-                columns: new[] { "EscrowId", "EscStatusId", "OrderId", "PlatformFee", "PostPrice", "TotalAmount" },
-                values: new object[] { 1, 1, 1, 3m, 10000000m, 10300000m });
+                columns: new[] { "DisputeId", "AssignedByAdminUserId", "CreateAt", "Decision", "DecisionNote", "DisputeReason", "EscrowTransId", "OpenedByUserId", "StatusId" },
+                values: new object[] { 1, null, new DateTime(2025, 1, 4, 0, 0, 0, 0, DateTimeKind.Unspecified), "", "", "Hàng không đúng mô tả", 1, 2, 1 });
 
             migrationBuilder.InsertData(
                 table: "DisputeEvidences",
@@ -1160,19 +1145,31 @@ namespace ChoRe.Migrations
                 column: "FromUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ChatRooms_User1Id",
-                table: "ChatRooms",
-                column: "User1Id");
+                name: "IX_ChatMessages_TransationId",
+                table: "ChatMessages",
+                column: "TransationId",
+                unique: true,
+                filter: "[TransationId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ChatRooms_User2Id",
+                name: "IX_ChatRooms_BuyerId",
                 table: "ChatRooms",
-                column: "User2Id");
+                column: "BuyerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatRooms_PostId",
+                table: "ChatRooms",
+                column: "PostId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatRooms_SellerId",
+                table: "ChatRooms",
+                column: "SellerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ChatRooms_Users",
                 table: "ChatRooms",
-                columns: new[] { "User1Id", "User2Id" },
+                columns: new[] { "BuyerId", "SellerId", "PostId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -1201,14 +1198,14 @@ namespace ChoRe.Migrations
                 column: "AssignedByAdminUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Disputes_EscrowTransId",
+                table: "Disputes",
+                column: "EscrowTransId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Disputes_OpenedByUserId",
                 table: "Disputes",
                 column: "OpenedByUserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Disputes_OrderId",
-                table: "Disputes",
-                column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Disputes_StatusId",
@@ -1216,35 +1213,29 @@ namespace ChoRe.Migrations
                 column: "StatusId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Escrows_EscStatusId",
-                table: "Escrows",
-                column: "EscStatusId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Escrows_OrderId",
-                table: "Escrows",
-                column: "OrderId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Orders_BuyerUserId",
-                table: "Orders",
+                name: "IX_EscrowTransations_BuyerUserId",
+                table: "EscrowTransations",
                 column: "BuyerUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_OrdStatusId",
-                table: "Orders",
-                column: "OrdStatusId");
+                name: "IX_EscrowTransations_EscrowTransStatusId",
+                table: "EscrowTransations",
+                column: "EscrowTransStatusId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_PostId",
-                table: "Orders",
+                name: "IX_EscrowTransations_PostId",
+                table: "EscrowTransations",
                 column: "PostId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_SellerUserId",
-                table: "Orders",
+                name: "IX_EscrowTransations_SellerUserId",
+                table: "EscrowTransations",
                 column: "SellerUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MessageImages_ChatMessId",
+                table: "MessageImages",
+                column: "ChatMessId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PostCates_CateId",
@@ -1455,7 +1446,7 @@ namespace ChoRe.Migrations
                 name: "DisputeEvidences");
 
             migrationBuilder.DropTable(
-                name: "Escrows");
+                name: "EmailOtps");
 
             migrationBuilder.DropTable(
                 name: "MessageImages");
@@ -1497,9 +1488,6 @@ namespace ChoRe.Migrations
                 name: "Disputes");
 
             migrationBuilder.DropTable(
-                name: "EscrowStatuses");
-
-            migrationBuilder.DropTable(
                 name: "ChatMessages");
 
             migrationBuilder.DropTable(
@@ -1518,13 +1506,13 @@ namespace ChoRe.Migrations
                 name: "DisputeStatuses");
 
             migrationBuilder.DropTable(
-                name: "Orders");
+                name: "EscrowTransations");
 
             migrationBuilder.DropTable(
                 name: "ChatRooms");
 
             migrationBuilder.DropTable(
-                name: "OrderStatuses");
+                name: "EscrowTransStatuses");
 
             migrationBuilder.DropTable(
                 name: "Posts");

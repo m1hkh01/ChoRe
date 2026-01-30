@@ -85,17 +85,12 @@ namespace ChoRe.Data
         public DbSet<MessageImage> MessageImages { get; set; }
 
         // ==================== ORDER & ESCROW ====================
-        /// <summary>Bảng Orders - Đơn hàng giữa người mua và người bán</summary>
-        public DbSet<Order> Orders { get; set; }
+        /// <summary>Bảng EscrowTransations - Ghi nhận giao dịch ký quỹ (trước đây là Order)</summary>
+        public DbSet<EscrowTransation> EscrowTransations { get; set; }
 
-        /// <summary>Bảng OrderStatuses - Trạng thái đơn hàng (Pending/Completed)</summary>
-        public DbSet<OrderStatus> OrderStatuses { get; set; }
+        /// <summary>Bảng EscrowTransStatuses - Trạng thái giao dịch ký quỹ</summary>
+        public DbSet<EscrowTransStatus> EscrowTransStatuses { get; set; }
 
-        /// <summary>Bảng Escrows - Tiền ký quỹ để bảo vệ giao dịch</summary>
-        public DbSet<Escrow> Escrows { get; set; }
-
-        /// <summary>Bảng EscrowStatuses - Trạng thái ký quỹ (Holding/Released)</summary>
-        public DbSet<EscrowStatus> EscrowStatuses { get; set; }
 
         // ==================== DISPUTE MANAGEMENT ====================
         /// <summary>Bảng Disputes - Tranh chấp giữa người mua và người bán</summary>
@@ -124,7 +119,8 @@ namespace ChoRe.Data
         public DbSet<ReviewImage> ReviewImages { get; set; }
         /// <summary> Bảng ReportReview - Báo cáo đánh giá vi phạm </summary>
         public DbSet<ReportReview> ReportReviews { get; set; }
-
+        /// <summary> Bảng EmailOtp - Lưu mã OTP gửi qua email </summary>
+        public DbSet<EmailOtp> EmailOtps { get; set; }
 
         #endregion
 
@@ -153,7 +149,6 @@ namespace ChoRe.Data
             ConfigureOrderRelationships(modelBuilder);
             ConfigureChatRelationships(modelBuilder);
             ConfigureDisputeRelationships(modelBuilder);
-            ConfigureEscrowRelationships(modelBuilder);
             ConfigureDecimalPrecision(modelBuilder);
             ConfigureDefaultValues(modelBuilder);
             ConfigureRequiredFields(modelBuilder);
@@ -233,26 +228,26 @@ namespace ChoRe.Data
                 .HasIndex(p => new { p.PostStatusId, p.CreatedAt })
                 .HasDatabaseName("IX_Posts_Status_Created");
 
-            // --- ORDER INDEXES ---
-            // Tìm tất cả đơn hàng user đã mua
-            modelBuilder.Entity<Order>()
-                .HasIndex(o => o.BuyerUserId)
-                .HasDatabaseName("IX_Orders_BuyerUserId");
+            // --- ESCROW TRANSACTION INDEXES ---
+            // Tìm tất cả giao dịch user đã mua
+            modelBuilder.Entity<EscrowTransation>()
+                .HasIndex(t => t.BuyerUserId)
+                .HasDatabaseName("IX_EscrowTransations_BuyerUserId");
 
-            // Tìm tất cả đơn hàng user đã bán
-            modelBuilder.Entity<Order>()
-                .HasIndex(o => o.SellerUserId)
-                .HasDatabaseName("IX_Orders_SellerUserId");
+            // Tìm tất cả giao dịch user đã bán
+            modelBuilder.Entity<EscrowTransation>()
+                .HasIndex(t => t.SellerUserId)
+                .HasDatabaseName("IX_EscrowTransations_SellerUserId");
 
-            // Lọc đơn hàng theo trạng thái
-            modelBuilder.Entity<Order>()
-                .HasIndex(o => o.OrdStatusId)
-                .HasDatabaseName("IX_Orders_OrdStatusId");
+            // Lọc giao dịch theo trạng thái
+            modelBuilder.Entity<EscrowTransation>()
+                .HasIndex(t => t.EscrowTransStatusId)
+                .HasDatabaseName("IX_EscrowTransations_EscrowTransStatusId");
 
-            // Tìm order của 1 post cụ thể
-            modelBuilder.Entity<Order>()
-                .HasIndex(o => o.PostId)
-                .HasDatabaseName("IX_Orders_PostId");
+            // Tìm giao dịch của 1 post cụ thể
+            modelBuilder.Entity<EscrowTransation>()
+                .HasIndex(t => t.PostId)
+                .HasDatabaseName("IX_EscrowTransations_PostId");
 
             // --- RATING INDEXES ---
             // Tìm tất cả rating user đã cho
@@ -268,16 +263,16 @@ namespace ChoRe.Data
             // --- CHAT INDEXES ---
             // Tìm tất cả phòng chat của user
             modelBuilder.Entity<ChatRoom>()
-                .HasIndex(c => c.User1Id)
-                .HasDatabaseName("IX_ChatRooms_User1Id");
+                .HasIndex(c => c.BuyerId)
+                .HasDatabaseName("IX_ChatRooms_BuyerId");
 
             modelBuilder.Entity<ChatRoom>()
-                .HasIndex(c => c.User2Id)
-                .HasDatabaseName("IX_ChatRooms_User2Id");
+                .HasIndex(c => c.SellerId)
+                .HasDatabaseName("IX_ChatRooms_SellerId");
 
             // Composite index: tìm phòng chat giữa 2 user cụ thể
             modelBuilder.Entity<ChatRoom>()
-                .HasIndex(c => new { c.User1Id, c.User2Id })
+                .HasIndex(c => new { c.BuyerId, c.SellerId, c.PostId })
                 .IsUnique()
                 .HasDatabaseName("IX_ChatRooms_Users");
 
@@ -367,9 +362,10 @@ namespace ChoRe.Data
                 .HasForeignKey(us => us.SubPlanId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+
             // --- SUBSCRIPTION ORDER ---
 
-            //SubscriptionOrder -> OrderStatus
+            //SubscriptionOrder -> EscrowTransStatus (keeps using OrdStatusId field)
             modelBuilder.Entity<SubscriptionOrder>()
                 .HasOne(o => o.OrderStatus)
                 .WithMany()
@@ -599,7 +595,7 @@ namespace ChoRe.Data
         {
             // --- ORDER -> BUYER USER ---
             // User với vai trò người mua
-            modelBuilder.Entity<Order>()
+            modelBuilder.Entity<EscrowTransation>()
                 .HasOne(o => o.BuyerUser)
                 .WithMany(u => u.OrdersAsBuyer)
                 .HasForeignKey(o => o.BuyerUserId)
@@ -607,24 +603,24 @@ namespace ChoRe.Data
 
             // --- ORDER -> SELLER USER ---
             // User với vai trò người bán
-            modelBuilder.Entity<Order>()
+            modelBuilder.Entity<EscrowTransation>()
                 .HasOne(o => o.SellerUser)
                 .WithMany(u => u.OrdersAsSeller)
                 .HasForeignKey(o => o.SellerUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // --- ORDER -> POST ---
-            modelBuilder.Entity<Order>()
+            modelBuilder.Entity<EscrowTransation>()
                 .HasOne(o => o.Post)
-                .WithMany(p => p.Orders)
+                .WithMany(p => p.EscrowTransations)
                 .HasForeignKey(o => o.PostId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // --- ORDER -> ORDER STATUS ---
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.OrderStatus)
-                .WithMany(os => os.Orders)
-                .HasForeignKey(o => o.OrdStatusId)
+            modelBuilder.Entity<EscrowTransation>()
+                .HasOne(o => o.EscrowTransStatus)
+                .WithMany(es => es.EscrowTransations)
+                .HasForeignKey(o => o.EscrowTransStatusId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
 
@@ -636,18 +632,23 @@ namespace ChoRe.Data
         {
             // --- CHATROOM -> USER1 ---
             modelBuilder.Entity<ChatRoom>()
-                .HasOne(c => c.User1)
+                .HasOne(c => c.Buyer)
                 .WithMany(u => u.ChatRoomsUser1)
-                .HasForeignKey(c => c.User1Id)
+                .HasForeignKey(c => c.BuyerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // --- CHATROOM -> USER2 ---
             modelBuilder.Entity<ChatRoom>()
-                .HasOne(c => c.User2)
+                .HasOne(c => c.Seller)
                 .WithMany(u => u.ChatRoomsUser2)
-                .HasForeignKey(c => c.User2Id)
+                .HasForeignKey(c => c.SellerId)
                 .OnDelete(DeleteBehavior.Restrict);
-
+            // --- CHATROOM -> POST ---
+            modelBuilder.Entity<ChatRoom>()
+                .HasOne(c => c.Post)
+                .WithMany(p => p.ChatRooms)
+                .HasForeignKey(c => c.PostId)
+                .OnDelete(DeleteBehavior.Restrict);
             // --- CHATMESSAGE -> CHATROOM ---
             // CASCADE: Xóa ChatRoom -> xóa tất cả messages
             modelBuilder.Entity<ChatMessage>()
@@ -663,12 +664,20 @@ namespace ChoRe.Data
                 .HasForeignKey(cm => cm.FromUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // --- CHATMESSAGE -> ESCROWTRANSATION ---
+            modelBuilder.Entity<ChatMessage>()
+            .HasOne(cm => cm.EscrowTransation)
+            .WithOne(esr => esr.ChatMessage)
+            .HasForeignKey<ChatMessage>(cm => cm.TransationId)
+            .OnDelete(DeleteBehavior.Restrict);
+            
+
             // --- MESSAGE IMAGE -> CHAT MESSAGE ---
             // CASCADE: Xóa Message -> xóa tất cả images
             modelBuilder.Entity<MessageImage>()
                 .HasOne(mi => mi.ChatMessage)
                 .WithMany(cm => cm.MessageImages)
-                .HasForeignKey(mi => mi.MessageImgId)
+                .HasForeignKey(mi => mi.ChatMessId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
 
@@ -678,11 +687,11 @@ namespace ChoRe.Data
         /// </summary>
         private void ConfigureDisputeRelationships(ModelBuilder modelBuilder)
         {
-            // --- DISPUTE -> ORDER ---
+            // --- DISPUTE -> ESCROW TRANSACTION ---
             modelBuilder.Entity<Dispute>()
-                .HasOne(d => d.Order)
-                .WithMany(o => o.Disputes)
-                .HasForeignKey(d => d.OrderId)
+                .HasOne(d => d.EscrowTransation)
+                .WithMany(t => t.Disputes)
+                .HasForeignKey(d => d.EscrowTransId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // --- DISPUTE -> OPENED BY USER ---
@@ -724,27 +733,7 @@ namespace ChoRe.Data
                 .OnDelete(DeleteBehavior.Restrict);
         }
 
-        /// <summary>
-        /// CẤU HÌNH RELATIONSHIPS CHO ESCROW
-        /// Quan hệ 1-1 giữa Order và Escrow
-        /// </summary>
-        private void ConfigureEscrowRelationships(ModelBuilder modelBuilder)
-        {
-            // --- ESCROW <-> ORDER (1-1) ---
-            // Mỗi Order có đúng 1 Escrow và ngược lại
-            modelBuilder.Entity<Escrow>()
-                .HasOne(e => e.Order)
-                .WithOne(o => o.Escrow)
-                .HasForeignKey<Escrow>(e => e.OrderId)
-                .OnDelete(DeleteBehavior.Cascade); // Xóa Order -> xóa Escrow
 
-            // --- ESCROW -> ESCROW STATUS ---
-            modelBuilder.Entity<Escrow>()
-                .HasOne(e => e.EscrowStatus)
-                .WithMany(es => es.Escrows)
-                .HasForeignKey(e => e.EscStatusId)
-                .OnDelete(DeleteBehavior.Restrict);
-        }
 
         /// <summary>
         /// CẤU HÌNH DECIMAL PRECISION
@@ -758,29 +747,12 @@ namespace ChoRe.Data
                 .Property(p => p.Price)
                 .HasColumnType("decimal(18,2)")
                 .HasPrecision(18, 2);
-
-            // --- ESCROW AMOUNTS ---
-            modelBuilder.Entity<Escrow>()
-                .Property(e => e.TotalAmount)
-                .HasColumnType("decimal(18,2)")
-                .HasPrecision(18, 2);
-
-            modelBuilder.Entity<Escrow>()
-                .Property(e => e.PostPrice)
-                .HasColumnType("decimal(18,2)")
-                .HasPrecision(18, 2);
-
             // --- SUBSCRIPTION PLAN PRICE ---
             modelBuilder.Entity<SubscriptionPlan>()
                 .Property(s => s.SubPlanPrice)
                 .HasColumnType("decimal(18,2)")
                 .HasPrecision(18, 2);
 
-            // --- PLATFORM FEE ---
-            modelBuilder.Entity<Escrow>()
-                .Property(e => e.PlatformFee)
-                .HasColumnType("decimal(5,2)")
-                .HasPrecision(5, 2);
         }
 
         /// <summary>
@@ -817,17 +789,17 @@ namespace ChoRe.Data
                 .Property(sp => sp.CreateAt)
                 .HasDefaultValueSql("GETDATE()");
 
-            // --- ORDER DEFAULT VALUES ---
-            modelBuilder.Entity<Order>()
+            // --- ESCROW TRANSACTION DEFAULT VALUES ---
+            modelBuilder.Entity<EscrowTransation>()
                 .Property(o => o.CreateAt)
                 .HasDefaultValueSql("GETDATE()");
 
-            modelBuilder.Entity<Order>()
-                .Property(o => o.IsShippedBySeller)
+            modelBuilder.Entity<EscrowTransation>()
+                .Property(o => o.BuyerConfirmed)
                 .HasDefaultValue(false);
 
-            modelBuilder.Entity<Order>()
-                .Property(o => o.IsReceivedByBuyer)
+            modelBuilder.Entity<EscrowTransation>()
+                .Property(o => o.SellerConfirmed)
                 .HasDefaultValue(false);
 
             // --- CHAT MESSAGE DEFAULT VALUES ---
@@ -976,15 +948,11 @@ namespace ChoRe.Data
                 .IsRequired()
                 .HasMaxLength(100);
 
-            modelBuilder.Entity<OrderStatus>()
-                .Property(os => os.OrdStatusName)
+            modelBuilder.Entity<EscrowTransStatus>()
+                .Property(es => es.StatusName)
                 .IsRequired()
                 .HasMaxLength(100);
 
-            modelBuilder.Entity<EscrowStatus>()
-                .Property(es => es.EscStatusName)
-                .IsRequired()
-                .HasMaxLength(100);
 
             modelBuilder.Entity<DisputeStatus>()
                 .Property(ds => ds.DisStatusName)

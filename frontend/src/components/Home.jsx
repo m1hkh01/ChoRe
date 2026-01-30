@@ -4,6 +4,9 @@ import api from "../api";
 import "@/assets/Home.css";
 import PostGrid from "@/components/Post/PostGrid";
 import { useAuthStore } from "@/store/auth";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import { Autoplay, Navigation, Pagination } from "swiper/modules";
 
 function Home() {
   const { user } = useAuthStore();
@@ -14,7 +17,6 @@ function Home() {
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
   const [maxPriceInDB, setMaxPriceInDB] = useState(0);
-  const [userAddress, setUserAddress] = useState(null);
 
   const [filters, setFilters] = useState({
     keyword: "",
@@ -140,18 +142,6 @@ function Home() {
 
   // 👉 LOAD DATA BAN ĐẦU
   useEffect(() => {
-    // 👉 LẤY ADDRESS CỦA USER ĐĂNG NHẬP
-    if (user) {
-      setUserAddress(user.address || null);
-      // Nếu user có address, set làm default filter
-      if (!filters.address && user.address) {
-        setFilters(prev => ({
-          ...prev,
-          address: user.address
-        }));
-      }
-    }
-
     api.get("api/brands").then(res => setBrands(res.data));
     api.get("api/categories").then(res => setCategories(res.data));
     api.get("api/postcates").then(res => setPostCates(res.data));
@@ -172,7 +162,17 @@ function Home() {
         }
       })
       .catch(err => console.error("Lỗi load all posts:", err));
-  }, [user]);
+  }, []);
+
+  // 👉 SET DEFAULT ADDRESS FILTER WHEN USER CHANGES
+  // useEffect(() => {
+  //   if (user && user.address && !filters.address) {
+  //     setFilters(prev => ({
+  //       ...prev,
+  //       address: user.address
+  //     }));
+  //   }
+  // }, [user?.address]);
 
   // 👉 AUTO-LOAD KHI FILTER THAY ĐỔI
   useEffect(() => {
@@ -183,29 +183,14 @@ function Home() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [filters]);
-
-  // 👉 FORMAT TIỀN VN
-  const formatPrice = (price) => {
-    if (price >= 1000000) {
-      return `${(price / 1000000).toFixed(1)} triệu`;
-    }
-    return `${(price / 1000).toFixed(0)}k`;
-  };
+  }, [filters, maxPriceInDB, postCates, allPosts]);
 
   // 👉 LẤY DANH SÁCH ĐÃ LỌC
-  const availableBrands = getAvailableBrands();
-  const availableCategories = getAvailableCategories();
+  const _AvailableBrands = getAvailableBrands();
+  const _AvailableCategories = getAvailableCategories();
 
   // 👉 LẤY DANH SÁCH ĐỊA ĐIỂM TỪ POSTS HIỆN TẠI
-  const getAvailableLocations = () => {
-    const addresses = [...new Set(posts
-      .map(p => (p.address || p.Address || "").trim())
-      .filter(addr => addr.length > 0)
-    )].sort();
-    return addresses;
-  };
-  const availableLocations = getAvailableLocations();
+  // const _AvailableLocations = getAvailableLocations();
 
   // 👉 LỌC POSTS THEO PRICE RANGE TRÊN FRONTEND
   const getFilteredPosts = () => {
@@ -224,480 +209,32 @@ function Home() {
 
   return (
     <div>
-      {/* HERO BANNER */}
-      <div className="home-hero-banner">
-        <div className="hero-content">
-          <h1 className="hero-slogan">Trao tay đồ cũ – Nhận về giá hời</h1>
-
-          <div className="hero-search-container">
-            {/* THANH TÌM KIẾM */}
-            <div className="d-flex gap-2 align-items-center p-2 mb-3"
-              style={{
-                border: "2px solid #e0e0e0",
-                borderRadius: "8px",
-                backgroundColor: "#fff",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                maxWidth: "850px",
-                width: "100%"
-              }}
-            >
-              {/* DROPDOWN ĐỊA ĐIỂM - BÊN TRÁI */}
-              <div className="dropdown">
-                <button
-                  className="btn btn-sm btn-outline-secondary dropdown-toggle border-0"
-                  type="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                  style={{
-                    fontSize: "14px",
-                    padding: "8px 12px",
-                    whiteSpace: "nowrap",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    minWidth: "140px"
-                  }}
-                >
-                  <span style={{ fontWeight: "600" }}>
-                    {filters.address ? filters.address.substring(0, 15) : "Địa điểm"}
-                  </span>
-                </button>
-
-                <div className="dropdown-menu p-2" style={{ minWidth: "280px", maxHeight: "300px", overflowY: "auto" }}>
-                  <div
-                    onClick={() => setFilters({ ...filters, address: null })}
-                    style={{
-                      padding: "10px 12px",
-                      borderRadius: "6px",
-                      cursor: "pointer",
-                      backgroundColor: !filters.address ? "#f0fdf4" : "transparent",
-                      color: !filters.address ? "#22c55e" : "#6b7280",
-                      fontWeight: !filters.address ? "600" : "500",
-                      marginBottom: "4px",
-                      fontSize: "13px"
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f3f4f6"}
-                    onMouseLeave={e => e.currentTarget.style.backgroundColor = !filters.address ? "#f0fdf4" : "transparent"}
-                  >
-                    Tất cả địa điểm
-                  </div>
-
-                  {userAddress && (
-                    <>
-                      <hr style={{ margin: "6px 0" }} />
-                      <div
-                        onClick={() => setFilters({ ...filters, address: userAddress })}
-                        style={{
-                          padding: "10px 12px",
-                          borderRadius: "6px",
-                          cursor: "pointer",
-                          backgroundColor: filters.address === userAddress ? "#f0fdf4" : "#fff9f0",
-                          color: filters.address === userAddress ? "#22c55e" : "#d97706",
-                          fontWeight: filters.address === userAddress ? "600" : "500",
-                          marginBottom: "4px",
-                          fontSize: "13px",
-                          border: "1px solid #fcd34d"
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.backgroundColor = "#fef3c7"}
-                        onMouseLeave={e => e.currentTarget.style.backgroundColor = filters.address === userAddress ? "#f0fdf4" : "#fff9f0"}
-                      >
-                        ⭐ {userAddress}
-                      </div>
-                      <hr style={{ margin: "6px 0" }} />
-                    </>
-                  )}
-
-                  {availableLocations
-                    .filter(loc => loc !== userAddress)
-                    .map((location, idx) => (
-                      <div
-                        key={idx}
-                        onClick={() => setFilters({ ...filters, address: location })}
-                        style={{
-                          padding: "10px 12px",
-                          borderRadius: "6px",
-                          cursor: "pointer",
-                          backgroundColor: filters.address === location ? "#f0fdf4" : "transparent",
-                          color: filters.address === location ? "#22c55e" : "#6b7280",
-                          fontWeight: filters.address === location ? "600" : "500",
-                          marginBottom: "4px",
-                          fontSize: "13px",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis"
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f3f4f6"}
-                        onMouseLeave={e => e.currentTarget.style.backgroundColor = filters.address === location ? "#f0fdf4" : "transparent"}
-                        title={location}
-                      >
-                        {location}
-                      </div>
-                    ))}
-                </div>
-              </div>
-
-              {/* INPUT TÌM KIẾM */}
-              <input
-                className="form-control border-0"
-                placeholder="Tìm sản phẩm..."
-                value={filters.keyword}
-                onChange={e =>
-                  setFilters({ ...filters, keyword: e.target.value })
-                }
-                style={{
-                  fontSize: "14px",
-                  boxShadow: "none",
-                }}
-              />
-
-              <div className="dropdown">
-                <button
-                  className="btn btn-sm btn-outline-secondary dropdown-toggle border-0"
-                  type="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                  style={{
-                    fontSize: "14px",
-                    padding: "15px 12px",
-                    whiteSpace: "nowrap",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px"
-                  }}
-                >
-                  <span style={{ fontWeight: "600" }}>Lọc</span>
-                  {(filters.priceRange[0] > 0 || filters.priceRange[1] < maxPriceInDB ||
-                    filters.time) && (
-                      <span className="badge bg-success rounded-pill" style={{ fontSize: "10px" }}>
-                        {[
-                          filters.priceRange[0] > 0 || filters.priceRange[1] < maxPriceInDB,
-                          filters.time
-                        ].filter(Boolean).length}
-                      </span>
-                    )}
-                </button>
-
-                <div className="dropdown-menu dropdown-menu-end p-3" style={{ minWidth: "320px" }}>
-
-                  <div className="mb-3">
-                    <label className="form-label fw-semibold small text-muted mb-2">
-                      Khoảng giá
-                    </label>
-
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <span className="badge bg-light text-dark">
-                        {formatPrice(filters.priceRange[0])}đ
-                      </span>
-                      <span className="text-muted small">-</span>
-                      <span className="badge bg-light text-dark">
-                        {formatPrice(filters.priceRange[1])}đ
-                      </span>
-                    </div>
-
-                    <div className="mb-2">
-                      <label className="form-label small text-muted" style={{ fontSize: "11px" }}>
-                        Từ: {filters.priceRange[0].toLocaleString()}đ
-                      </label>
-                      <input
-                        type="range"
-                        className="form-range"
-                        min="0"
-                        max={maxPriceInDB}
-                        step="100000"
-                        value={filters.priceRange[0]}
-                        onChange={e => {
-                          const newMin = Number(e.target.value);
-                          if (newMin < filters.priceRange[1]) {
-                            setFilters({
-                              ...filters,
-                              priceRange: [newMin, filters.priceRange[1]]
-                            });
-                          }
-                        }}
-                        style={{ accentColor: "#22c55e" }}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="form-label small text-muted" style={{ fontSize: "11px" }}>
-                        Đến: {filters.priceRange[1].toLocaleString()}đ
-                      </label>
-                      <input
-                        type="range"
-                        className="form-range"
-                        min="0"
-                        max={maxPriceInDB}
-                        step="100000"
-                        value={filters.priceRange[1]}
-                        onChange={e => {
-                          const newMax = Number(e.target.value);
-                          if (newMax > filters.priceRange[0]) {
-                            setFilters({
-                              ...filters,
-                              priceRange: [filters.priceRange[0], newMax]
-                            });
-                          }
-                        }}
-                        style={{ accentColor: "#22c55e" }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label fw-semibold small text-muted mb-1">Thời gian đăng</label>
-                    <select
-                      className="form-select form-select-sm"
-                      value={filters.time ?? ""}
-                      onChange={e =>
-                        setFilters({ ...filters, time: e.target.value || null })
-                      }
-                    >
-                      <option value="">Tất cả thời gian</option>
-                      <option value="1">24 giờ qua</option>
-                      <option value="7">7 ngày qua</option>
-                      <option value="30">30 ngày qua</option>
-                    </select>
-                  </div>
-
-                  {(filters.priceRange[0] > 0 || filters.priceRange[1] < maxPriceInDB ||
-                    filters.time) && (
-                      <button
-                        className="btn btn-sm btn-outline-danger w-100"
-                        onClick={() => setFilters({
-                          ...filters,
-                          priceRange: [0, maxPriceInDB],
-                          time: null
-                        })}
-                      >
-                        ✖ Xóa bộ lọc
-                      </button>
-                    )}
-
-                </div>
-              </div>
-
-              <button
-                className="btn btn-success btn-sm"
-                style={{
-                  fontSize: "14px",
-                  padding: "10px 20px",
-                  borderRadius: "10px",
-                  whiteSpace: "nowrap",
-                  fontWeight: "600"
-                }}
-                onClick={loadPosts}
-              >
-                Tìm kiếm
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      <Swiper
+        modules={[Autoplay, Navigation, Pagination]}
+        spaceBetween={30}
+        slidesPerView={1}
+        centeredSlides
+        loop
+        speed={1000}
+        autoplay={{
+          delay: 5000,
+          disableOnInteraction: false,
+        }}
+        navigation
+        pagination={{ clickable: true }}
+        className="w-[90%] h-[300px] mb-8 mt-2 shadow-[0_0_5px_rgba(0,0,0,0.1)] rounded-lg mx-auto"
+      >
+        <SwiperSlide>
+          <img src="src/Images/1.png" className="w-full h-full object-cover" />
+        </SwiperSlide>
+        <SwiperSlide>
+          <img src="src/Images/2.png" className="w-full h-full object-cover" />
+        </SwiperSlide>
+        <SwiperSlide>
+          <img src="src/Images/3.jpg" className="w-full h-full object-cover" />
+        </SwiperSlide>
+      </Swiper>
       <main className="container" style={{ marginTop: "80px" }}>
-        {/* 🔍 FILTER BAR */}
-        <section className="mb-4">
-          <div className="row justify-content-center">
-            <div className="col-lg-8 col-md-10">
-
-              {/* 🏷️ PHÂN LOẠI & HÃNG */}
-              <div className="mb-3">
-                <div
-                  style={{
-                    backgroundColor: "#fff",
-                    border: "1px solid #e0e0e0",
-                    borderRadius: "12px",
-                    padding: "16px"
-                  }}
-                >
-                  {/* PHÂN LOẠI */}
-                  <div className="mb-3">
-                    <h6 className="fw-semibold mb-2" style={{ fontWeight: 600, fontSize: "13px", color: "#484141ff" }}>Phân loại</h6>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fill, minmax(85px, 1fr))",
-                        gap: "8px"
-                      }}
-                    >
-                      {/* TẤT CẢ CATEGORY */}
-                      <div
-                        onClick={() => setFilters({ ...filters, categoryId: null })}
-                        style={{
-                          height: "40px",
-                          border: !filters.categoryId ? "2px solid #22c55e" : "1px solid #e0e0e0",
-                          borderRadius: "8px",
-                          backgroundColor: !filters.categoryId ? "#f0fdf4" : "#fafafa",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          transition: "all 0.2s"
-                        }}
-                        onMouseEnter={e => {
-                          if (!filters.categoryId) return;
-                          e.currentTarget.style.borderColor = "#22c55e";
-                        }}
-                        onMouseLeave={e => {
-                          if (!filters.categoryId) return;
-                          e.currentTarget.style.borderColor = "#e0e0e0";
-                        }}
-                      >
-                        <span style={{
-                          fontSize: "13px",
-                          fontWeight: !filters.categoryId ? "600" : "500",
-                          color: !filters.categoryId ? "#22c55e" : "#6b7280",
-                          textAlign: "center"
-                        }}>
-                          Tất cả
-                        </span>
-                      </div>
-
-                      {/* CATEGORIES - CHỈ DISABLE NẾU BRAND ĐÃ CHỌN VÀ KHÔNG CÓ SẢN PHẨM */}
-                      {availableCategories.map(c => (
-                        <div
-                          key={c.cateId}
-                          onClick={() => {
-                            if (!c.isDisabled) {
-                              setFilters({ ...filters, categoryId: c.cateId });
-                            }
-                          }}
-                          style={{
-                            height: "40px",
-                            border: filters.categoryId == c.cateId ? "2px solid #22c55e" : "1px solid #e0e0e0",
-                            borderRadius: "8px",
-                            backgroundColor: filters.categoryId == c.cateId ? "#f0fdf4" : "#fafafa",
-                            cursor: c.isDisabled ? "not-allowed" : "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            transition: "all 0.2s",
-                            padding: "0 8px",
-                            opacity: c.isDisabled ? 0.4 : 1,
-                            filter: c.isDisabled ? "grayscale(100%)" : "none"
-                          }}
-                          onMouseEnter={e => {
-                            if (filters.categoryId == c.cateId || c.isDisabled) return;
-                            e.currentTarget.style.borderColor = "#22c55e";
-                          }}
-                          onMouseLeave={e => {
-                            if (filters.categoryId == c.cateId || c.isDisabled) return;
-                            e.currentTarget.style.borderColor = "#e0e0e0";
-                          }}
-                        >
-                          <span style={{
-                            fontSize: "13px",
-                            fontWeight: filters.categoryId == c.cateId ? "600" : "500",
-                            color: filters.categoryId == c.cateId ? "#22c55e" : "#6b7280",
-                            textAlign: "center",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis"
-                          }}>
-                            {c.cateName}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* HÃNG */}
-                  <div>
-                    <h6 className="fw-semibold mb-2" style={{ fontWeight: 600, fontSize: "13px", color: "#484141ff" }}>Hãng</h6>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
-                        gap: "10px"
-                      }}
-                    >
-                      {/* TẤT CẢ BRAND */}
-                      <div
-                        onClick={() => setFilters({ ...filters, brandId: null })}
-                        style={{
-                          height: "70px",
-                          border: !filters.brandId ? "2px solid #22c55e" : "1px solid #e0e0e0",
-                          borderRadius: "8px",
-                          backgroundColor: !filters.brandId ? "#f0fdf4" : "#fafafa",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          transition: "all 0.2s"
-                        }}
-                        onMouseEnter={e => {
-                          if (!filters.brandId) return;
-                          e.currentTarget.style.borderColor = "#22c55e";
-                        }}
-                        onMouseLeave={e => {
-                          if (!filters.brandId) return;
-                          e.currentTarget.style.borderColor = "#e0e0e0";
-                        }}
-                      >
-                        <span style={{
-                          fontSize: "11px",
-                          fontWeight: !filters.brandId ? "600" : "400",
-                          color: !filters.brandId ? "#22c55e" : "#6b7280"
-                        }}>
-                          Tất cả
-                        </span>
-                      </div>
-
-                      {/* BRANDS - CHỈ DISABLE NẾU CATEGORY ĐÃ CHỌN VÀ KHÔNG CÓ SẢN PHẨM */}
-                      {availableBrands.map(b => (
-                        <div
-                          key={b.brandId}
-                          onClick={() => {
-                            if (!b.isDisabled) {
-                              setFilters({ ...filters, brandId: b.brandId });
-                            }
-                          }}
-                          style={{
-                            height: "70px",
-                            border: filters.brandId == b.brandId ? "2px solid #22c55e" : "1px solid #e0e0e0",
-                            borderRadius: "8px",
-                            backgroundColor: filters.brandId == b.brandId ? "#f0fdf4" : "#fafafa",
-                            cursor: b.isDisabled ? "not-allowed" : "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            transition: "all 0.2s",
-                            padding: "8px",
-                            opacity: b.isDisabled ? 0.4 : 1,
-                            filter: b.isDisabled ? "grayscale(100%)" : "none"
-                          }}
-                          onMouseEnter={e => {
-                            if (filters.brandId == b.brandId || b.isDisabled) return;
-                            e.currentTarget.style.borderColor = "#22c55e";
-                          }}
-                          onMouseLeave={e => {
-                            if (filters.brandId == b.brandId || b.isDisabled) return;
-                            e.currentTarget.style.borderColor = "#e0e0e0";
-                          }}
-                        >
-                          {b.brandLogo && (
-                            <img
-                              src={`http://localhost:5121/brands/${b.brandLogo}`}
-                              alt={b.brandName}
-                              style={{
-                                maxWidth: "100%",
-                                maxHeight: "100%",
-                                objectFit: "contain"
-                              }}
-                            />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </section>
-
         {/* POSTS */}
         <section>
           {filteredPosts.length === 0 ? (

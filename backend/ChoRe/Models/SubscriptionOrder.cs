@@ -39,6 +39,6 @@ namespace ChoRe.Models
         // ======================
         public virtual User User { get; set; }
         public virtual SubscriptionPlan SubscriptionPlan { get; set; }
-        public virtual OrderStatus OrderStatus{ get; set; }
+        public virtual EscrowTransStatus OrderStatus{ get; set; }
     }
 }

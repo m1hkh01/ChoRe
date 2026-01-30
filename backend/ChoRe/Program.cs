@@ -4,6 +4,7 @@ using ChoRe.Models;
 using Ganss.Xss;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -15,6 +16,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddSignalR();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
@@ -28,7 +31,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured")))
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) &&
+                path.StartsWithSegments("/chatHub"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 builder.Services.AddAuthorization();
@@ -39,18 +57,25 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
 });
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AccountService>();
-builder.Services.AddScoped<IPostService, PostService>();
-builder.Services.AddScoped<IPackageService, PackageService>();
+builder.Services.AddScoped<IPostService, PostService>(); // Post Service
+builder.Services.AddScoped<IPackageService, PackageService>(); // Package Service
+builder.Services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>(); // Subscription Plan Service
+builder.Services.AddScoped<IUserSubscriptionService, UserSubscriptionService>(); // User Subscription Service
+builder.Services.AddScoped<IConvertationService, ConvertationService>(); // Conversation Service
 builder.Services.AddScoped<HtmlSanitizer>();
 builder.Services.AddScoped<MailSettings>();
+builder.Services.AddScoped<ISendMailService, SendMailService>();
+builder.Services.AddSingleton<IUserIdProvider, JwtUserIdProvider>();
+
 
 builder.Services.AddHostedService<OrderExpireService>();
 
 builder.Services.AddCors(options =>
                         options.AddDefaultPolicy(
-                            p => p.AllowAnyOrigin()
+                            p => p.WithOrigins("http://localhost:5173")
                                   .AllowAnyMethod()
-                                  .AllowAnyHeader()));
+                                  .AllowAnyHeader()
+                                  .AllowCredentials()));
 
 // swagger
 builder.Services.AddSwaggerGen(c =>
@@ -89,27 +114,28 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
-app.UseStaticFiles();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "ChoRe API v1");
-        c.RoutePrefix = "swagger"; 
+        c.RoutePrefix = "swagger";
     });
 }
-
 // Middleware
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage(); 
+    app.UseDeveloperExceptionPage();
 }
 else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+app.UseStaticFiles();
+
 
 app.UseHttpsRedirection();
 app.UseCors();
@@ -121,6 +147,8 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHub<ChatHub>("/chatHub");
 
 app.Run();
 

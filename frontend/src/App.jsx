@@ -14,6 +14,8 @@ import ProtectedRoute from "./routes/ProtectedRoute"
 import RequireRole from './routes/RequireRole'
 
 import UserManager from './components/AdminComponents/UserManager.jsx'
+import SubscriptionPlanManager from './components/AdminComponents/SubscriptionPlanManager.jsx'
+import UserSubscriptionManager from './components/AdminComponents/UserSubscriptionManager.jsx'
 import PostManager from './components/AdminComponents/PostManager'
 import BrandManager from './components/AdminComponents/BrandManager.jsx'
 import CategoryManager from './components/AdminComponents/CategoryManager.jsx'
@@ -22,6 +24,8 @@ import SpecificationManager from './components/AdminComponents/SpecificationMana
 import PostDetail from './components/PostDetail.jsx'
 import ServicePackage from './components/ServicePackage/ServicePackage.jsx'
 import ServicePackageManager from './components/ServicePackage/ServicePackageManager.jsx'
+import ChatPage from './components/Chat/ChatPage.jsx'
+import ChatLayout from './Layout/ChatLayout.jsx'
 
 function App() {
   return (
@@ -59,7 +63,16 @@ function App() {
         />
         <Route path="/posts/:id" element={<PostDetail />} />
       </Route>
-
+      <Route
+        element={<ChatLayout />}
+        path="/chat"
+      >
+        <Route path="" element={
+          <ProtectedRoute>
+            <ChatPage />
+          </ProtectedRoute>
+        } />
+      </Route>
       {/* ================= ADMIN ================= */}
       <Route
         path="/admin"
@@ -73,6 +86,20 @@ function App() {
           element={
             <RequireRole roles={["Admin", "Censor"]}>
               <PostManager />
+            </RequireRole>
+          }
+        />
+        <Route path="sub-manager"
+          element={
+            <RequireRole roles={["Admin"]}>
+              <SubscriptionPlanManager />
+            </RequireRole>
+          }
+        />
+        <Route path="user-subscriptions"
+          element={
+            <RequireRole roles={["Admin"]}>
+              <UserSubscriptionManager />
             </RequireRole>
           }
         />

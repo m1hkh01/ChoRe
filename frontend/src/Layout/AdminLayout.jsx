@@ -44,6 +44,12 @@ function AdminLayout() {
                     <Link to="/admin/specification-manager" className="menu-item">
                         Quản lý cấu hình phân loại
                     </Link>
+                    <Link to="/admin/sub-manager" className="menu-item">
+                        Quản lý gói dịch vụ
+                    </Link>
+                    <Link to="/admin/user-subscriptions" className="menu-item">
+                        Quản lý gói dịch vụ của người dùng
+                    </Link>
                 </nav>
             </aside>
 

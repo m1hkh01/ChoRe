@@ -7,6 +7,7 @@ namespace ChoRe.Models
     {
         [Key]
         public int SubPlanId { get; set; }
+        public bool IsActive { get; set; } = true;
 
         [Required(ErrorMessage = "Tên gói là bắt buộc")]
         [StringLength(100, ErrorMessage = "Tên gói không được vượt quá 100 ký tự")]

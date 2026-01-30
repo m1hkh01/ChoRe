@@ -27,7 +27,7 @@ namespace ChoRe.Models
 
         [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
         [StringLength(15)]
-        public string PhoneNumber { get; set; }
+        public string? PhoneNumber { get; set; }
 
         [StringLength(255)]
         public string Address { get; set; }
@@ -63,8 +63,8 @@ namespace ChoRe.Models
         public virtual ICollection<PostReport>? ReportedPost { get; set; }
         public virtual ICollection<SavedPost>? SavedPosts { get; set; }
         public virtual ICollection<Comment>? Comments { get; set; }
-        public virtual ICollection<Order>? OrdersAsBuyer { get; set; }
-        public virtual ICollection<Order>? OrdersAsSeller { get; set; }
+        public virtual ICollection<EscrowTransation>? OrdersAsBuyer { get; set; }
+        public virtual ICollection<EscrowTransation>? OrdersAsSeller { get; set; }
         public virtual ICollection<Dispute>? DisputesOpened { get; set; }
         public virtual ICollection<DisputeEvidence>? DisputeEvidences { get; set; }
         public virtual ICollection<ChatRoom>? ChatRoomsUser1 { get; set; }

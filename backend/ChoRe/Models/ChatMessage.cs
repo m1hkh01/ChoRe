@@ -19,12 +19,16 @@ namespace ChoRe.Models
         [Required(ErrorMessage = "Nội dung là bắt buộc")]
         [StringLength(5000, ErrorMessage = "Nội dung không được vượt quá 5000 ký tự")]
         public string ChatContent { get; set; }
+        public string MessageType { get; set; } = "Text";
 
         public DateTime CreateAt { get; set; } = DateTime.Now;
+        [ForeignKey("EscrowTransation")]
+        public int? TransationId { get; set; }
 
         // Navigation properties
-        public virtual ChatRoom ChatRoom { get; set; }
-        public virtual User FromUser { get; set; }
-        public virtual ICollection<MessageImage> MessageImages { get; set; }
+        public virtual ChatRoom? ChatRoom { get; set; }
+        public virtual User? FromUser { get; set; }
+        public virtual EscrowTransation? EscrowTransation{ get; set; }
+        public virtual ICollection<MessageImage> MessageImages { get; set; } = new List<MessageImage>();
     }
 }

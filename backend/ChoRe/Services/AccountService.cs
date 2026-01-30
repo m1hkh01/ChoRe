@@ -14,16 +14,72 @@ public class AccountService
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly HtmlSanitizer _sanitizer;
-    public AccountService(AppDbContext context, IConfiguration configuration, HtmlSanitizer sanitizer)
+    private readonly ILogger<AccountService> _logger;
+    private readonly ISendMailService _mailService;
+    public AccountService(AppDbContext context, IConfiguration configuration, HtmlSanitizer sanitizer, ILogger<AccountService> logger, ISendMailService mailService)
     {
         _context = context;
         _configuration = configuration;
         _sanitizer = sanitizer;
+        _logger = logger;
+        _mailService = mailService;
     }
-    public async Task<User> Register(User user)
+    public async Task VertifyOtpCode(string email, string otpCode)
     {
+        var emailOtp = await _context.EmailOtps
+            .Where(e => e.Email == email
+                        && e.OtpCode == otpCode
+                        && !e.IsUsed
+                        && e.ExpiredAt > DateTime.Now)
+            .FirstOrDefaultAsync();
+
+        if (emailOtp == null)
+        {
+            throw new Exception("Mã OTP không hợp lệ hoặc đã hết hạn.");
+        }
+
+        // Xoá mã OTP sau khi xác thực thành công
+        _context.EmailOtps.Remove(emailOtp);
+        await _context.SaveChangesAsync();
+    }
+    public async Task<string> SendOtpCode(string email)
+    {
+        var otpCode = _mailService.GenerateOtp();
+        var emailOtp = new EmailOtp
+        {
+            Email = email,
+            OtpCode = otpCode,
+            ExpiredAt = DateTime.Now.AddMinutes(2),
+            IsUsed = false
+        };
+        _context.EmailOtps.Add(emailOtp);
+        await _context.SaveChangesAsync();
+
+        string html = $"<p>Mã OTP của bạn là: <strong>{otpCode}</strong></p><p>Mã có hiệu lực trong 10 phút.</p>";
+        string subject = "Mã OTP xác thực email đăng ký tài khoản ChoRe";
+
+        await _mailService.SendEmailAsync(email, subject, html);
+        return otpCode;
+    }
+    public async Task<User> Register(RegisterDto dto)
+    {
+        var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+        if (existingUser != null)
+        {
+            throw new EmailAlreadyExistsException(dto.Email);
+        }
+        await VertifyOtpCode(dto.Email, dto.OtpCode!);
+        // await _mailService.SendEmailAsync("nhatnctb00456@fpt.edu.vn", "Chào mừng đến với ChoRe", "<h1>Đăng ký tài khoản thành công!</h1><p>Cảm ơn bạn đã đăng ký tài khoản tại ChoRe.</p>");
         var hasher = new PasswordHasher<User>();
-        user.PasswordHash = hasher.HashPassword(user, user.PasswordHash);
+        var user = new User
+        {
+            UserName = dto.UserName,
+            FullName = dto.FullName,
+            Email = dto.Email,
+            Address = dto.Address ?? "",
+            PasswordHash = hasher.HashPassword(new User(), dto.Passwordhash)
+        };
+
         user.Address = _sanitizer.Sanitize(user.Address);
         user.Email = _sanitizer.Sanitize(user.Email);
         user.RoleId = 3;
@@ -55,7 +111,7 @@ public class AccountService
             new Claim("UserId", user.UserId.ToString()),
             new Claim("UserName", user.UserName),
             new Claim("UserEmail", user.Email),
-            new Claim(ClaimTypes.Role, user.Role.RoleName)
+            new Claim(ClaimTypes.Role, user.Role?.RoleName ?? "User")
         };
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
         var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
