@@ -12,8 +12,14 @@ export function ChatInput({ connectionRef, conversationId, post }) {
     const [transactionData, setTransactionData] = useState(null);
     const { user: currentUser } = useAuthStore();
 
-    const sendMessage = async () => {
-        if (!message.trim() && selectedFiles.length === 0 && !isTransation) return;
+    const sendMessage = async (options = {}) => {
+
+        const {
+            forceTransaction = false,
+            transactionPayload = null
+        } = options;
+
+        if (!message.trim() && selectedFiles.length === 0 && !forceTransaction) return;
 
         let imageUrls = [];
         if (selectedFiles.length > 0) {
@@ -31,7 +37,10 @@ export function ChatInput({ connectionRef, conversationId, post }) {
         }
 
         try {
-            if (isTransation && transactionData) {
+            if (forceTransaction && transactionPayload) {
+                console.log("Tạo giao dịch :", transactionPayload);
+
+
                 // Gửi transaction data
                 await connectionRef.current.invoke(
                     "SendMessage",
@@ -39,11 +48,11 @@ export function ChatInput({ connectionRef, conversationId, post }) {
                     "", // empty message
                     imageUrls,
                     true, // isTransaction
-                    transactionData
+                    transactionPayload
                 );
             } else {
                 console.log("Gửi Tin Nhắn");
-                
+
                 // Gửi message thường
                 await connectionRef.current.invoke(
                     "SendMessage",
@@ -65,29 +74,33 @@ export function ChatInput({ connectionRef, conversationId, post }) {
         setTransactionData(null);
     };
 
-    const handleCreateTransaction = () => {
+    const handleCreateTransaction = async () => {
         if (!post) {
             alert("Không có thông tin sản phẩm");
             return;
         }
 
-        const platformFee = Math.round(post.price * 0.05);
-        const totalAmount = post.price + platformFee;
-
+        const platformFee = Math.round(post.postPrice * 0.05);
+        const totalAmount = post.postPrice + platformFee;
+        console.log("Post: ", post);
         const txData = {
             postId: post.postId,
             buyerId: currentUser.userId,
-            sellerId: post.user?.userId,
+            sellerId: post.userId,
             amount: totalAmount,
-            postPrice: post.price,
+            postPrice: post.postPrice,
             platformFee: platformFee,
-            buyerConfirmed: currentUser.userId == post.userId,
+            buyerConfirmed: currentUser.userId != post.userId,
             sellerConfirmed: currentUser.userId == post.userId,
         };
 
         setTransactionData(txData);
         setIsTransation(true);
-        setMessage("Yêu cầu tạo giao dịch trung gian");
+        await sendMessage({
+            forceTransaction: true,
+            transactionPayload: txData
+        });
+        // setMessage("Yêu cầu tạo giao dịch trung gian");
     };
 
     const handlePreviewImages = (e) => {

@@ -8,17 +8,18 @@ import { TransactionCard } from "./TransactionCard";
 //     { from: "other", text: "Ok bạn" },
 // ];
 
-export function MessageList({ userId, messages, connectionRef }) {
-    console.log("Messages list: ", messages);
+export function MessageList({ userId, sellerId, messages, connectionRef }) {
+    // console.log("Messages list: ", messages);
     return (
         <div className="flex-1 p-2 mt-2 space-y-3 overflow-y-auto">
             {messages?.map((msg, i) => {
                 // Nếu là transaction message
-                if (msg.messageType === "transaction" || msg.MessageType === "transaction") {
+                if (msg.messageType?.toLowerCase() === "transaction" || msg.MessageType?.toLowerCase() === "transaction") {
                     return (
                         <div key={i} className="flex justify-center">
                             <TransactionCard
-                                transaction={msg.escrowTransaction || msg.EscrowTransaction}
+                                sellerId={sellerId}
+                                transaction={msg.transaction}
                                 currentUserId={userId}
                                 connectionRef={connectionRef}
                             />

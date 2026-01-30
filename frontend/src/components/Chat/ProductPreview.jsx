@@ -1,5 +1,4 @@
 export function ProductPreview({ post }) {
-    console.log("Post: ", post);
     return (
         <div className="flex items-center gap-3 p-3 bg-white  shadow-sm rounded-3">
             <div className=" bg-gray-200 rounded flex items-center justify-center p-1">

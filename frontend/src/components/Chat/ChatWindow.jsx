@@ -82,10 +82,11 @@ export function ChatWindow({ conversationId }) {
         <div className="flex-1 flex flex-col bg-white h-full shadow-sm rounded-4">
             <ChatHeader senderName={conversation?.senderName} senderAvatar={conversation?.senderAvatar} />
             <ProductPreview post={conversation?.postInfo} />
-            <MessageList userId={user?.userId} messages={conversation?.chatMessages || []} connectionRef={connectionRef} />
+            <MessageList userId={user?.userId} sellerId={conversation?.postInfo.userId} messages={conversation?.chatMessages || []} connectionRef={connectionRef} />
             <ChatInput
                 connectionRef={connectionRef}
                 conversationId={conversationId}
+                post={conversation?.postInfo}
             />
         </div>
     );
