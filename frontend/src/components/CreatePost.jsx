@@ -215,7 +215,7 @@ function CreatePost() {
         { id: 1, name: "Hình ảnh" },
         { id: 2, name: "Thông tin" },
         { id: 3, name: "Phân loại" },
-        { id: 4, name: "Chi tiết" }
+        { id: 4, name: "Hoàn thành" }
     ];
 
     const isStepComplete = (step) => {
@@ -247,7 +247,7 @@ function CreatePost() {
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${isStepComplete(step.id)
                                         ? 'bg-green-500 text-white'
                                         : currentStep === step.id
-                                            ? 'bg-yellow-400 text-slate-800'
+                                            ? 'bg-gray-400 text-slate-800'
                                             : 'bg-slate-200 text-slate-400'
                                         }`}>
                                         {isStepComplete(step.id) ? <Check size={20} /> : step.id}
@@ -308,7 +308,7 @@ function CreatePost() {
                             ))}
 
                             {images.length < 5 && (
-                                <label style={{ marginLeft: 15 }} className="aspect-square border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-yellow-400 hover:bg-yellow-50 transition-all">
+                                <label style={{ marginLeft: 15 }} className="aspect-square border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all">
                                     <input
                                         type="file"
                                         multiple
@@ -719,7 +719,7 @@ function CreatePost() {
       transform
     "
                         >
-                            Đăng tin ngay
+                            Gửi tin ngay
                         </button>
                     </div>
 
