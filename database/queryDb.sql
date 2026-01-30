@@ -7,6 +7,8 @@ select * from UserSubUsages
 
 select * from UserSubscriptions
 
+select * from SubscriptionPlans
+
 select * from posts
 
 select * from postcates

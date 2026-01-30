@@ -4,14 +4,22 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleDown, faSearch, faMobileScreen, faAngleRight, faList } from "@fortawesome/free-solid-svg-icons";
 import { faComment, faBell, faHeart } from "@fortawesome/free-regular-svg-icons";
 import { useEffect, useRef, useState } from "react";
-
-
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 function Header() {
     const { user, logout } = useAuthStore();
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
+    const handleCreatePost = () => {
+        if (!user) {
+            navigate("/login", {
+                state: { redirectTo: "/post/create" }
+            });
+        } else {
+            navigate("/post/create");
+        }
+    };
 
     // Đóng khi click ra ngoài
     useEffect(() => {
@@ -167,14 +175,22 @@ function Header() {
                 </Link>
 
                 {/* ĐĂNG TIN */}
-                {user && user.role === "User" && (
-                    <Link
-                        to="/post/create"
-                        className="bg-green-500 text-white p-2 px-3 text-decoration-none rounded-3xl font-semibold text-sm hover:opacity-95 hover:-translate-y-px transition"
-                    >
-                        Đăng tin
-                    </Link>
-                )}
+                <button
+    onClick={handleCreatePost}
+    className="
+        flex items-center gap-1
+        rounded-2
+        bg-(--primary-color)
+        px-3 py-2
+        text-sm font-semibold text-white
+        cursor-pointer
+        hover:opacity-95
+        transition
+    "
+>
+    <FontAwesomeIcon icon={faPlus} />
+    <span>Đăng tin</span>
+</button>
 
                 {/* AUTH */}
                 {!user ? (
