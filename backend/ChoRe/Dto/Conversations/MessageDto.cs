@@ -6,5 +6,7 @@ public class MessageDto
     public string? ChatContent { get; set; }
     public string? MessageType { get; set; }
     public DateTime? CreateAt{ get; set; }
-    public List<MessageImageDto>? MessageImages{ get; set; }
+    public List<MessageImageDto>? MessageImages { get; set; }
+    public TransactionDto? Transaction { get; set; }
+
 }

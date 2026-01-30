@@ -18,6 +18,17 @@ public class ConvertationService : IConvertationService
 
     public async Task CreateConversationAsync(ConversationDto dto)
     {
+        var existingChat = await _context.ChatRooms
+                                .FirstOrDefaultAsync(
+                                    c => c.BuyerId == dto.BuyerId &&
+                                    c.SellerId == dto.SellerId &&
+                                    c.PostId == dto.PostId
+                                );
+        if(existingChat != null)
+        {
+            return;
+        }
+
         var conversation = new ChatRoom
         {
             BuyerId = dto.BuyerId,
@@ -45,13 +56,14 @@ public class ConvertationService : IConvertationService
                 PostId = c.PostId,
                 LastMessageAt = c.LastMessageAt,
                 LastMessageContent = c.LastMessageContent,
-                SenderName = c.Buyer != null && c.Buyer.UserId == userId ? c.Buyer.UserName : (c.Seller != null ? c.Seller.UserName : "") ?? "",
-                SenderAvatar = c.Buyer != null && c.Buyer.UserId == userId ? c.Buyer.Avatar: (c.Seller != null ? c.Seller.Avatar : "") ?? "",
+                SenderName = c.Buyer != null && c.Buyer.UserId != userId ? c.Buyer.UserName : (c.Seller != null ? c.Seller.UserName : "") ?? "",
+                SenderAvatar = c.Buyer != null && c.Buyer.UserId != userId ? c.Buyer.Avatar: (c.Seller != null ? c.Seller.Avatar : "") ?? "",
                 PostInfo = c.Post != null ? new PostConvertationDto
                 {
                     PostTitle = c.Post.Title,
                     PostPrice = c.Post.Price,
-                    PostImageUrl = c.Post.PostImages != null && c.Post.PostImages.Count > 0 ? c.Post.PostImages.First().ToString() : null
+                    PostImageUrl = c.Post.PostImages != null && c.Post.PostImages.Count > 0 ? c.Post.PostImages.First().ToString() : null,
+                    UserId = c.SellerId
                 } : null
             })
             .ToListAsync();

@@ -32,8 +32,8 @@ public class ChatHub : Hub
             .Where(c => c.ChatRoomId == int.Parse(conversationId))
             .Select(c => new ConversationMessageDto
             {
-                SenderName = c.Buyer != null && c.Buyer.UserId == userId ? c.Buyer.UserName : (c.Seller != null ? c.Seller.UserName : "") ?? "",
-                SenderAvatar = c.Buyer != null && c.Buyer.UserId == userId ? c.Buyer.Avatar : (c.Seller != null ? c.Seller.Avatar : "") ?? "",
+                SenderName = c.Buyer != null && c.Buyer.UserId != userId ? c.Buyer.UserName : (c.Seller != null ? c.Seller.UserName : "") ?? "",
+                SenderAvatar = c.Buyer != null && c.Buyer.UserId != userId ? c.Buyer.Avatar : (c.Seller != null ? c.Seller.Avatar : "") ?? "",
                 ChatMessages = c.ChatMessages != null ? c.ChatMessages.Select(cm => new MessageDto
                 {
                     FromUserId = cm.FromUserId,
@@ -44,17 +44,25 @@ public class ChatHub : Hub
                         .Select(img => new MessageImageDto
                         {
                             ImageUrl = img.ImageUrl
-                        }).ToList()
+                        }).ToList(),
+                    Transaction = new TransactionDto
+                    {
+                        SellerConfirmed = cm.EscrowTransation != null ? cm.EscrowTransation.SellerConfirmed : false,
+                        BuyerConfirmed = cm.EscrowTransation != null ? cm.EscrowTransation.BuyerConfirmed : false,
+                        Status = cm.EscrowTransation.EscrowTransStatus.StatusName,
+                        ExpiredAt = cm.EscrowTransation.ExpiredAt
+                    }
                 }).ToList() : new List<MessageDto>(),
                 PostInfo = c.Post != null ? new PostConvertationDto
                 {
+                    PostId = c.PostId,
                     PostTitle = c.Post.Title,
                     PostPrice = c.Post.Price,
-                    PostImageUrl = c.Post.PostImages != null && c.Post.PostImages.Count > 0 ? c.Post.PostImages.First().ToString() : null
+                    PostImageUrl = c.Post.PostImages != null && c.Post.PostImages.Count > 0 ? c.Post.PostImages.First().ToString() : null,
+                    UserId = c.SellerId
                 } : null
 
             }).FirstOrDefaultAsync();
-
         // Trả về cho người vừa join
         await Clients.Caller.SendAsync(
             "LoadConversationMessages",
@@ -78,7 +86,6 @@ public class ChatHub : Hub
 
         try
         {
-            Console.WriteLine("Dang tao tin nhan AAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
             var senderIdString = Context.UserIdentifier ?? _httpContext.HttpContext?.User.FindFirst("UserId")?.Value;
             if (!int.TryParse(senderIdString, out var senderId)) senderId = 0;
 

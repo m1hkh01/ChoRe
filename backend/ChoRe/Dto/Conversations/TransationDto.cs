@@ -6,8 +6,10 @@ public class TransactionDto
     public decimal Amount { get; set; }
     public decimal PlatformFee { get; set; }
     // public string Status { get; set; }
-    public DateTime ExpiredAt { get; set; }
+    public DateTime? ExpiredAt { get; set; }
 
     public bool BuyerConfirmed { get; set; }
     public bool SellerConfirmed { get; set; }
+
+    public string? Status{ get; set; }
 }
