@@ -16,6 +16,7 @@ namespace ChoRe.Controllers.Admin
         {
             _context = context;
         }
+
         [HttpGet("tree")]
         public async Task<IActionResult> GetTree()
         {
@@ -59,7 +60,7 @@ namespace ChoRe.Controllers.Admin
             return Ok(cateIds);
         }
 
-        // UPDATE MAPPING
+        // UPDATE MAPPING - TỰ ĐỘNG THÊM DANH MỤC CHA
         [HttpPut]
         public async Task<IActionResult> Update(BrandCategoryUpdateDto dto)
         {
@@ -71,8 +72,38 @@ namespace ChoRe.Controllers.Admin
 
             if (dto.CateIds != null && dto.CateIds.Any())
             {
-                var newLinks = dto.CateIds
-                    .Distinct()
+                // Lấy tất cả categories để tìm parent
+                var allCategories = await _context.Categories.ToListAsync();
+                var categoryDict = allCategories.ToDictionary(c => c.CateId);
+
+                // Set để lưu tất cả cateId bao gồm cả parent
+                var allCateIds = new HashSet<int>();
+
+                foreach (var cateId in dto.CateIds)
+                {
+                    // Thêm category hiện tại
+                    allCateIds.Add(cateId);
+
+                    // Tìm và thêm tất cả parent categories
+                    var currentCateId = cateId;
+                    while (categoryDict.ContainsKey(currentCateId))
+                    {
+                        var category = categoryDict[currentCateId];
+
+                        if (category.ParentCateId.HasValue)
+                        {
+                            allCateIds.Add(category.ParentCateId.Value);
+                            currentCateId = category.ParentCateId.Value;
+                        }
+                        else
+                        {
+                            break; // Đã đến root category
+                        }
+                    }
+                }
+
+                // Tạo các BrandCate mới từ allCateIds
+                var newLinks = allCateIds
                     .Select(cid => new BrandCate
                     {
                         BrandId = dto.BrandId,

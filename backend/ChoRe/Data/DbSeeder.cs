@@ -587,9 +587,9 @@ namespace ChoReDB.Data
                 {
                     UserSubId = 1,
                     UserId = 3,
-                    SubPlanId = 1,
+                    SubPlanId = 4,
                     StartDate = new DateTime(2025, 1, 1),
-                    EndDate = new DateTime(2025, 1, 31),
+                    EndDate = new DateTime(2027, 1, 31),
                     IsActive = true
                 }
             );
@@ -599,9 +599,9 @@ namespace ChoReDB.Data
                 {
                     UsuId = 1,
                     UserId = 3,
-                    RemainingSubFPF = 0,
-                    RemainingSubPost = 4,
-                    RemainingFreePost = 2,
+                    RemainingSubFPF = 30,
+                    RemainingSubPost = 100,
+                    RemainingFreePost = 18,
                 }
             );
         }

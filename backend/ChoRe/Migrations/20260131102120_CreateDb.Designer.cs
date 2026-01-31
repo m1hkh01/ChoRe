@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChoRe.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260131083406_UpdateUserControlleraddIMG")]
-    partial class UpdateUserControlleraddIMG
+    [Migration("20260131102120_CreateDb")]
+    partial class CreateDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1767,9 +1767,9 @@ namespace ChoRe.Migrations
                         new
                         {
                             UsuId = 1,
-                            RemainingFreePost = 2,
-                            RemainingSubFPF = 0m,
-                            RemainingSubPost = 4,
+                            RemainingFreePost = 18,
+                            RemainingSubFPF = 30m,
+                            RemainingSubPost = 100,
                             UserId = 3
                         });
                 });
@@ -1816,10 +1816,10 @@ namespace ChoRe.Migrations
                         new
                         {
                             UserSubId = 1,
-                            EndDate = new DateTime(2025, 1, 31, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            EndDate = new DateTime(2027, 1, 31, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
                             StartDate = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            SubPlanId = 1,
+                            SubPlanId = 4,
                             UserId = 3
                         });
                 });

@@ -70,20 +70,19 @@ function CreatePost() {
         const parent = brandParents.find(b => b.brandId === Number(parentBrandId));
         setBrandChildren(parent ? parent.subBrands : []);
 
+        // Chỉ reset brandId, KHÔNG reset category
         setBrandId("");
-        setCateParents([]);
-        setCateChildren([]);
-        setParentCateId("");
-        setCateIds([]);
-        setSpecs([]);
-        setSpecValues({});
-    }, [parentBrandId]);
+        // Xóa các dòng reset category ở đây
+    }, [parentBrandId, brandParents]);
 
     /* ===================== BRAND → CATEGORY ===================== */
     useEffect(() => {
-        if (!brandId) return;
+        if (!parentBrandId) return;
 
-        axios.get(`/api/categories/tree/by-brand/${brandId}`)
+        // Ưu tiên brandId nếu có, không thì dùng parentBrandId
+        const activeBrandId = brandId || parentBrandId;
+
+        axios.get(`/api/categories/tree/by-brand/${activeBrandId}`)
             .then(res => {
                 setCateParents(res.data);
                 setParentCateId("");
@@ -93,7 +92,7 @@ function CreatePost() {
                 setSpecValues({});
             })
             .catch(console.error);
-    }, [brandId]);
+    }, [brandId, parentBrandId]);
 
     /* ===================== CATEGORY CHA → CON ===================== */
     useEffect(() => {
@@ -175,8 +174,11 @@ function CreatePost() {
             return;
         }
 
-        if (!brandId || cateIds.length === 0) {
-            setErrorMsg("Vui lòng chọn ít nhất 1 danh mục con");
+        // Sửa validation: cho phép submit nếu có parentBrandId khi không có brandChildren
+        const finalBrandId = brandId || (brandChildren.length === 0 ? parentBrandId : "");
+
+        if (!finalBrandId || cateIds.length === 0) {
+            setErrorMsg("Vui lòng chọn hãng và ít nhất 1 danh mục con");
             return;
         }
 
@@ -196,7 +198,7 @@ function CreatePost() {
                 ...form,
                 address: fullAddress,
                 price: Number(form.price),
-                brandId: Number(brandId),
+                brandId: Number(finalBrandId), // Dùng finalBrandId
                 cateIds: cateIds.map(Number),
                 specifications: specValues,
                 images
@@ -230,7 +232,7 @@ function CreatePost() {
 
     /* ===================== UI ===================== */
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100"style={{paddingTop: 30, paddingBottom: 100}}>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100" style={{ paddingTop: 30, paddingBottom: 100 }}>
             <div className="max-w-4xl mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-8">
@@ -280,7 +282,7 @@ function CreatePost() {
                     {/* SECTION 1: IMAGES */}
                     <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-200" style={{ padding: 15, margin: 15 }}>
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center"style={{marginBottom: 30}}>
+                            <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center" style={{ marginBottom: 30 }}>
                                 <Upload className="text-yellow-600" size={20} />
                             </div>
                             <div>
@@ -322,8 +324,8 @@ function CreatePost() {
                                     ) : (
                                         <>
                                             <div className="flex flex-col items-center justify-center">
-                                                <Upload className="text-slate-400 mt-1mb-1 ml-2" style={{marginTop: 40}} size={24} />
-                                                <span className="text-xs text-slate-500 text-center" style={{marginTop: 10}}>
+                                                <Upload className="text-slate-400 mt-1mb-1 ml-2" style={{ marginTop: 40 }} size={24} />
+                                                <span className="text-xs text-slate-500 text-center" style={{ marginTop: 10 }}>
                                                     Thêm ảnh
                                                 </span>
                                             </div>
@@ -338,7 +340,7 @@ function CreatePost() {
                     {/* SECTION 2: BASIC INFO */}
                     <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-200" style={{ padding: 15, margin: 15 }}>
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"style={{marginBottom: 30}}>
+                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center" style={{ marginBottom: 30 }}>
                                 <FileText className="text-blue-600" size={20} />
                             </div>
                             <div>
@@ -369,7 +371,7 @@ function CreatePost() {
                             </div>
 
                             {/* Description */}
-                            <div style={{paddingTop: 10}}>
+                            <div style={{ paddingTop: 10 }}>
                                 <div className="flex items-center gap-2 mb-2">
                                     {/* <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center flex-shrink-0">
                                         <FileText className="text-blue-600" size={14} />
@@ -389,7 +391,7 @@ function CreatePost() {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4"style={{paddingTop: 10}}>
+                            <div className="grid grid-cols-2 gap-4" style={{ paddingTop: 10 }}>
                                 {/* Price */}
                                 <div>
                                     <div className="flex items-center gap-2 mb-2">
@@ -440,7 +442,7 @@ function CreatePost() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4"style={{paddingTop: 10}}>
+                            <div className="grid grid-cols-2 gap-4" style={{ paddingTop: 10 }}>
                                 {/* Province */}
                                 <div>
                                     <div className="flex items-center gap-2 mb-2">
@@ -507,7 +509,7 @@ function CreatePost() {
                     {/* SECTION 3: BRAND & CATEGORY */}
                     <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-200" style={{ padding: 15, margin: 15 }}>
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center"style={{marginBottom: 30}}>
+                            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center" style={{ marginBottom: 30 }}>
                                 <Tag className="text-purple-600" size={20} />
                             </div>
                             <div>
@@ -562,7 +564,7 @@ function CreatePost() {
                                             value={brandId}
                                             onChange={e => setBrandId(e.target.value)}
                                             className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all appearance-none bg-white disabled:bg-slate-50 disabled:text-slate-400"
-                                            required
+                                            
                                         >
                                             <option value="">Chọn dòng</option>
                                             {brandChildren.map(b => (
@@ -577,7 +579,7 @@ function CreatePost() {
                             </div>
 
                             {/* Parent Category */}
-                            <div style={{paddingTop: 10}}>
+                            <div style={{ paddingTop: 10 }}>
                                 <div className="flex items-center gap-2 mb-2">
                                     {/* <div className="w-5 h-5 rounded bg-indigo-100 flex items-center justify-center flex-shrink-0">
                                         <Package className="text-indigo-600" size={14} />
@@ -588,7 +590,7 @@ function CreatePost() {
                                 </div>
                                 <div className="relative">
                                     <select
-                                        disabled={!brandId}
+                                        disabled={!parentBrandId} // Chỉ cần có parentBrandId
                                         value={parentCateId}
                                         onChange={e => setParentCateId(e.target.value)}
                                         className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all appearance-none bg-white disabled:bg-slate-50 disabled:text-slate-400"
@@ -607,7 +609,7 @@ function CreatePost() {
 
                             {/* CATEGORY CHILDREN */}
                             {parentCateId && cateChildren.length > 0 && (
-                                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-5 border border-slate-200"style={{marginTop: 10}}>
+                                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-5 border border-slate-200" style={{ marginTop: 10 }}>
                                     <div className="flex items-center gap-2 mb-4">
                                         {/* <div className="w-5 h-5 rounded bg-indigo-100 flex items-center justify-center flex-shrink-0">
                                             <Package className="text-indigo-600" size={14} />
@@ -638,7 +640,7 @@ function CreatePost() {
                                                     }}
                                                     className="w-4 h-4 text-yellow-500 border-slate-300 rounded focus:ring-yellow-400"
                                                 />
-                                                <span className="text-sm font-medium text-slate-700" style={{marginLeft: 10, marginBottom: 10}}>
+                                                <span className="text-sm font-medium text-slate-700" style={{ marginLeft: 10, marginBottom: 10 }}>
                                                     {c.cateName}
                                                 </span>
                                             </label>
@@ -651,9 +653,9 @@ function CreatePost() {
 
                     {/* SECTION 4: SPECIFICATIONS */}
                     {specs.length > 0 && (
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-200"style={{ padding: 15, margin: 15 }}>
+                        <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-200" style={{ padding: 15, margin: 15 }}>
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center" style={{marginBottom: 30}}>
+                                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center" style={{ marginBottom: 30 }}>
                                     <FileText className="text-green-600" size={20} />
                                 </div>
                                 <div>
@@ -690,8 +692,8 @@ function CreatePost() {
                     )}
 
                     {/* SUBMIT BUTTON */}
-                    <div className="flex gap-3"style={{ margin: 20 }}>
-                        <button style={{borderRadius: 5}}
+                    <div className="flex gap-3" style={{ margin: 20 }}>
+                        <button style={{ borderRadius: 5 }}
                             type="button"
                             onClick={() => navigate("/")}
                             className="
@@ -706,7 +708,7 @@ function CreatePost() {
                             Hủy bỏ
                         </button>
 
-                        <button style={{borderRadius: 5}}
+                        <button style={{ borderRadius: 5 }}
                             type="submit"
                             className="
       flex-1 px-5 py-4 

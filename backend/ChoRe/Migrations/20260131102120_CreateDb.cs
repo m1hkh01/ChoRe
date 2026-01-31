@@ -1038,7 +1038,14 @@ namespace ChoRe.Migrations
             migrationBuilder.InsertData(
                 table: "Posts",
                 columns: new[] { "PostId", "Address", "ApprovedAt", "ApprovedBy", "BrandId", "CategoryCateId", "CreatedAt", "Description", "PostStatusId", "Price", "RejectReason", "RejectedAt", "RejectedBy", "SavedCount", "Status", "Title", "UserId", "ViewCount" },
-                values: new object[] { 1, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "Máy zin, pin 85%", 2, 10000000m, "", null, null, 5, "Đã Active", "IPhone 13 cũ", 3, 20 });
+                values: new object[,]
+                {
+                    { 1, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "Máy zin, pin 85%", 2, 2000000m, "", null, null, 5, "Đã Active", "Bán lại IPhone 13 cũ", 3, 20 },
+                    { 2, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "16GB/512GB PCIE/VGA 4GB RTX3050", 2, 17990000m, "", null, null, 5, "Đã Active", "Bán lại Laptop ASUS TUF Gaming A15 FA506NCG-HN184W", 3, 20 },
+                    { 3, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "Chính hãng Apple Việt Nam", 2, 17690000m, "", null, null, 5, "Đã Active", "Bán lại Apple MacBook Air M2 2024", 3, 20 },
+                    { 4, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "12GB 256GB", 2, 21990000m, "", null, null, 5, "Đã Active", "Bán lại Samsung Galaxy Z Flip7", 3, 20 },
+                    { 5, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "Chính hãng Apple Việt Nam", 2, 21990000m, "", null, null, 5, "Đã Active", "Bán lại tai nghe Bluetooth Apple AirPods Pro 2 2023", 3, 20 }
+                });
 
             migrationBuilder.InsertData(
                 table: "Ratings",
@@ -1048,12 +1055,12 @@ namespace ChoRe.Migrations
             migrationBuilder.InsertData(
                 table: "UserSubUsages",
                 columns: new[] { "UsuId", "RemainingFreePost", "RemainingSubFPF", "RemainingSubPost", "UserId" },
-                values: new object[] { 1, 2, 0m, 4, 3 });
+                values: new object[] { 1, 18, 30m, 100, 3 });
 
             migrationBuilder.InsertData(
                 table: "UserSubscriptions",
                 columns: new[] { "UserSubId", "EndDate", "IsActive", "StartDate", "SubPlanId", "UserId" },
-                values: new object[] { 1, new DateTime(2025, 1, 31, 0, 0, 0, 0, DateTimeKind.Unspecified), true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, 3 });
+                values: new object[] { 1, new DateTime(2027, 1, 31, 0, 0, 0, 0, DateTimeKind.Unspecified), true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 4, 3 });
 
             migrationBuilder.InsertData(
                 table: "Comments",
@@ -1079,9 +1086,21 @@ namespace ChoRe.Migrations
                 columns: new[] { "PostImgId", "PostId", "PostImage1" },
                 values: new object[,]
                 {
-                    { 1, 1, "iphone13(1).jpg" },
-                    { 2, 1, "iphone13(2).jpg" },
-                    { 3, 1, "iphone13(3).jpg" }
+                    { 1, 1, "iphone_13_pdp_position-1b_color_midnight__vn.webp" },
+                    { 2, 1, "iphone_13_pdp_position-2_size_comparison__vn.webp" },
+                    { 3, 1, "iphone_13_pdp_position-3_camera__vn.webp" },
+                    { 4, 2, "LapTop_Asus1.webp" },
+                    { 5, 2, "LapTop_Asus2.webp" },
+                    { 6, 2, "LapTop_Asus3.webp" },
+                    { 7, 3, "MacBook1.webp" },
+                    { 8, 3, "MacBook2.webp" },
+                    { 9, 3, "MacBook3.webp" },
+                    { 10, 4, "samsung-galaxy1.webp" },
+                    { 11, 4, "samsung-galaxy2.webp" },
+                    { 12, 4, "samsung-galaxy3.webp" },
+                    { 13, 5, "airpods_pro1.webp" },
+                    { 14, 5, "airpods_pro2.webp" },
+                    { 15, 5, "airpods_pro3.webp" }
                 });
 
             migrationBuilder.InsertData(
