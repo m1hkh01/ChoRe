@@ -225,13 +225,13 @@ function Home() {
         className="w-[90%] h-[300px] mb-8 mt-2 shadow-[0_0_5px_rgba(0,0,0,0.1)] rounded-lg mx-auto"
       >
         <SwiperSlide>
-          <img src="src/Images/1.png" className="w-full h-full object-cover" />
+          <img src="src/Images/banner1.jpg" className="w-full h-full object-cover" />
         </SwiperSlide>
         <SwiperSlide>
-          <img src="src/Images/2.png" className="w-full h-full object-cover" />
+          <img src="src/Images/banner2.jpg" className="w-full h-full object-cover" />
         </SwiperSlide>
         <SwiperSlide>
-          <img src="src/Images/3.jpg" className="w-full h-full object-cover" />
+          <img src="src/Images/banner3.jpg" className="w-full h-full object-cover" />
         </SwiperSlide>
       </Swiper>
       <main className="container" style={{ marginTop: "80px" }}>

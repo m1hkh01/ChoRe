@@ -1,0 +1,33 @@
+.save-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #555;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.save-btn svg {
+    fill: none;
+    stroke: #555;
+}
+
+.save-btn:hover {
+    border-color: #ff4d4f;
+    color: #ff4d4f;
+}
+
+.save-btn.saved {
+    border-color: #ff4d4f;
+    color: #ff4d4f;
+}
+
+.save-btn.saved svg {
+    fill: #ff4d4f;
+    stroke: #ff4d4f;
+}

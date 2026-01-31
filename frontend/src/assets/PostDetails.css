@@ -1,0 +1,38 @@
+/* Thu nhỏ tổng thể giống Chợ Tốt */
+.post-detail-container {
+    max-width: 1180px; /* nhỏ hơn container mặc định */
+}
+
+/* Card dùng chung */
+.post-detail-page .card {
+    padding: 16px !important;   /* giảm padding */
+    border-radius: 10px;
+}
+
+/* Giảm khoảng cách giữa các khối */
+.post-detail-page .mb-4 {
+    margin-bottom: 16px !important;
+}
+
+/* Row spacing */
+.post-detail-page .row.g-4 {
+    --bs-gutter-x: 16px;
+    --bs-gutter-y: 16px;
+}
+.post-detail-page {
+    font-size: 14px;
+    background-color: #F4F4F4;
+    min-height: 100vh;
+}
+
+.post-detail-page h4 {
+    font-size: 18px;
+}
+
+.post-detail-page h5 {
+    font-size: 16px;
+}
+
+.post-detail-page h6 {
+    font-size: 14px;
+}

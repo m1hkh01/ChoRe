@@ -1,0 +1,145 @@
+.post-image-wrapper {
+    max-width: 420px;   /* khung gọn lại */
+}
+
+.main-image {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;   /* giống Chợ Tốt */
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.main-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;   /* KHÔNG bị cắt ảnh */
+}
+
+.image-count {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+.thumb-list {
+    display: flex;
+    gap: 14px;          /* QUAN TRỌNG: giãn ra rõ */
+    margin-top: 14px;
+}
+
+.thumb {
+    width: 96px;        /* tăng từ ~80 */
+    height: 68px;       /* tăng từ ~55 */
+    object-fit: cover;
+    border-radius: 10px;
+    cursor: pointer;
+
+    opacity: 0.65;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.thumb:hover {
+    opacity: 0.85;
+}
+.thumb.active {
+    opacity: 1;
+    border-color: #22c55e;
+}
+.post-image-wrapper {
+    width: 100%;
+}
+
+.main-image {
+    position: relative;
+    width: 100%;
+    height: 400px; /* trước 420px → tăng nhẹ */
+    object-fit: cover;
+    border-radius: 14px;
+}
+
+.main-img {
+    width: 100%;
+    height: 420px;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+/* NÚT CHUYỂN ẢNH */
+.nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.35); /* mờ hơn */
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+.nav-btn:hover {
+    background: rgba(0, 0, 0, 0.55);
+}
+
+.nav-btn.left {
+    left: 10px;
+}
+
+.nav-btn.right {
+    right: 10px;
+}
+
+.nav-btn.left {
+    left: 10px;
+}
+
+.nav-btn.right {
+    right: 10px;
+}
+
+/* ĐẾM ẢNH */
+.image-count {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+/* ẢNH NHỎ */
+.thumb-list {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.thumb {
+    width: 70px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    opacity: 0.6;
+    border: 2px solid transparent;
+}
+
+.thumb.active {
+    opacity: 1;
+    border-color: #22c55e;
+}

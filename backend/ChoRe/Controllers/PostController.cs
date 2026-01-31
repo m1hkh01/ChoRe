@@ -71,11 +71,12 @@ namespace ChoRe.Controllers
                 {
                     post.User.UserId,
                     post.User.FullName,
-                    post.User.PhoneNumber
+                    post.User.PhoneNumber,
+                    post.User.Avatar
                 }
             });
         }
-
+    
         [AllowAnonymous]
         [HttpGet("home")]
         public async Task<IActionResult> GetPostsForHome(

@@ -137,10 +137,13 @@ else
 app.UseStaticFiles();
 
 
-app.UseHttpsRedirection();
-app.UseCors();
-app.UseRouting();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
+app.UseRouting();
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 

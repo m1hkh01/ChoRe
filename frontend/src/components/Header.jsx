@@ -140,7 +140,7 @@ function Header() {
             </div>
             {/* NAV */}
             <nav className="flex-1 flex justify-center items-center gap-6">
-                <div className="w-[calc(100%-200px)] flex-1 mx-5 h-12 rounded-4xl bg-[white] flex items-center justify-between">
+                <div className="w-[calc(100%-200px)] flex-1 mx-5 h-11 rounded-4xl bg-[white] flex items-center justify-between">
                     <div className="w-7.5 flex justify-end">
                         <FontAwesomeIcon icon={faSearch} />
                     </div>
@@ -151,7 +151,6 @@ function Header() {
                     />
                 </div>
             </nav>
-
             {/* ACTIONS */}
             <div className="flex items-center gap-2">
                 {/* Nhắn tin */}

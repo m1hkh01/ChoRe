@@ -32,6 +32,7 @@ namespace ChoRe.Controllers
                     u.FullName,
                     u.Email,
                     u.PhoneNumber,
+                    u.Avatar,
                     u.RoleId,
                     u.CreateAt,
                     u.IsLocked
@@ -72,6 +73,24 @@ namespace ChoRe.Controllers
                 message = "Tạo user thành công",
                 user.UserId
             });
+        }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var user = await _context.Users
+                .Where(u => u.UserId == id)
+                .Select(u => new
+                {
+                    u.UserId,
+                    u.FullName,
+                    u.PhoneNumber,
+                    u.Avatar
+                })
+                .FirstOrDefaultAsync();
+
+            if (user == null) return NotFound();
+
+            return Ok(user);
         }
 
         private string HashPassword(string password)
