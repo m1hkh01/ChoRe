@@ -23,7 +23,7 @@ namespace ChoReDB.Data
                 {
                     UserId = 1,
                     UserName = "adminKhoi",
-                    FullName = "Nguyễn Admin",
+                    FullName = "Nguyễn Admin",  
                     PhoneNumber = "0123123123",
                     Email = "admin@gmail.com",
                     Address = "Thành phố Hồ Chí Minh",
@@ -131,10 +131,82 @@ namespace ChoReDB.Data
                 {
                     PostId = 1,
                     UserId = 3,
-                    Title = "IPhone 13 cũ",
+                    Title = "Bán lại IPhone 13 cũ",
                     Description = "Máy zin, pin 85%",
                     Status = "Đã Active",
-                    Price = 10000000,
+                    Price = 2000000,
+                    Address = "Hà Nội",
+                    BrandId = 1,
+                    PostStatusId = 2,
+                    ApprovedBy = 2,
+                    ApprovedAt = new DateTime(2025, 2, 2),
+                    RejectReason = "",
+                    ViewCount = 20,
+                    SavedCount = 5,
+                    CreatedAt = new DateTime(2025, 1, 2)
+                },
+                new Post
+                {
+                    PostId = 2,
+                    UserId = 3,
+                    Title = "Bán lại Laptop ASUS TUF Gaming A15 FA506NCG-HN184W",
+                    Description = "16GB/512GB PCIE/VGA 4GB RTX3050",
+                    Status = "Đã Active",
+                    Price = 17990000,
+                    Address = "Hà Nội",
+                    BrandId = 1,
+                    PostStatusId = 2,
+                    ApprovedBy = 2,
+                    ApprovedAt = new DateTime(2025, 2, 2),
+                    RejectReason = "",
+                    ViewCount = 20,
+                    SavedCount = 5,
+                    CreatedAt = new DateTime(2025, 1, 2)
+                },
+                new Post
+                {
+                    PostId = 3,
+                    UserId = 3,
+                    Title = "Bán lại Apple MacBook Air M2 2024",
+                    Description = "Chính hãng Apple Việt Nam",
+                    Status = "Đã Active",
+                    Price = 17690000,
+                    Address = "Hà Nội",
+                    BrandId = 1,
+                    PostStatusId = 2,
+                    ApprovedBy = 2,
+                    ApprovedAt = new DateTime(2025, 2, 2),
+                    RejectReason = "",
+                    ViewCount = 20,
+                    SavedCount = 5,
+                    CreatedAt = new DateTime(2025, 1, 2)
+                },
+                new Post
+                {
+                    PostId = 4,
+                    UserId = 3,
+                    Title = "Bán lại Samsung Galaxy Z Flip7",
+                    Description = "12GB 256GB",
+                    Status = "Đã Active",
+                    Price = 21990000,
+                    Address = "Hà Nội",
+                    BrandId = 1,
+                    PostStatusId = 2,
+                    ApprovedBy = 2,
+                    ApprovedAt = new DateTime(2025, 2, 2),
+                    RejectReason = "",
+                    ViewCount = 20,
+                    SavedCount = 5,
+                    CreatedAt = new DateTime(2025, 1, 2)
+                },
+                new Post
+                {
+                    PostId = 5,
+                    UserId = 3,
+                    Title = "Bán lại tai nghe Bluetooth Apple AirPods Pro 2 2023",
+                    Description = "Chính hãng Apple Việt Nam",
+                    Status = "Đã Active",
+                    Price = 21990000,
                     Address = "Hà Nội",
                     BrandId = 1,
                     PostStatusId = 2,
@@ -238,19 +310,91 @@ namespace ChoReDB.Data
                 {
                     PostImgId = 1,
                     PostId = 1,
-                    PostImage1 = "iphone13(1).jpg"
+                    PostImage1 = "iphone_13_pdp_position-1b_color_midnight__vn.webp"
                 },
                 new PostImage
                 {
                     PostImgId = 2,
                     PostId = 1,
-                    PostImage1 = "iphone13(2).jpg"
+                    PostImage1 = "iphone_13_pdp_position-2_size_comparison__vn.webp"
                 },
                 new PostImage
                 {
                     PostImgId = 3,
                     PostId = 1,
-                    PostImage1 = "iphone13(3).jpg"
+                    PostImage1 = "iphone_13_pdp_position-3_camera__vn.webp"
+                },
+                new PostImage
+                {
+                    PostImgId = 4,
+                    PostId = 2,
+                    PostImage1 = "LapTop_Asus1.webp"
+                },
+                new PostImage
+                {
+                    PostImgId = 5,
+                    PostId = 2,
+                    PostImage1 = "LapTop_Asus2.webp"
+                },
+                new PostImage
+                {
+                    PostImgId = 6,
+                    PostId = 2,
+                    PostImage1 = "LapTop_Asus3.webp"
+                },
+                new PostImage
+                {
+                    PostImgId = 7,
+                    PostId = 3,
+                    PostImage1 = "MacBook1.webp"
+                },
+                new PostImage
+                {
+                    PostImgId = 8,
+                    PostId = 3,
+                    PostImage1 = "MacBook2.webp"
+                },
+                new PostImage
+                {
+                    PostImgId = 9,
+                    PostId = 3,
+                    PostImage1 = "MacBook3.webp"
+                },
+                new PostImage
+                {
+                    PostImgId = 10,
+                    PostId = 4,
+                    PostImage1 = "samsung-galaxy1.webp"
+                },
+                new PostImage
+                {
+                    PostImgId = 11,
+                    PostId = 4,
+                    PostImage1 = "samsung-galaxy2.webp"
+                },
+                new PostImage
+                {
+                    PostImgId = 12,
+                    PostId = 4,
+                    PostImage1 = "samsung-galaxy3.webp"
+                },
+                new PostImage
+                {
+                    PostImgId = 13,
+                    PostId = 5,
+                    PostImage1 = "airpods_pro1.webp"
+                },
+                new PostImage
+                {
+                    PostImgId = 14,
+                    PostId = 5,
+                    PostImage1 = "airpods_pro2.webp"
+                },
+                new PostImage
+                {
+                    PostImgId = 15,
+                    PostId = 5,
+                    PostImage1 = "airpods_pro3.webp"
                 }
             );
 
