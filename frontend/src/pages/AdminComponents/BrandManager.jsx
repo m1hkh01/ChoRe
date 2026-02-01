@@ -3,9 +3,10 @@ import api, { API_BASE_URL } from "@/api";
 import "@/assets/brand-manager.css";
 
 function BrandManager() {
-    const [brands, setBrands] = useState([]);            // flat list (admin list)
-    const [brandTree, setBrandTree] = useState([]);      // parent–child tree
+    const [brands, setBrands] = useState([]);
+    const [brandTree, setBrandTree] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [categoryTree, setCategoryTree] = useState([]); // Thêm category tree
 
     const [form, setForm] = useState({
         brandId: null,
@@ -33,6 +34,10 @@ function BrandManager() {
     const loadCategories = async () => {
         const res = await api.get("/api/admin/categories");
         setCategories(res.data);
+        
+        // Load category tree để tìm parent
+        const treeRes = await api.get("/api/admin/categories/tree");
+        setCategoryTree(treeRes.data);
     };
 
     useEffect(() => {
@@ -40,6 +45,45 @@ function BrandManager() {
         loadBrandTree();
         loadCategories();
     }, []);
+
+    // ================= TÌM TẤT CẢ PARENT CỦA CATEGORY =================
+    const findAllParents = (categoryId, categoryTree) => {
+        const parents = [];
+        
+        const findParent = (nodes, targetId, ancestors = []) => {
+            for (let node of nodes) {
+                if (node.cateId === targetId) {
+                    return ancestors;
+                }
+                if (node.children && node.children.length > 0) {
+                    const found = findParent(node.children, targetId, [...ancestors, node.cateId]);
+                    if (found) return found;
+                }
+            }
+            return null;
+        };
+
+        const result = findParent(categoryTree, categoryId);
+        return result || [];
+    };
+
+    // ================= XỬ LÝ CHỌN CATEGORY =================
+    const handleCategoryChange = (selectedOptions) => {
+        const selectedIds = Array.from(selectedOptions, o => Number(o.value));
+        
+        // Tìm tất cả parent categories
+        const allIds = new Set(selectedIds);
+        
+        selectedIds.forEach(id => {
+            const parents = findAllParents(id, categoryTree);
+            parents.forEach(parentId => allIds.add(parentId));
+        });
+
+        setForm({
+            ...form,
+            cateIds: Array.from(allIds)
+        });
+    };
 
     // ================= SUBMIT =================
     const submit = async (e) => {
@@ -57,7 +101,6 @@ function BrandManager() {
         fd.append("Description", form.description || "");
         if (form.parentBrandId)
             fd.append("ParentBrandId", Number(form.parentBrandId));
-        // nếu không chọn cha → KHÔNG append gì cả
 
         form.cateIds.forEach(id => fd.append("CateIds", Number(id)));
         if (logo) fd.append("logo", logo);
@@ -141,6 +184,16 @@ function BrandManager() {
         ]);
     };
 
+    // ================= RENDER CATEGORY TREE OPTIONS =================
+    const renderCategoryTreeOptions = (nodes, level = 0) => {
+        return nodes.flatMap(c => [
+            <option key={`cate-${c.cateId}`} value={c.cateId}>
+                {"—".repeat(level)} {c.cateName}
+            </option>,
+            ...(c.children ? renderCategoryTreeOptions(c.children, level + 1) : [])
+        ]);
+    };
+
     return (
         <div className="p-4">
             <h3 className="mb-4">Quản lý thương hiệu (Cha – Con)</h3>
@@ -201,23 +254,19 @@ function BrandManager() {
                     </div>
 
                     <div className="mb-3">
-                        <label className="form-label">Danh mục *</label>
+                        <label className="form-label">Danh mục * (Tự động chọn danh mục cha)</label>
                         <select
                             multiple
                             className="form-control"
-                            style={{ minHeight: "120px" }}
+                            style={{ minHeight: "150px" }}
                             value={form.cateIds}
-                            onChange={e => setForm({
-                                ...form,
-                                cateIds: Array.from(e.target.selectedOptions, o => Number(o.value))
-                            })}
+                            onChange={e => handleCategoryChange(e.target.selectedOptions)}
                         >
-                            {categories.map(c => (
-                                <option key={c.cateId} value={c.cateId}>
-                                    {c.cateName}
-                                </option>
-                            ))}
+                            {renderCategoryTreeOptions(categoryTree)}
                         </select>
+                        <small className="text-muted">
+                            Giữ Ctrl (Windows) hoặc Cmd (Mac) để chọn nhiều danh mục
+                        </small>
                     </div>
 
                     <div className="d-flex gap-2">

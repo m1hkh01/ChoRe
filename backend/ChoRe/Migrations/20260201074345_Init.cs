@@ -1063,12 +1063,12 @@ namespace ChoRe.Migrations
             migrationBuilder.InsertData(
                 table: "UserSubUsages",
                 columns: new[] { "UsuId", "RemainingFreePost", "RemainingSubFPF", "RemainingSubPost", "UserId" },
-                values: new object[] { 1, 2, 0m, 4, 3 });
+                values: new object[] { 1, 18, 30m, 100, 3 });
 
             migrationBuilder.InsertData(
                 table: "UserSubscriptions",
                 columns: new[] { "UserSubId", "EndDate", "IsActive", "StartDate", "SubPlanId", "UserId" },
-                values: new object[] { 1, new DateTime(2025, 1, 31, 0, 0, 0, 0, DateTimeKind.Unspecified), true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, 3 });
+                values: new object[] { 1, new DateTime(2027, 1, 31, 0, 0, 0, 0, DateTimeKind.Unspecified), true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 4, 3 });
 
             migrationBuilder.InsertData(
                 table: "Comments",

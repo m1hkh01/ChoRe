@@ -32,6 +32,16 @@ namespace ChoRe.Controllers
 
             return Ok(specs);
         }
+        //[HttpGet("by-parent-category/{parentCateId}")]
+        //public IActionResult GetByParentCategory(int parentCateId)
+        //{
+        //    var specs = _context.Specifications
+        //        .Where(s => s.ParentCateId == parentCateId)
+        //        .ToList();
+
+        //    return Ok(specs);
+        //}
+
     }
 
 }

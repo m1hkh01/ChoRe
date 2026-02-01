@@ -70,20 +70,19 @@ function CreatePost() {
         const parent = brandParents.find(b => b.brandId === Number(parentBrandId));
         setBrandChildren(parent ? parent.subBrands : []);
 
+        // Chỉ reset brandId, KHÔNG reset category
         setBrandId("");
-        setCateParents([]);
-        setCateChildren([]);
-        setParentCateId("");
-        setCateIds([]);
-        setSpecs([]);
-        setSpecValues({});
-    }, [parentBrandId]);
+        // Xóa các dòng reset category ở đây
+    }, [parentBrandId, brandParents]);
 
     /* ===================== BRAND → CATEGORY ===================== */
     useEffect(() => {
-        if (!brandId) return;
+        if (!parentBrandId) return;
 
-        axios.get(`/api/categories/tree/by-brand/${brandId}`)
+        // Ưu tiên brandId nếu có, không thì dùng parentBrandId
+        const activeBrandId = brandId || parentBrandId;
+
+        axios.get(`/api/categories/tree/by-brand/${activeBrandId}`)
             .then(res => {
                 setCateParents(res.data);
                 setParentCateId("");
@@ -93,7 +92,7 @@ function CreatePost() {
                 setSpecValues({});
             })
             .catch(console.error);
-    }, [brandId]);
+    }, [brandId, parentBrandId]);
 
     /* ===================== CATEGORY CHA → CON ===================== */
     useEffect(() => {
@@ -175,8 +174,11 @@ function CreatePost() {
             return;
         }
 
-        if (!brandId || cateIds.length === 0) {
-            setErrorMsg("Vui lòng chọn ít nhất 1 danh mục con");
+        // Sửa validation: cho phép submit nếu có parentBrandId khi không có brandChildren
+        const finalBrandId = brandId || (brandChildren.length === 0 ? parentBrandId : "");
+
+        if (!finalBrandId || cateIds.length === 0) {
+            setErrorMsg("Vui lòng chọn hãng và ít nhất 1 danh mục con");
             return;
         }
 
@@ -196,7 +198,7 @@ function CreatePost() {
                 ...form,
                 address: fullAddress,
                 price: Number(form.price),
-                brandId: Number(brandId),
+                brandId: Number(finalBrandId), // Dùng finalBrandId
                 cateIds: cateIds.map(Number),
                 specifications: specValues,
                 images
@@ -562,7 +564,7 @@ function CreatePost() {
                                             value={brandId}
                                             onChange={e => setBrandId(e.target.value)}
                                             className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all appearance-none bg-white disabled:bg-slate-50 disabled:text-slate-400"
-                                            required
+                                            
                                         >
                                             <option value="">Chọn dòng</option>
                                             {brandChildren.map(b => (
@@ -588,7 +590,7 @@ function CreatePost() {
                                 </div>
                                 <div className="relative">
                                     <select
-                                        disabled={!brandId}
+                                        disabled={!parentBrandId} // Chỉ cần có parentBrandId
                                         value={parentCateId}
                                         onChange={e => setParentCateId(e.target.value)}
                                         className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all appearance-none bg-white disabled:bg-slate-50 disabled:text-slate-400"
