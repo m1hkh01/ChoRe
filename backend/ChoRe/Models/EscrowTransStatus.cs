@@ -19,3 +19,14 @@ namespace ChoRe.Models
     }
 
 }
+public static class EscrowStatus
+{
+    public const int Confirming = 1;
+    public const int Pending = 2;
+    public const int Paid = 3;
+    public const int Cancelled = 4;
+    public const int Expired = 5;
+    public const int Completed = 6;
+    public const int Disputing = 7;
+    public const int Refunded = 8;
+}

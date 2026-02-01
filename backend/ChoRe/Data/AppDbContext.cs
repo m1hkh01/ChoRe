@@ -616,6 +616,7 @@ namespace ChoRe.Data
                 .HasForeignKey(o => o.PostId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+
             // --- ORDER -> ORDER STATUS ---
             modelBuilder.Entity<EscrowTransation>()
                 .HasOne(o => o.EscrowTransStatus)
@@ -649,6 +650,12 @@ namespace ChoRe.Data
                 .WithMany(p => p.ChatRooms)
                 .HasForeignKey(c => c.PostId)
                 .OnDelete(DeleteBehavior.Restrict);
+            // --- CHATROOM--> CURRENT_ESCROWTRANSACTION
+            modelBuilder.Entity<ChatRoom>()
+                .HasOne(c => c.CurrentEscrow)
+                .WithOne()
+                .HasForeignKey<ChatRoom>(c=>c.CurrentEscrowTransId)
+                .OnDelete(DeleteBehavior.Restrict);
             // --- CHATMESSAGE -> CHATROOM ---
             // CASCADE: Xóa ChatRoom -> xóa tất cả messages
             modelBuilder.Entity<ChatMessage>()
@@ -667,10 +674,10 @@ namespace ChoRe.Data
             // --- CHATMESSAGE -> ESCROWTRANSATION ---
             modelBuilder.Entity<ChatMessage>()
             .HasOne(cm => cm.EscrowTransation)
-            .WithOne(esr => esr.ChatMessage)
+            .WithOne(e=>e.ChatMessage)
             .HasForeignKey<ChatMessage>(cm => cm.TransationId)
             .OnDelete(DeleteBehavior.Restrict);
-            
+
 
             // --- MESSAGE IMAGE -> CHAT MESSAGE ---
             // CASCADE: Xóa Message -> xóa tất cả images
@@ -690,8 +697,8 @@ namespace ChoRe.Data
             // --- DISPUTE -> ESCROW TRANSACTION ---
             modelBuilder.Entity<Dispute>()
                 .HasOne(d => d.EscrowTransation)
-                .WithMany(t => t.Disputes)
-                .HasForeignKey(d => d.EscrowTransId)
+                .WithOne(t => t.Disputes)
+                .HasForeignKey<Dispute>(d => d.EscrowTransId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // --- DISPUTE -> OPENED BY USER ---

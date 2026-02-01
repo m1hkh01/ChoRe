@@ -467,8 +467,8 @@ namespace ChoReDB.Data
 
             // ================= ESCROW TRANSACTION (was Order) =================
             modelBuilder.Entity<EscrowTransStatus>().HasData(
-                new EscrowTransStatus { EscTransStatusId = 1, StatusName = "Confirming", Description = "Chờ 2 bên xác nhận" },
-                new EscrowTransStatus { EscTransStatusId = 2, StatusName = "Pending", Description = "Chờ thanh toán" },
+                new EscrowTransStatus { EscTransStatusId = 1, StatusName = "Confirming", Description = "Chờ xác nhận" },
+                new EscrowTransStatus { EscTransStatusId = 2, StatusName = "PendingPayment", Description = "Chờ thanh toán" },
                 new EscrowTransStatus { EscTransStatusId = 3, StatusName = "Paid", Description = "Đã thanh toán" },
                 new EscrowTransStatus { EscTransStatusId = 4, StatusName = "Cancelled", Description = "Đã huỷ" },
                 new EscrowTransStatus { EscTransStatusId = 5, StatusName = "Expired", Description = "Quá hạn" },

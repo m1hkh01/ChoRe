@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { TransactionCard } from "./TransactionCard";
+import { TransactionCard } from "./TransactionCard/TransactionCard";
 
 // const messages = [
 //     { from: "other", text: "Không giảm được nữa đâu" },
@@ -8,7 +8,7 @@ import { TransactionCard } from "./TransactionCard";
 //     { from: "other", text: "Ok bạn" },
 // ];
 
-export function MessageList({ userId, sellerId, messages, connectionRef }) {
+export function MessageList({ userId, messages, connectionRef }) {
     // console.log("Messages list: ", messages);
     return (
         <div className="flex-1 p-2 mt-2 space-y-3 overflow-y-auto">
@@ -18,7 +18,6 @@ export function MessageList({ userId, sellerId, messages, connectionRef }) {
                     return (
                         <div key={i} className="flex justify-center">
                             <TransactionCard
-                                sellerId={sellerId}
                                 transaction={msg.transaction}
                                 currentUserId={userId}
                                 connectionRef={connectionRef}

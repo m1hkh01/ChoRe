@@ -3,14 +3,47 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import api from "../../api";
 import { useAuthStore } from "../../store/auth";
+import Swal from "sweetalert2";
 
-export function ChatInput({ connectionRef, conversationId, post }) {
+export function ChatInput({ connectionRef, conversationId, post,buyerId }) {
     const [message, setMessage] = useState("");
     const [previewImages, setPreviewImages] = useState([]);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [isTransation, setIsTransation] = useState(false);
     const [transactionData, setTransactionData] = useState(null);
+    // const [notification, setNotification] = useState("");
     const { user: currentUser } = useAuthStore();
+    const confirmCreateTransaction = () => {
+        Swal.fire({
+            title: "Bạn có chắc muốn tạo giao dịch trung gian không?",
+            text: "Lưu ý : Người mua cần thanh toán cả phí giao dịch và sản phẩm",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Xác nhận",
+            cancelButtonText: "Huỷ",
+            buttonsStyling: false,
+            customClass: {
+                confirmButton:
+                    "bg-green-600 text-white text-md me-2 px-4 py-2 rounded mr-2 hover:bg-green-700",
+                cancelButton:
+                    "bg-red-500 text-white text-md px-4 py-2 rounded hover:bg-red-700",
+            },
+        }).then(async(result) => {
+            if (result.isConfirmed) {
+                // const canCreate = await connectionRef.current.invoke(
+                //     "CheckExistingTransaction",
+                //     Number(conversationId)
+                // );
+
+                // if (!canCreate) return;
+
+                handleCreateTransaction();
+            }
+            else {
+                return;
+            }
+        });
+    };
 
     const sendMessage = async (options = {}) => {
 
@@ -38,7 +71,6 @@ export function ChatInput({ connectionRef, conversationId, post }) {
 
         try {
             if (forceTransaction && transactionPayload) {
-                console.log("Tạo giao dịch :", transactionPayload);
 
 
                 // Gửi transaction data
@@ -51,7 +83,6 @@ export function ChatInput({ connectionRef, conversationId, post }) {
                     transactionPayload
                 );
             } else {
-                console.log("Gửi Tin Nhắn");
 
                 // Gửi message thường
                 await connectionRef.current.invoke(
@@ -80,12 +111,13 @@ export function ChatInput({ connectionRef, conversationId, post }) {
             return;
         }
 
+
+
         const platformFee = Math.round(post.postPrice * 0.05);
         const totalAmount = post.postPrice + platformFee;
-        console.log("Post: ", post);
         const txData = {
             postId: post.postId,
-            buyerId: currentUser.userId,
+            buyerId: buyerId,
             sellerId: post.userId,
             amount: totalAmount,
             postPrice: post.postPrice,
@@ -141,7 +173,7 @@ export function ChatInput({ connectionRef, conversationId, post }) {
             }
 
             <div className="flex p-2 rounded-4 font-medium bg-[#EDEDED] hover:bg-[#E0E0E0] text-sm cursor-pointer justify-center items-center">
-                <button onClick={handleCreateTransaction} className="rounded font-medium border-0"><FontAwesomeIcon icon={faArrowRightArrowLeft} className="text-md" /> Giao dịch trung gian </button>
+                <button onClick={confirmCreateTransaction} className="rounded font-medium border-0"><FontAwesomeIcon icon={faArrowRightArrowLeft} className="text-md" /> Giao dịch trung gian </button>
             </div>
             <label for="image-upload" className="flex p-2 rounded-4 font-medium bg-[#EDEDED] hover:bg-[#E0E0E0] text-sm cursor-pointer justify-center items-center">
                 <FontAwesomeIcon icon={faImage} className="text-md" /> Hình ảnh

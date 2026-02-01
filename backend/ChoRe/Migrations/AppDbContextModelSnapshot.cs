@@ -334,6 +334,9 @@ namespace ChoRe.Migrations
                     b.Property<DateTime>("CreateAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("CurrentEscrowTransId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("LastMessageAt")
                         .HasColumnType("datetime2");
 
@@ -350,6 +353,10 @@ namespace ChoRe.Migrations
 
                     b.HasIndex("BuyerId")
                         .HasDatabaseName("IX_ChatRooms_BuyerId");
+
+                    b.HasIndex("CurrentEscrowTransId")
+                        .IsUnique()
+                        .HasFilter("[CurrentEscrowTransId] IS NOT NULL");
 
                     b.HasIndex("PostId");
 
@@ -582,14 +589,14 @@ namespace ChoRe.Migrations
                         new
                         {
                             EscTransStatusId = 1,
-                            Description = "Chờ 2 bên xác nhận",
+                            Description = "Chờ xác nhận",
                             StatusName = "Confirming"
                         },
                         new
                         {
                             EscTransStatusId = 2,
                             Description = "Chờ thanh toán",
-                            StatusName = "Pending"
+                            StatusName = "PendingPayment"
                         },
                         new
                         {
@@ -675,6 +682,9 @@ namespace ChoRe.Migrations
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TransactionOrderCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("EscrowTransId");
 
@@ -2020,6 +2030,11 @@ namespace ChoRe.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ChoRe.Models.EscrowTransation", "CurrentEscrow")
+                        .WithOne()
+                        .HasForeignKey("ChoRe.Models.ChatRoom", "CurrentEscrowTransId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ChoRe.Models.Post", "Post")
                         .WithMany("ChatRooms")
                         .HasForeignKey("PostId")
@@ -2033,6 +2048,8 @@ namespace ChoRe.Migrations
                         .IsRequired();
 
                     b.Navigation("Buyer");
+
+                    b.Navigation("CurrentEscrow");
 
                     b.Navigation("Post");
 

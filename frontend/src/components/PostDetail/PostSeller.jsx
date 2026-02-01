@@ -1,6 +1,6 @@
 import { useState } from "react";
-import api from "../../api";
-import { useAuthStore } from "../../store/auth";
+import api from "@/api";
+import { useAuthStore } from "@/store/auth";
 import { useNavigate } from "react-router-dom";
 
 function PostSeller({ user, postId }) {

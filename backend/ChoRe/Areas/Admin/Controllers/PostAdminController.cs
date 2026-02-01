@@ -26,7 +26,6 @@ namespace ChoRe.Areas.Admin.Controllers
         {
             try
             {
-                Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: " + id);
                 await _service.ApprovePostAsync(id);
                 return NoContent();
             }

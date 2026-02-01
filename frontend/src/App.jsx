@@ -1,10 +1,10 @@
 import './App.css'
 import { Routes, Route } from 'react-router-dom'
 
-import { Login } from './components/Login'
-import Register from './components/Register'
-import Home from './components/Home'
-import CreatePost from "./components/CreatePost"
+import { Login } from './pages/Login'
+import Register from './pages/Register'
+import Home from './pages/Home'
+import CreatePost from "./pages/CreatePost"
 
 import MainLayout from './Layout/MainLayout'
 import AdminLayout from './Layout/AdminLayout'
@@ -13,19 +13,21 @@ import CensorLayout from './Layout/CensorLayout'
 import ProtectedRoute from "./routes/ProtectedRoute"
 import RequireRole from './routes/RequireRole'
 
-import UserManager from './components/AdminComponents/UserManager.jsx'
-import SubscriptionPlanManager from './components/AdminComponents/SubscriptionPlanManager.jsx'
-import UserSubscriptionManager from './components/AdminComponents/UserSubscriptionManager.jsx'
-import PostManager from './components/AdminComponents/PostManager'
-import BrandManager from './components/AdminComponents/BrandManager.jsx'
-import CategoryManager from './components/AdminComponents/CategoryManager.jsx'
-import BrandCategoryManager from './components/AdminComponents/BrandCategoryManager.jsx'
-import SpecificationManager from './components/AdminComponents/SpecificationManager.jsx'
-import PostDetail from './components/PostDetail.jsx'
-import ServicePackage from './components/ServicePackage/ServicePackage.jsx'
-import ServicePackageManager from './components/ServicePackage/ServicePackageManager.jsx'
-import ChatPage from './components/Chat/ChatPage.jsx'
+import UserManager from './pages/AdminComponents/UserManager.jsx'
+import SubscriptionPlanManager from './pages/AdminComponents/SubscriptionPlanManager.jsx'
+import UserSubscriptionManager from './pages/AdminComponents/UserSubscriptionManager.jsx'
+import PostManager from './pages/AdminComponents/PostManager'
+import BrandManager from './pages/AdminComponents/BrandManager.jsx'
+import CategoryManager from './pages/AdminComponents/CategoryManager.jsx'
+import BrandCategoryManager from './pages/AdminComponents/BrandCategoryManager.jsx'
+import SpecificationManager from './pages/AdminComponents/SpecificationManager.jsx'
+import PostDetail from './pages/PostDetail.jsx'
+import ServicePackage from './pages/ServicePackage/ServicePackage.jsx'
+import ServicePackageManager from './pages/ServicePackage/ServicePackageManager.jsx'
 import ChatLayout from './Layout/ChatLayout.jsx'
+import TransactionPayPage from './pages/Pay/TransactionPayPage.jsx'
+import ChatPage from './pages/ChatPage.jsx'
+import EscrowTransactions from './pages/AdminComponents/EscrowTransactions.jsx'
 
 function App() {
   return (
@@ -42,6 +44,14 @@ function App() {
           element={
             <ProtectedRoute>
               <CreatePost />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pay/transaction/:transactionId"
+          element={
+            <ProtectedRoute>
+              <TransactionPayPage />
             </ProtectedRoute>
           }
         />
@@ -86,6 +96,13 @@ function App() {
           element={
             <RequireRole roles={["Admin", "Censor"]}>
               <PostManager />
+            </RequireRole>
+          }
+        />
+        <Route path="transaction-manager"
+          element={
+            <RequireRole roles={["Admin", "Censor"]}>
+              <EscrowTransactions />
             </RequireRole>
           }
         />

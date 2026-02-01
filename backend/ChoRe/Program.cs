@@ -60,6 +60,7 @@ builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<IPostService, PostService>(); // Post Service
 builder.Services.AddScoped<IPackageService, PackageService>(); // Package Service
 builder.Services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>(); // Subscription Plan Service
+builder.Services.AddScoped<IEscrowTransactionService, EscrowTransactionService>(); // Escrow Transaction Service
 builder.Services.AddScoped<IUserSubscriptionService, UserSubscriptionService>(); // User Subscription Service
 builder.Services.AddScoped<IConvertationService, ConvertationService>(); // Conversation Service
 builder.Services.AddScoped<HtmlSanitizer>();

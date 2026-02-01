@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../store/auth";
+import { useAuthStore } from "@/store/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleDown, faSearch, faMobileScreen, faAngleRight, faList } from "@fortawesome/free-solid-svg-icons";
 import { faComment, faBell, faHeart } from "@fortawesome/free-regular-svg-icons";
@@ -175,8 +175,8 @@ function Header() {
 
                 {/* ĐĂNG TIN */}
                 <button
-    onClick={handleCreatePost}
-    className="
+                    onClick={handleCreatePost}
+                    className="
         flex items-center gap-1
         rounded-2
         bg-(--primary-color)
@@ -186,10 +186,10 @@ function Header() {
         hover:opacity-95
         transition
     "
->
-    <FontAwesomeIcon icon={faPlus} />
-    <span>Đăng tin</span>
-</button>
+                >
+                    <FontAwesomeIcon icon={faPlus} />
+                    <span>Đăng tin</span>
+                </button>
 
                 {/* AUTH */}
                 {!user ? (

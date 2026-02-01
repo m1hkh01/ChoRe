@@ -39,6 +39,7 @@ namespace ChoRe.Models
         public DateTime ExpiredAt { get; set; } = DateTime.Now.AddHours(1);
         public bool BuyerConfirmed { get; set; } = false;
         public bool SellerConfirmed { get; set; } = false;
+        public string? TransactionOrderCode{ get; set; }
 
 
         // Navigation properties
@@ -46,7 +47,7 @@ namespace ChoRe.Models
         public virtual User SellerUser { get; set; }
         public virtual Post Post { get; set; }
         public virtual EscrowTransStatus EscrowTransStatus { get; set; }
-        public virtual ICollection<Dispute> Disputes { get; set; }
+        public virtual Dispute Disputes { get; set; }
         public virtual ChatMessage ChatMessage { get; set; }
     }
 }
