@@ -457,7 +457,8 @@ namespace ChoRe.Migrations
 
                     b.HasIndex("AssignedByAdminUserId");
 
-                    b.HasIndex("EscrowTransId");
+                    b.HasIndex("EscrowTransId")
+                        .IsUnique();
 
                     b.HasIndex("OpenedByUserId");
 
@@ -778,12 +779,23 @@ namespace ChoRe.Migrations
                         .HasMaxLength(5000)
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal?>("MaxPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MinPrice")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("PostStatusId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Price")
+                    b.Property<decimal?>("Price")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("PriceType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("RejectReason")
                         .HasMaxLength(500)
@@ -858,6 +870,7 @@ namespace ChoRe.Migrations
                             Description = "Máy zin, pin 85%",
                             PostStatusId = 2,
                             Price = 2000000m,
+                            PriceType = "FIXED",
                             RejectReason = "",
                             SavedCount = 5,
                             Status = "Đã Active",
@@ -874,8 +887,10 @@ namespace ChoRe.Migrations
                             BrandId = 1,
                             CreatedAt = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "16GB/512GB PCIE/VGA 4GB RTX3050",
+                            MaxPrice = 17990000m,
+                            MinPrice = 17000000m,
                             PostStatusId = 2,
-                            Price = 17990000m,
+                            PriceType = "RANGE",
                             RejectReason = "",
                             SavedCount = 5,
                             Status = "Đã Active",
@@ -893,7 +908,7 @@ namespace ChoRe.Migrations
                             CreatedAt = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Chính hãng Apple Việt Nam",
                             PostStatusId = 2,
-                            Price = 17690000m,
+                            PriceType = "NEGOTIABLE",
                             RejectReason = "",
                             SavedCount = 5,
                             Status = "Đã Active",
@@ -912,6 +927,7 @@ namespace ChoRe.Migrations
                             Description = "12GB 256GB",
                             PostStatusId = 2,
                             Price = 21990000m,
+                            PriceType = "FIXED",
                             RejectReason = "",
                             SavedCount = 5,
                             Status = "Đã Active",
@@ -930,6 +946,7 @@ namespace ChoRe.Migrations
                             Description = "Chính hãng Apple Việt Nam",
                             PostStatusId = 2,
                             Price = 21990000m,
+                            PriceType = "FIXED",
                             RejectReason = "",
                             SavedCount = 5,
                             Status = "Đã Active",
@@ -2083,8 +2100,8 @@ namespace ChoRe.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ChoRe.Models.EscrowTransation", "EscrowTransation")
-                        .WithMany("Disputes")
-                        .HasForeignKey("EscrowTransId")
+                        .WithOne("Disputes")
+                        .HasForeignKey("ChoRe.Models.Dispute", "EscrowTransId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -2526,7 +2543,8 @@ namespace ChoRe.Migrations
                     b.Navigation("ChatMessage")
                         .IsRequired();
 
-                    b.Navigation("Disputes");
+                    b.Navigation("Disputes")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ChoRe.Models.Post", b =>

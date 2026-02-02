@@ -1,102 +1,257 @@
-.modal-overlay {
+/* ================= OVERLAY ================= */
+.ppm-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
     z-index: 1000;
 }
 
-.modal-preview {
-    padding: 20px;
-    background-color: white;
+/* ================= MODAL ================= */
+.ppm-modal {
     position: fixed;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 700px;
-    z-index: 1200;
-}
-
-.modal-row {
-    margin-top: 3px;
-    padding: 5px;
+    inset: 0;
+    z-index: 1001;
     display: flex;
-    justify-content: space-between;
-}
-
-.modal-img, .modal-spec, .modal-info {
-    width: 100%;
-    padding: 5px;
-    border-radius: 10px;
-    border: 2px solid #f2f2f2;
-    margin-top: 5px;
-}
-
-.preview-images {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-    padding: 5px;
-    margin-top: 3px;
-}
-
-.preview-images .preview-image {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-}
-
-.table-spec {
-    width: 100%;
-    /* margin-top: 5px; */
-    border: 1px solid #f2f2f2;
-    margin-bottom: 10px;
-    border-radius: 10px;
-    border-collapse: collapse;
+    flex-direction: column;
+    width: 1100px;
+    max-width: 95%;
+    max-height: 90vh;
+    margin: auto;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
     overflow: hidden;
 }
 
-.table-spec table {
-    width: 100%;
+/* ================= HEADER ================= */
+.ppm-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.table-spec .spec-item {
-    width: 100%;
-    border-bottom: 1px solid #e4e4e7;
-}
-
-.spec-item .spec-name {
-    width: 30%;
-    font-size: 1rem;
+.ppm-header h2 {
+    margin: 0;
+    font-size: 18px;
     font-weight: 600;
-    background-color: #f2f2f2;
-    border-right: 1px solid #e4e4e7;
-    padding: 5px 10px;
-    padding-left: 16px;
 }
 
-.spec-item .spec-value {
-    width: 70%;
-    padding-left: 16px;
-    font-size: 1rem;
-    background-color: rgba(255, 255, 255, 0.786);
-}
-
-.modal-preview .btn-accept,
-.modal-preview .btn-cancel {
-    border-radius: 10px;
-    background-color: var(--success);
-    padding: 5px 10px;
+.ppm-header button {
+    background: none;
     border: none;
-    color: var(--primary-color-text);
+    font-size: 22px;
+    cursor: pointer;
+    color: #6b7280;
 }
 
-.modal-preview .btn-cancel {
-    margin-right: 10px;
-    background-color: var(--cancel);
+.ppm-header button:hover {
+    color: #ef4444;
 }
-.modal-footer{
-    margin-top: 10px;
+
+/* ================= BODY ================= */
+.ppm-body {
+    flex: 1;
+    display: flex;
+    gap: 24px;
+    padding: 20px;
+    overflow: hidden;
+}
+
+/* ================= LEFT ================= */
+.ppm-left {
+    flex: 2;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.ppm-section {
+    margin-bottom: 20px;
+}
+
+.ppm-section h3 {
+    margin-bottom: 8px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.ppm-section h4 {
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    border-left: 4px solid #2563eb;
+    padding-left: 8px;
+}
+
+/* ================= META ================= */
+.ppm-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.ppm-meta .price {
+    font-weight: 600;
+    color: #dc2626;
+}
+
+/* ================= CKEDITOR ================= */
+.ckeditor-preview {
+    border: 1px solid #e5e7eb;
+    padding: 14px;
+    border-radius: 8px;
+    background: #fafafa;
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.ckeditor-preview img {
+    max-width: 100%;
+    border-radius: 6px;
+}
+
+/* ================= SPEC TABLE ================= */
+.spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.spec-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.spec-table td:first-child {
+    width: 35%;
+    font-weight: 600;
+    background: #f9fafb;
+}
+
+/* ================= RIGHT ================= */
+.ppm-right {
+    flex: 1;
+    border-left: 1px solid #e5e7eb;
+    padding-left: 20px;
+    overflow-y: auto;
+}
+
+.ppm-right h4 {
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* ================= IMAGE GRID ================= */
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.image-grid img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.image-grid img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* ================= FOOTER ================= */
+.ppm-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: #f9fafb;
+}
+
+/* ================= BUTTONS ================= */
+.btn {
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.btn.reject {
+    background: #ef4444;
+    color: #fff;
+}
+
+.btn.reject:hover {
+    background: #dc2626;
+}
+
+.btn.approve {
+    background: #22c55e;
+    color: #fff;
+}
+
+.btn.approve:hover {
+    background: #16a34a;
+}
+
+.btn:active {
+    transform: scale(0.97);
+}
+
+/* ================= SCROLLBAR ================= */
+.ppm-left::-webkit-scrollbar,
+.ppm-right::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ppm-left::-webkit-scrollbar-thumb,
+.ppm-right::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+}
+/* FIX TABLE TRONG CKEDITOR */
+.ckeditor-preview {
+    overflow-x: auto;
+}
+
+.ckeditor-preview table {
+    min-width: 600px;
+}
+.ckeditor-preview * {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.ckeditor-preview table {
+    width: 100%;
+    table-layout: auto;
+}
+/* NGĂN CÁCH CỘT TRONG TABLE CKEDITOR */
+.ckeditor-preview table {
+    border-collapse: collapse;
+}
+
+.ckeditor-preview th,
+.ckeditor-preview td {
+    border-right: 1px solid #e5e7eb; /* đường kẻ dọc */
+    border-bottom: 1px solid #e5e7eb; /* giữ kẻ ngang */
+    padding: 8px 10px;
+}
+
+/* bỏ border cột cuối */
+.ckeditor-preview th:last-child,
+.ckeditor-preview td:last-child {
+    border-right: none;
 }

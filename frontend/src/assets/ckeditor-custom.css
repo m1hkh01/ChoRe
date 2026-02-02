@@ -1,0 +1,104 @@
+/* Custom CKEditor Styles */
+
+/* Container chính */
+.ck-editor__editable {
+    min-height: 200px !important;
+    max-height: 400px !important;
+    border: none !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    color: #334155 !important;
+}
+
+/* Toolbar */
+.ck.ck-toolbar {
+    border: none !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    background: #f8fafc !important;
+    padding: 8px !important;
+    border-radius: 8px 8px 0 0 !important;
+}
+
+/* Buttons trong toolbar */
+.ck.ck-button {
+    border-radius: 6px !important;
+}
+
+.ck.ck-button:hover {
+    background: #e0e7ff !important;
+}
+
+.ck.ck-button.ck-on {
+    background: #dbeafe !important;
+    color: #1e40af !important;
+}
+
+/* Dropdown */
+.ck.ck-dropdown__panel {
+    border-radius: 8px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Focus state */
+.ck.ck-editor__editable:focus {
+    box-shadow: none !important;
+    border: none !important;
+}
+
+/* Placeholder text */
+.ck.ck-editor__editable.ck-placeholder::before {
+    color: #94a3b8 !important;
+}
+
+/* Lists trong editor */
+.ck-editor__editable ul,
+.ck-editor__editable ol {
+    padding-left: 24px !important;
+}
+
+/* Links */
+.ck-editor__editable a {
+    color: #3b82f6 !important;
+    text-decoration: underline !important;
+}
+
+/* Tables */
+.ck-editor__editable table {
+    border-collapse: collapse !important;
+    margin: 12px 0 !important;
+}
+
+.ck-editor__editable table td,
+.ck-editor__editable table th {
+    border: 1px solid #e2e8f0 !important;
+    padding: 8px 12px !important;
+}
+
+/* Blockquotes */
+.ck-editor__editable blockquote {
+    border-left: 4px solid #fbbf24 !important;
+    padding-left: 16px !important;
+    margin: 12px 0 !important;
+    font-style: italic !important;
+    color: #64748b !important;
+}
+
+/* Scrollbar tùy chỉnh */
+.ck-editor__editable::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ck-editor__editable::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.ck-editor__editable::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.ck-editor__editable::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}

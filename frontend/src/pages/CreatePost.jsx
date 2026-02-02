@@ -16,6 +16,9 @@ import {
     Check
 } from "lucide-react";
 
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+
 function CreatePost() {
     const navigate = useNavigate();
 
@@ -36,8 +39,8 @@ function CreatePost() {
     const [specValues, setSpecValues] = useState({});
 
     /* ===================== IMAGES ===================== */
-    const [images, setImages] = useState([]);
-    const [uploading, setUploading] = useState(false);
+    const [imageFiles, setImageFiles] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
 
     /* ===================== ADDRESS ===================== */
     const [provinceCode, setProvinceCode] = useState("");
@@ -51,12 +54,16 @@ function CreatePost() {
     const [form, setForm] = useState({
         title: "",
         description: "",
+        priceType: "", // ✅ THÊM MỚI
         price: "",
+        minPrice: "", // ✅ THÊM MỚI
+        maxPrice: "", // ✅ THÊM MỚI
         status: "",
     });
 
     const [errorMsg, setErrorMsg] = useState("");
     const [currentStep, setCurrentStep] = useState(1);
+    const [uploading, setUploading] = useState(false);
 
     /* ===================== LOAD BRAND TREE ===================== */
     useEffect(() => {
@@ -69,17 +76,13 @@ function CreatePost() {
     useEffect(() => {
         const parent = brandParents.find(b => b.brandId === Number(parentBrandId));
         setBrandChildren(parent ? parent.subBrands : []);
-
-        // Chỉ reset brandId, KHÔNG reset category
         setBrandId("");
-        // Xóa các dòng reset category ở đây
     }, [parentBrandId, brandParents]);
 
     /* ===================== BRAND → CATEGORY ===================== */
     useEffect(() => {
         if (!parentBrandId) return;
 
-        // Ưu tiên brandId nếu có, không thì dùng parentBrandId
         const activeBrandId = brandId || parentBrandId;
 
         axios.get(`/api/categories/tree/by-brand/${activeBrandId}`)
@@ -122,47 +125,55 @@ function CreatePost() {
 
     /* ===================== HANDLERS ===================== */
     const handleChange = e => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        
+        // ✅ Reset giá khi đổi kiểu giá
+        if (name === "priceType") {
+            setForm({ 
+                ...form, 
+                priceType: value,
+                price: "",
+                minPrice: "",
+                maxPrice: ""
+            });
+        } else {
+            setForm({ ...form, [name]: value });
+        }
     };
 
     const handleSpecChange = (specId, value) => {
         setSpecValues(prev => ({ ...prev, [specId]: value }));
     };
 
-    const handleImageChange = async e => {
+    /* ===================== IMAGE HANDLERS ===================== */
+    const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
 
-        if (files.length + images.length > 5) {
+        if (files.length + imageFiles.length > 5) {
             alert("Chỉ được chọn tối đa 5 ảnh");
             return;
         }
 
-        setUploading(true);
+        const newPreviews = files.map(file => URL.createObjectURL(file));
 
-        for (let file of files) {
-            const formData = new FormData();
-            formData.append("file", file);
+        setImageFiles(prev => [...prev, ...files]);
+        setImagePreviews(prev => [...prev, ...newPreviews]);
 
-            try {
-                const res = await axios.post(
-                    "/api/posts/upload-image",
-                    formData,
-                    { headers: { "Content-Type": "multipart/form-data" } }
-                );
-
-                setImages(prev => [...prev, res.data.fileName]);
-            } catch (error) {
-                console.error("Upload failed:", error);
-            }
-        }
-
-        setUploading(false);
         e.target.value = null;
     };
 
     const removeImage = (index) => {
-        setImages(prev => prev.filter((_, i) => i !== index));
+        URL.revokeObjectURL(imagePreviews[index]);
+
+        setImageFiles(prev => prev.filter((_, i) => i !== index));
+        setImagePreviews(prev => prev.filter((_, i) => i !== index));
     };
+
+    useEffect(() => {
+        return () => {
+            imagePreviews.forEach(url => URL.revokeObjectURL(url));
+        };
+    }, []);
 
     /* ===================== SUBMIT ===================== */
     const handleSubmit = async e => {
@@ -174,12 +185,39 @@ function CreatePost() {
             return;
         }
 
-        // Sửa validation: cho phép submit nếu có parentBrandId khi không có brandChildren
         const finalBrandId = brandId || (brandChildren.length === 0 ? parentBrandId : "");
 
         if (!finalBrandId || cateIds.length === 0) {
             setErrorMsg("Vui lòng chọn hãng và ít nhất 1 danh mục con");
             return;
+        }
+
+        // ✅ VALIDATE KIỂU GIÁ
+        if (!form.priceType) {
+            setErrorMsg("Vui lòng chọn kiểu giá");
+            return;
+        }
+
+        if (form.priceType === "FIXED") {
+            if (!form.price || Number(form.price) <= 0) {
+                setErrorMsg("Vui lòng nhập giá hợp lệ");
+                return;
+            }
+        }
+
+        if (form.priceType === "RANGE") {
+            if (!form.minPrice || !form.maxPrice) {
+                setErrorMsg("Vui lòng nhập khoảng giá");
+                return;
+            }
+            if (Number(form.minPrice) <= 0 || Number(form.maxPrice) <= 0) {
+                setErrorMsg("Giá phải lớn hơn 0");
+                return;
+            }
+            if (Number(form.minPrice) >= Number(form.maxPrice)) {
+                setErrorMsg("Giá tối thiểu phải nhỏ hơn giá tối đa");
+                return;
+            }
         }
 
         for (let spec of specs) {
@@ -189,26 +227,74 @@ function CreatePost() {
             }
         }
 
-        const provinceName = provinces[provinceCode]?.name_with_type;
-        const wardName = wards[wardCode]?.name_with_type;
-        const fullAddress = `${wardName}, ${provinceName}`;
+        if (imageFiles.length === 0) {
+            setErrorMsg("Vui lòng thêm ít nhất 1 ảnh");
+            return;
+        }
+
+        const stripHtml = (html) => {
+            const tmp = document.createElement("div");
+            tmp.innerHTML = html;
+            return tmp.textContent || tmp.innerText || "";
+        };
+
+        if (!form.description || !stripHtml(form.description).trim()) {
+            setErrorMsg("Vui lòng nhập mô tả chi tiết");
+            return;
+        }
+
+        setUploading(true);
 
         try {
-            await axios.post("/api/posts", {
-                ...form,
+            const uploadedFileNames = [];
+
+            for (let file of imageFiles) {
+                const formData = new FormData();
+                formData.append("file", file);
+
+                const res = await axios.post(
+                    "/api/posts/upload-image",
+                    formData,
+                    { headers: { "Content-Type": "multipart/form-data" } }
+                );
+
+                uploadedFileNames.push(res.data.fileName);
+            }
+
+            const provinceName = provinces[provinceCode]?.name_with_type;
+            const wardName = wards[wardCode]?.name_with_type;
+            const fullAddress = `${wardName}, ${provinceName}`;
+
+            // ✅ GỬI DỮ LIỆU THEO KIỂU GIÁ
+            const postData = {
+                title: form.title,
+                description: form.description,
+                status: form.status,
                 address: fullAddress,
-                price: Number(form.price),
-                brandId: Number(finalBrandId), // Dùng finalBrandId
+                priceType: form.priceType,
+                brandId: Number(finalBrandId),
                 cateIds: cateIds.map(Number),
                 specifications: specValues,
-                images
-            });
+                images: uploadedFileNames
+            };
+
+            // Thêm giá tùy theo kiểu
+            if (form.priceType === "FIXED") {
+                postData.price = Number(form.price);
+            } else if (form.priceType === "RANGE") {
+                postData.minPrice = Number(form.minPrice);
+                postData.maxPrice = Number(form.maxPrice);
+            }
+
+            await axios.post("/api/posts", postData);
 
             alert("Đăng tin thành công, chờ duyệt");
             navigate("/");
         } catch (error) {
-            setErrorMsg("Có lỗi xảy ra, vui lòng thử lại");
+            setErrorMsg(error.response?.data || "Có lỗi xảy ra, vui lòng thử lại");
             console.error(error);
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -222,12 +308,29 @@ function CreatePost() {
 
     const isStepComplete = (step) => {
         switch (step) {
-            case 1: return images.length > 0;
-            case 2: return form.title && form.description && form.price && form.status;
+            case 1: return imageFiles.length > 0;
+            case 2: return form.title && form.description && form.priceType && form.status;
             case 3: return brandId && cateIds.length > 0;
             case 4: return specs.every(s => specValues[s.specId]?.trim());
             default: return false;
         }
+    };
+
+    /* ===================== CKEDITOR CONFIG ===================== */
+    const editorConfiguration = {
+        toolbar: {
+            items: [
+                'heading', '|',
+                'bold', 'italic', 'underline', 'strikethrough', '|',
+                'bulletedList', 'numberedList', '|',
+                'outdent', 'indent', '|',
+                'link', '|',
+                'blockQuote', 'insertTable', '|',
+                'undo', 'redo'
+            ]
+        },
+        language: 'vi',
+        placeholder: 'Mô tả tình trạng, nguồn gốc, lý do bán...',
     };
 
     /* ===================== UI ===================== */
@@ -292,24 +395,25 @@ function CreatePost() {
                         </div>
 
                         <div className="grid grid-cols-5 gap-3">
-                            {images.map((img, i) => (
-                                <div key={i} className="relative group aspect-square">
+                            {imagePreviews.map((preview, i) => (
+                                <div key={i} className="relative aspect-square">
                                     <img
-                                        src={`${API_BASE_URL}/uploads/${img}`}
-                                        className="w-full h-full object-cover rounded-lg border-2 border-slate-200"
+                                        src={preview}
+                                        className="w-33 h-33 object-contain rounded-lg border-2 border-slate-200"
                                         alt={`Preview ${i + 1}`}
                                     />
                                     <button
                                         type="button"
                                         onClick={() => removeImage(i)}
-                                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                        style={{ borderRadius: '100%' }}
+                                        className="absolute -top-2 -right-2 w-7 h-7  bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600"
                                     >
-                                        <X size={14} />
+                                        <X size={16} />
                                     </button>
                                 </div>
                             ))}
 
-                            {images.length < 5 && (
+                            {imageFiles.length < 5 && (
                                 <label style={{ marginLeft: 15 }} className="aspect-square border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all">
                                     <input
                                         type="file"
@@ -317,21 +421,13 @@ function CreatePost() {
                                         accept="image/*"
                                         onChange={handleImageChange}
                                         className="hidden"
-                                        disabled={uploading}
                                     />
-                                    {uploading ? (
-                                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-yellow-500 border-t-transparent" />
-                                    ) : (
-                                        <>
-                                            <div className="flex flex-col items-center justify-center">
-                                                <Upload className="text-slate-400 mt-1mb-1 ml-2" style={{ marginTop: 40 }} size={24} />
-                                                <span className="text-xs text-slate-500 text-center" style={{ marginTop: 10 }}>
-                                                    Thêm ảnh
-                                                </span>
-                                            </div>
-
-                                        </>
-                                    )}
+                                    <div className="flex flex-col items-center justify-center">
+                                        <Upload className="text-slate-400 mt-1mb-1 ml-2" style={{ marginTop: 40 }} size={24} />
+                                        <span className="text-xs text-slate-500 text-center" style={{ marginTop: 10 }}>
+                                            Thêm ảnh
+                                        </span>
+                                    </div>
                                 </label>
                             )}
                         </div>
@@ -353,9 +449,6 @@ function CreatePost() {
                             {/* Title */}
                             <div>
                                 <div className="flex items-center gap-2 mb-2">
-                                    {/* <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center flex-shrink-0">
-                                        <FileText className="text-blue-600" size={14} />
-                                    </div> */}
                                     <label className="text-sm font-medium text-slate-700">
                                         Tiêu đề <span className="text-red-500">*</span>
                                     </label>
@@ -373,31 +466,51 @@ function CreatePost() {
                             {/* Description */}
                             <div style={{ paddingTop: 10 }}>
                                 <div className="flex items-center gap-2 mb-2">
-                                    {/* <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center flex-shrink-0">
-                                        <FileText className="text-blue-600" size={14} />
-                                    </div> */}
                                     <label className="text-sm font-medium text-slate-700">
                                         Mô tả chi tiết <span className="text-red-500">*</span>
                                     </label>
                                 </div>
-                                <textarea
-                                    name="description"
-                                    value={form.description}
-                                    onChange={handleChange}
-                                    rows={4}
-                                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all resize-none"
-                                    placeholder="Mô tả tình trạng, nguồn gốc, lý do bán..."
-                                    required
-                                />
+                                <div className="border border-slate-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-yellow-400 focus-within:border-transparent">
+                                    <CKEditor
+                                        editor={ClassicEditor}
+                                        config={editorConfiguration}
+                                        data={form.description}
+                                        onChange={(event, editor) => {
+                                            const data = editor.getData();
+                                            setForm({ ...form, description: data });
+                                        }}
+                                    />
+                                </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4" style={{ paddingTop: 10 }}>
-                                {/* Price */}
-                                <div>
+                            {/* ✅ KIỂU GIÁ */}
+                            <div style={{ paddingTop: 10 }}>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <label className="text-sm font-medium text-slate-700">
+                                        Kiểu giá <span className="text-red-500">*</span>
+                                    </label>
+                                </div>
+                                <div className="relative">
+                                    <select
+                                        name="priceType"
+                                        value={form.priceType}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all appearance-none bg-white"
+                                        required
+                                    >
+                                        <option value="">Chọn kiểu giá</option>
+                                        <option value="NEGOTIABLE">Thương lượng</option>
+                                        <option value="FIXED">Giá cố định</option>
+                                        <option value="RANGE">Khoảng giá</option>
+                                    </select>
+                                    <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-slate-400 pointer-events-none" size={16} />
+                                </div>
+                            </div>
+
+                            {/* ✅ GIÁ CỐ ĐỊNH */}
+                            {form.priceType === "FIXED" && (
+                                <div style={{ paddingTop: 10 }}>
                                     <div className="flex items-center gap-2 mb-2">
-                                        {/* <div className="w-5 h-5 rounded bg-green-100 flex items-center justify-center flex-shrink-0">
-                                            <DollarSign className="text-green-600" size={14} />
-                                        </div> */}
                                         <label className="text-sm font-medium text-slate-700">
                                             Giá bán (VNĐ) <span className="text-red-500">*</span>
                                         </label>
@@ -412,33 +525,68 @@ function CreatePost() {
                                         required
                                     />
                                 </div>
+                            )}
 
-                                {/* Status */}
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        {/* <div className="w-5 h-5 rounded bg-orange-100 flex items-center justify-center flex-shrink-0">
-                                            <Package className="text-orange-600" size={14} />
-                                        </div> */}
-                                        <label className="text-sm font-medium text-slate-700">
-                                            Tình trạng <span className="text-red-500">*</span>
-                                        </label>
-                                    </div>
-                                    <div className="relative">
-                                        <select
-                                            name="status"
-                                            value={form.status}
+                            {/* ✅ KHOẢNG GIÁ */}
+                            {form.priceType === "RANGE" && (
+                                <div className="grid grid-cols-2 gap-4" style={{ paddingTop: 10 }}>
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <label className="text-sm font-medium text-slate-700">
+                                                Giá từ (VNĐ) <span className="text-red-500">*</span>
+                                            </label>
+                                        </div>
+                                        <input
+                                            name="minPrice"
+                                            type="number"
+                                            value={form.minPrice}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all appearance-none bg-white"
+                                            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all"
+                                            placeholder="10000000"
                                             required
-                                        >
-                                            <option value="">Chọn tình trạng</option>
-                                            <option value="NEW">Mới</option>
-                                            <option value="LIKE_NEW">Như mới</option>
-                                            <option value="USED">Đã sử dụng</option>
-                                            <option value="BROKEN">Hư hỏng</option>
-                                        </select>
-                                        <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-slate-400 pointer-events-none" size={16} />
+                                        />
                                     </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <label className="text-sm font-medium text-slate-700">
+                                                Giá đến (VNĐ) <span className="text-red-500">*</span>
+                                            </label>
+                                        </div>
+                                        <input
+                                            name="maxPrice"
+                                            type="number"
+                                            value={form.maxPrice}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all"
+                                            placeholder="15000000"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Status */}
+                            <div style={{ paddingTop: 10 }}>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <label className="text-sm font-medium text-slate-700">
+                                        Tình trạng <span className="text-red-500">*</span>
+                                    </label>
+                                </div>
+                                <div className="relative">
+                                    <select
+                                        name="status"
+                                        value={form.status}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all appearance-none bg-white"
+                                        required
+                                    >
+                                        <option value="">Chọn tình trạng</option>
+                                        <option value="NEW">Mới</option>
+                                        <option value="LIKE_NEW">Như mới</option>
+                                        <option value="USED">Đã sử dụng</option>
+                                        <option value="BROKEN">Hư hỏng</option>
+                                    </select>
+                                    <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-slate-400 pointer-events-none" size={16} />
                                 </div>
                             </div>
 
@@ -446,9 +594,6 @@ function CreatePost() {
                                 {/* Province */}
                                 <div>
                                     <div className="flex items-center gap-2 mb-2">
-                                        {/* <div className="w-5 h-5 rounded bg-red-100 flex items-center justify-center flex-shrink-0">
-                                            <MapPin className="text-red-600" size={14} />
-                                        </div> */}
                                         <label className="text-sm font-medium text-slate-700">
                                             Tỉnh / Thành phố <span className="text-red-500">*</span>
                                         </label>
@@ -477,9 +622,6 @@ function CreatePost() {
                                 {/* Ward */}
                                 <div>
                                     <div className="flex items-center gap-2 mb-2">
-                                        {/* <div className="w-5 h-5 rounded bg-red-100 flex items-center justify-center flex-shrink-0">
-                                            <MapPin className="text-red-600" size={14} />
-                                        </div> */}
                                         <label className="text-sm font-medium text-slate-700">
                                             Phường / Xã <span className="text-red-500">*</span>
                                         </label>
@@ -523,9 +665,6 @@ function CreatePost() {
                                 {/* Parent Brand */}
                                 <div>
                                     <div className="flex items-center gap-2 mb-2">
-                                        {/* <div className="w-5 h-5 rounded bg-purple-100 flex items-center justify-center flex-shrink-0">
-                                            <Tag className="text-purple-600" size={14} />
-                                        </div> */}
                                         <label className="text-sm font-medium text-slate-700">
                                             Hãng chính <span className="text-red-500">*</span>
                                         </label>
@@ -551,9 +690,6 @@ function CreatePost() {
                                 {/* Child Brand */}
                                 <div>
                                     <div className="flex items-center gap-2 mb-2">
-                                        {/* <div className="w-5 h-5 rounded bg-purple-100 flex items-center justify-center flex-shrink-0">
-                                            <Tag className="text-purple-600" size={14} />
-                                        </div> */}
                                         <label className="text-sm font-medium text-slate-700">
                                             Dòng sản phẩm <span className="text-red-500">*</span>
                                         </label>
@@ -564,7 +700,6 @@ function CreatePost() {
                                             value={brandId}
                                             onChange={e => setBrandId(e.target.value)}
                                             className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all appearance-none bg-white disabled:bg-slate-50 disabled:text-slate-400"
-                                            
                                         >
                                             <option value="">Chọn dòng</option>
                                             {brandChildren.map(b => (
@@ -581,16 +716,13 @@ function CreatePost() {
                             {/* Parent Category */}
                             <div style={{ paddingTop: 10 }}>
                                 <div className="flex items-center gap-2 mb-2">
-                                    {/* <div className="w-5 h-5 rounded bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                                        <Package className="text-indigo-600" size={14} />
-                                    </div> */}
                                     <label className="text-sm font-medium text-slate-700">
                                         Danh mục chính <span className="text-red-500">*</span>
                                     </label>
                                 </div>
                                 <div className="relative">
                                     <select
-                                        disabled={!parentBrandId} // Chỉ cần có parentBrandId
+                                        disabled={!parentBrandId}
                                         value={parentCateId}
                                         onChange={e => setParentCateId(e.target.value)}
                                         className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all appearance-none bg-white disabled:bg-slate-50 disabled:text-slate-400"
@@ -611,9 +743,6 @@ function CreatePost() {
                             {parentCateId && cateChildren.length > 0 && (
                                 <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-5 border border-slate-200" style={{ marginTop: 10 }}>
                                     <div className="flex items-center gap-2 mb-4">
-                                        {/* <div className="w-5 h-5 rounded bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                                            <Package className="text-indigo-600" size={14} />
-                                        </div> */}
                                         <label className="text-sm font-semibold text-slate-700">
                                             Danh mục con <span className="text-red-500">*</span>
                                         </label>
@@ -668,9 +797,6 @@ function CreatePost() {
                                 {specs.map(s => (
                                     <div key={s.specId}>
                                         <div className="flex items-center gap-2 mb-2">
-                                            {/* <div className="w-5 h-5 rounded bg-green-100 flex items-center justify-center flex-shrink-0">
-                                                <FileText className="text-green-600" size={14} />
-                                            </div> */}
                                             <label className="text-sm font-medium text-slate-700">
                                                 {s.specName} <span className="text-red-500">*</span>
                                             </label>
@@ -696,32 +822,18 @@ function CreatePost() {
                         <button style={{ borderRadius: 5 }}
                             type="button"
                             onClick={() => navigate("/")}
-                            className="
-      flex-1 px-5 py-4 
-      border-2 border-[var(--cancel)] 
-      text-[var(--cancel)] font-semibold 
-      rounded-lg 
-      hover:bg-[var(--cancel)] hover:text-white
-      transition-all
-    "
+                            className="flex-1 px-5 py-4 border-2 border-[var(--cancel)] text-[var(--cancel)] font-semibold rounded-lg hover:bg-[var(--cancel)] hover:text-white transition-all"
                         >
                             Hủy bỏ
                         </button>
 
-                        <button style={{ borderRadius: 5 }}
+                        <button
+                            style={{ borderRadius: 5 }}
                             type="submit"
-                            className="
-      flex-1 px-5 py-4 
-      bg-[var(--primary-color)] 
-      text-[var(--primary-color-text)] 
-      font-semibold 
-      rounded-lg 
-      hover:bg-[var(--primary-color-hover)]
-      transition-all shadow-lg hover:shadow-xl 
-      transform
-    "
+                            disabled={uploading}
+                            className="flex-1 px-5 py-4 bg-[var(--primary-color)] text-[var(--primary-color-text)] font-semibold rounded-lg hover:bg-[var(--primary-color-hover)] transition-all shadow-lg hover:shadow-xl transform disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Gửi tin ngay
+                            {uploading ? "Đang tải lên..." : "Gửi tin ngay"}
                         </button>
                     </div>
 

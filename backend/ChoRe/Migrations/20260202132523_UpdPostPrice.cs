@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ChoRe.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class UpdPostPrice : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -246,7 +246,10 @@ namespace ChoRe.Migrations
                     Title = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", maxLength: 5000, nullable: false),
                     Status = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    PriceType = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    MinPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    MaxPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     PostStatusId = table.Column<int>(type: "int", nullable: false),
                     ApprovedBy = table.Column<int>(type: "int", nullable: true),
@@ -1045,14 +1048,14 @@ namespace ChoRe.Migrations
 
             migrationBuilder.InsertData(
                 table: "Posts",
-                columns: new[] { "PostId", "Address", "ApprovedAt", "ApprovedBy", "BrandId", "CategoryCateId", "CreatedAt", "Description", "PostStatusId", "Price", "RejectReason", "RejectedAt", "RejectedBy", "SavedCount", "Status", "Title", "UserId", "ViewCount" },
+                columns: new[] { "PostId", "Address", "ApprovedAt", "ApprovedBy", "BrandId", "CategoryCateId", "CreatedAt", "Description", "MaxPrice", "MinPrice", "PostStatusId", "Price", "PriceType", "RejectReason", "RejectedAt", "RejectedBy", "SavedCount", "Status", "Title", "UserId", "ViewCount" },
                 values: new object[,]
                 {
-                    { 1, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "Máy zin, pin 85%", 2, 2000000m, "", null, null, 5, "Đã Active", "Bán lại IPhone 13 cũ", 3, 20 },
-                    { 2, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "16GB/512GB PCIE/VGA 4GB RTX3050", 2, 17990000m, "", null, null, 5, "Đã Active", "Bán lại Laptop ASUS TUF Gaming A15 FA506NCG-HN184W", 3, 20 },
-                    { 3, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "Chính hãng Apple Việt Nam", 2, 17690000m, "", null, null, 5, "Đã Active", "Bán lại Apple MacBook Air M2 2024", 3, 20 },
-                    { 4, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "12GB 256GB", 2, 21990000m, "", null, null, 5, "Đã Active", "Bán lại Samsung Galaxy Z Flip7", 3, 20 },
-                    { 5, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "Chính hãng Apple Việt Nam", 2, 21990000m, "", null, null, 5, "Đã Active", "Bán lại tai nghe Bluetooth Apple AirPods Pro 2 2023", 3, 20 }
+                    { 1, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "Máy zin, pin 85%", null, null, 2, 2000000m, "FIXED", "", null, null, 5, "Đã Active", "Bán lại IPhone 13 cũ", 3, 20 },
+                    { 2, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "16GB/512GB PCIE/VGA 4GB RTX3050", 17990000m, 17000000m, 2, null, "RANGE", "", null, null, 5, "Đã Active", "Bán lại Laptop ASUS TUF Gaming A15 FA506NCG-HN184W", 3, 20 },
+                    { 3, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "Chính hãng Apple Việt Nam", null, null, 2, null, "NEGOTIABLE", "", null, null, 5, "Đã Active", "Bán lại Apple MacBook Air M2 2024", 3, 20 },
+                    { 4, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "12GB 256GB", null, null, 2, 21990000m, "FIXED", "", null, null, 5, "Đã Active", "Bán lại Samsung Galaxy Z Flip7", 3, 20 },
+                    { 5, "Hà Nội", new DateTime(2025, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, null, new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "Chính hãng Apple Việt Nam", null, null, 2, 21990000m, "FIXED", "", null, null, 5, "Đã Active", "Bán lại tai nghe Bluetooth Apple AirPods Pro 2 2023", 3, 20 }
                 });
 
             migrationBuilder.InsertData(
@@ -1234,7 +1237,8 @@ namespace ChoRe.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Disputes_EscrowTransId",
                 table: "Disputes",
-                column: "EscrowTransId");
+                column: "EscrowTransId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Disputes_OpenedByUserId",

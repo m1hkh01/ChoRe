@@ -20,7 +20,6 @@ namespace ChoRe.Controllers
             _service = service;
         }
 
-        // GET: api/posts/5
         [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPostDetail(int id)
@@ -42,7 +41,13 @@ namespace ChoRe.Controllers
             {
                 post.PostId,
                 post.Title,
+
+                // ✅ THÊM THÔNG TIN GIÁ
+                post.PriceType,
                 post.Price,
+                post.MinPrice,
+                post.MaxPrice,
+
                 post.Description,
                 post.Address,
                 post.CreatedAt,
@@ -76,16 +81,17 @@ namespace ChoRe.Controllers
                 }
             });
         }
-    
+
         [AllowAnonymous]
         [HttpGet("home")]
         public async Task<IActionResult> GetPostsForHome(
-                string? keyword,
-                int? brandId,
-                int? categoryId,
-                decimal? maxPrice,
-                int? time
-                )
+        string? keyword,
+        int? brandId,
+        int? categoryId,
+        decimal? minPrice,  // ✅ THÊM minPrice
+        decimal? maxPrice,
+        int? time
+        )
         {
             var query = _context.Posts
                 .AsNoTracking()
@@ -117,10 +123,23 @@ namespace ChoRe.Controllers
                 );
             }
 
-            // 💰 price
-            if (maxPrice.HasValue && maxPrice > 0)
+            // 💰 price - ✅ CẬP NHẬT LOGIC LỌC GIÁ
+            if (minPrice.HasValue || maxPrice.HasValue)
             {
-                query = query.Where(p => p.Price <= maxPrice.Value);
+                query = query.Where(p =>
+                    // Nếu là giá cố định (FIXED)
+                    (p.PriceType == "FIXED" &&
+                     (!minPrice.HasValue || p.Price >= minPrice.Value) &&
+                     (!maxPrice.HasValue || p.Price <= maxPrice.Value))
+                    ||
+                    // Nếu là khoảng giá (RANGE) - lọc nếu có overlap
+                    (p.PriceType == "RANGE" &&
+                     (!maxPrice.HasValue || p.MinPrice <= maxPrice.Value) &&
+                     (!minPrice.HasValue || p.MaxPrice >= minPrice.Value))
+                    ||
+                    // Bao gồm cả NEGOTIABLE nếu không filter theo giá
+                    (p.PriceType == "NEGOTIABLE" && !minPrice.HasValue && !maxPrice.HasValue)
+                );
             }
 
             // ⏰ time
@@ -136,17 +155,31 @@ namespace ChoRe.Controllers
                 {
                     PostId = p.PostId,
                     Title = p.Title,
-                    ShortDescription = p.Description.Length > 120
+                    ShortDescription = p.Description != null && p.Description.Length > 120
                         ? p.Description.Substring(0, 120) + "..."
-                        : p.Description,
-                    Price = p.Price,
-                    Address = p.Address,
-                    CreatedAt = p.CreatedAt,
-                    UserName = p.User.UserName,
-                    Thumbnail = p.PostImages
+                        : p.Description ?? "",
+
+                                    PriceType = p.PriceType,
+                                    Price = p.Price,
+                                    MinPrice = p.MinPrice,
+                                    MaxPrice = p.MaxPrice,
+
+                                    PriceDisplay =
+                        p.PriceType == "NEGOTIABLE" ? "Thương lượng" :
+                        p.PriceType == "FIXED" && p.Price.HasValue ? p.Price.Value.ToString("N0") :
+                        p.PriceType == "RANGE" && p.MinPrice.HasValue && p.MaxPrice.HasValue
+                            ? $"{p.MinPrice:N0} - {p.MaxPrice:N0}"
+                            : "",
+
+                                    Address = p.Address,
+                                    CreatedAt = p.CreatedAt,
+                                    UserName = p.User.UserName,
+                                    Thumbnail = p.PostImages
+                        .OrderBy(i => i.PostImgId)
                         .Select(i => i.PostImage1)
                         .FirstOrDefault()
                 })
+
                 .ToListAsync();
 
             return Ok(posts);
@@ -161,9 +194,7 @@ namespace ChoRe.Controllers
                 return Unauthorized("Token không hợp lệ!");
 
             var userId = int.Parse(userIdClaim.Value);
-
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserId == userId);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
 
             if (user == null)
                 return Unauthorized("Người dùng không tồn tại!");
@@ -172,35 +203,49 @@ namespace ChoRe.Controllers
             if (user.IsLocked)
                 return BadRequest("Tài khoản đang bị khóa!");
 
-            /* ===================== 3️⃣ CHECK XÁC MINH CCCD ===================== */
-            //if (string.IsNullOrEmpty(user.CitizenIdNumber)
-            //    || string.IsNullOrEmpty(user.CitizenIdFrontImage)
-            //    || string.IsNullOrEmpty(user.CitizenIdBackImage))
-            //{
-            //    return BadRequest("Bạn phải xác minh tài khoản trước khi đăng tin!");
-            //}
-
-            /* ===================== 4️⃣ CHECK LƯỢT ĐĂNG TIN ===================== */
-            var usage = await _context.UserSubUsages
-                .FirstOrDefaultAsync(u => u.UserId == userId);
-
+            /* ===================== 3️⃣ CHECK LƯỢT ĐĂNG TIN ===================== */
+            var usage = await _context.UserSubUsages.FirstOrDefaultAsync(u => u.UserId == userId);
             if (usage == null)
                 return BadRequest("Bạn chưa có gói đăng tin!");
-
             if (usage.RemainingSubPost <= 0)
                 return BadRequest("Bạn đã hết lượt đăng tin!");
 
-            /* ===================== 5️⃣ CHECK TRẠNG THÁI THIẾT BỊ ===================== */
-            var validDeviceStatus = new[]
-            {
-                "NEW", "LIKE_NEW", "GOOD", "USED", "BROKEN"
-            };
-
+            /* ===================== 4️⃣ CHECK TRẠNG THÁI THIẾT BỊ ===================== */
+            var validDeviceStatus = new[] { "NEW", "LIKE_NEW", "GOOD", "USED", "BROKEN" };
             if (string.IsNullOrEmpty(dto.Status))
                 return BadRequest("Vui lòng chọn trạng thái thiết bị!");
-
             if (!validDeviceStatus.Contains(dto.Status))
                 return BadRequest("Trạng thái thiết bị không hợp lệ!");
+
+            /* ===================== 5️⃣ ✅ CHECK KIỂU GIÁ ===================== */
+            var validPriceTypes = new[] { "NEGOTIABLE", "FIXED", "RANGE" };
+            if (string.IsNullOrEmpty(dto.PriceType))
+                return BadRequest("Vui lòng chọn kiểu giá!");
+
+            if (!validPriceTypes.Contains(dto.PriceType))
+                return BadRequest("Kiểu giá không hợp lệ!");
+
+            // Validate theo từng kiểu
+            switch (dto.PriceType)
+            {
+                case "NEGOTIABLE":
+                    // Không cần giá
+                    break;
+
+                case "FIXED":
+                    if (!dto.Price.HasValue || dto.Price <= 0)
+                        return BadRequest("Vui lòng nhập giá hợp lệ!");
+                    break;
+
+                case "RANGE":
+                    if (!dto.MinPrice.HasValue || !dto.MaxPrice.HasValue)
+                        return BadRequest("Vui lòng nhập khoảng giá!");
+                    if (dto.MinPrice <= 0 || dto.MaxPrice <= 0)
+                        return BadRequest("Giá phải lớn hơn 0!");
+                    if (dto.MinPrice >= dto.MaxPrice)
+                        return BadRequest("Giá tối thiểu phải nhỏ hơn giá tối đa!");
+                    break;
+            }
 
             /* ===================== 6️⃣ CHECK BRAND – CATEGORY ===================== */
             if (dto.CateIds == null || !dto.CateIds.Any())
@@ -223,7 +268,6 @@ namespace ChoRe.Controllers
             {
                 if (!dto.Specifications.ContainsKey(specId))
                     return BadRequest("Thiếu thông số kỹ thuật!");
-
                 if (dto.Specifications[specId].Length > 25)
                     return BadRequest("Giá trị thông số không được vượt quá 25 ký tự!");
             }
@@ -234,14 +278,17 @@ namespace ChoRe.Controllers
                 UserId = userId,
                 Title = dto.Title,
                 Description = dto.Description,
-                Price = dto.Price,
                 Address = dto.Address,
                 RejectReason = "",
-
                 BrandId = dto.BrandId,
-
                 Status = dto.Status,
                 PostStatusId = 1,
+
+                // ✅ THÊM KIỂU GIÁ
+                PriceType = dto.PriceType,
+                Price = dto.Price,
+                MinPrice = dto.MinPrice,
+                MaxPrice = dto.MaxPrice,
 
                 ViewCount = 0,
                 SavedCount = 0,
@@ -249,14 +296,12 @@ namespace ChoRe.Controllers
             };
 
             _context.Posts.Add(post);
-            //await _context.SaveChangesAsync();
 
             /* ===================== 8️⃣ LƯU CATEGORY ===================== */
             foreach (var cateId in dto.CateIds)
             {
                 _context.PostCates.Add(new PostCate
                 {
-                    //PostId = post.PostId,
                     Post = post,
                     CateId = cateId
                 });
@@ -291,7 +336,6 @@ namespace ChoRe.Controllers
 
             /* ===================== 1️⃣1️⃣ TRỪ LƯỢT ĐĂNG TIN ===================== */
             usage.RemainingSubPost -= 1;
-
             await _context.SaveChangesAsync();
 
             /* ===================== 1️⃣2️⃣ RESPONSE ===================== */

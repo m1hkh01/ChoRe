@@ -24,9 +24,13 @@ function PostCard({ post }) {
                         {post.title}
                     </h6>
 
-                    <p className="post-desc">
-                        {post.shortDescription}
-                    </p>
+                    {/* CKEDITOR PREVIEW (SHORT) */}
+                    <div
+                        className="post-desc ckeditor-preview"
+                        dangerouslySetInnerHTML={{
+                            __html: post.shortDescription + "..."
+                        }}
+                    />
 
                     <div className="post-meta">
                         <span className="price">

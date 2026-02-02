@@ -125,8 +125,9 @@ namespace ChoReDB.Data
                 new PostStatus { PostStatusId = 3, PostStatusName = "Reject", Description = "Tin đăng đã bị từ chối!" }
             );
 
-            // ================= POST =================
+            // ================= POST ================= 
             modelBuilder.Entity<Post>().HasData(
+                // Post 1: Giá cố định
                 new Post
                 {
                     PostId = 1,
@@ -134,7 +135,10 @@ namespace ChoReDB.Data
                     Title = "Bán lại IPhone 13 cũ",
                     Description = "Máy zin, pin 85%",
                     Status = "Đã Active",
+                    PriceType = "FIXED",
                     Price = 2000000,
+                    MinPrice = null,
+                    MaxPrice = null,
                     Address = "Hà Nội",
                     BrandId = 1,
                     PostStatusId = 2,
@@ -145,6 +149,8 @@ namespace ChoReDB.Data
                     SavedCount = 5,
                     CreatedAt = new DateTime(2025, 1, 2)
                 },
+
+                // Post 2: Khoảng giá
                 new Post
                 {
                     PostId = 2,
@@ -152,7 +158,10 @@ namespace ChoReDB.Data
                     Title = "Bán lại Laptop ASUS TUF Gaming A15 FA506NCG-HN184W",
                     Description = "16GB/512GB PCIE/VGA 4GB RTX3050",
                     Status = "Đã Active",
-                    Price = 17990000,
+                    PriceType = "RANGE",
+                    Price = null,
+                    MinPrice = 17000000,
+                    MaxPrice = 17990000,
                     Address = "Hà Nội",
                     BrandId = 1,
                     PostStatusId = 2,
@@ -163,6 +172,8 @@ namespace ChoReDB.Data
                     SavedCount = 5,
                     CreatedAt = new DateTime(2025, 1, 2)
                 },
+
+                // Post 3: Thương lượng
                 new Post
                 {
                     PostId = 3,
@@ -170,7 +181,10 @@ namespace ChoReDB.Data
                     Title = "Bán lại Apple MacBook Air M2 2024",
                     Description = "Chính hãng Apple Việt Nam",
                     Status = "Đã Active",
-                    Price = 17690000,
+                    PriceType = "NEGOTIABLE",
+                    Price = null,
+                    MinPrice = null,
+                    MaxPrice = null,
                     Address = "Hà Nội",
                     BrandId = 1,
                     PostStatusId = 2,
@@ -181,6 +195,8 @@ namespace ChoReDB.Data
                     SavedCount = 5,
                     CreatedAt = new DateTime(2025, 1, 2)
                 },
+
+                // Post 4 & 5: Giá cố định
                 new Post
                 {
                     PostId = 4,
@@ -188,6 +204,7 @@ namespace ChoReDB.Data
                     Title = "Bán lại Samsung Galaxy Z Flip7",
                     Description = "12GB 256GB",
                     Status = "Đã Active",
+                    PriceType = "FIXED",
                     Price = 21990000,
                     Address = "Hà Nội",
                     BrandId = 1,
@@ -206,6 +223,7 @@ namespace ChoReDB.Data
                     Title = "Bán lại tai nghe Bluetooth Apple AirPods Pro 2 2023",
                     Description = "Chính hãng Apple Việt Nam",
                     Status = "Đã Active",
+                    PriceType = "FIXED",
                     Price = 21990000,
                     Address = "Hà Nội",
                     BrandId = 1,
@@ -218,6 +236,7 @@ namespace ChoReDB.Data
                     CreatedAt = new DateTime(2025, 1, 2)
                 }
             );
+
             modelBuilder.Entity<Specification>().HasData(
                 new Specification
                 {

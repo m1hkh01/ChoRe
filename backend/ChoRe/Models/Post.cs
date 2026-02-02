@@ -27,10 +27,18 @@ namespace ChoRe.Models
         [StringLength(50)]
         public string Status { get; set; }
 
-        [Required(ErrorMessage = "Giá là bắt buộc")]
-        [Range(0, double.MaxValue, ErrorMessage = "Giá phải lớn hơn hoặc bằng 0")]
+        [Required(ErrorMessage = "Kiểu giá là bắt buộc")]
+        [StringLength(20)]
+        public string PriceType { get; set; }
+
         [Column(TypeName = "decimal(18,2)")]
-        public decimal Price { get; set; }
+        public decimal? Price { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? MinPrice { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? MaxPrice { get; set; }
 
         [Required(ErrorMessage = "Địa chỉ là bắt buộc")]
         [StringLength(255)]
@@ -53,9 +61,7 @@ namespace ChoRe.Models
         public string? RejectReason { get; set; } = "";
 
         public int ViewCount { get; set; } = 0;
-
         public int SavedCount { get; set; } = 0;
-
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         [ForeignKey("Brand")]
