@@ -88,7 +88,7 @@ namespace ChoRe.Controllers
         string? keyword,
         int? brandId,
         int? categoryId,
-        decimal? minPrice,  // ✅ THÊM minPrice
+        decimal? minPrice,
         decimal? maxPrice,
         int? time
         )
@@ -102,7 +102,7 @@ namespace ChoRe.Controllers
                     .ThenInclude(pc => pc.Category)
                 .Where(p => p.PostStatusId == 2);
 
-            // 🔍 keyword - Trim và search case-insensitive
+            // 🔍 keyword
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 keyword = keyword.Trim();
@@ -123,22 +123,20 @@ namespace ChoRe.Controllers
                 );
             }
 
-            // 💰 price - ✅ CẬP NHẬT LOGIC LỌC GIÁ
+            // 💰 price - ✅ CẬP NHẬT
+            // 💰 price - FIX ĐÚNG
             if (minPrice.HasValue || maxPrice.HasValue)
             {
                 query = query.Where(p =>
-                    // Nếu là giá cố định (FIXED)
+                    p.PriceType == "NEGOTIABLE"
+                    ||
                     (p.PriceType == "FIXED" &&
                      (!minPrice.HasValue || p.Price >= minPrice.Value) &&
                      (!maxPrice.HasValue || p.Price <= maxPrice.Value))
                     ||
-                    // Nếu là khoảng giá (RANGE) - lọc nếu có overlap
                     (p.PriceType == "RANGE" &&
                      (!maxPrice.HasValue || p.MinPrice <= maxPrice.Value) &&
                      (!minPrice.HasValue || p.MaxPrice >= minPrice.Value))
-                    ||
-                    // Bao gồm cả NEGOTIABLE nếu không filter theo giá
-                    (p.PriceType == "NEGOTIABLE" && !minPrice.HasValue && !maxPrice.HasValue)
                 );
             }
 
@@ -155,31 +153,23 @@ namespace ChoRe.Controllers
                 {
                     PostId = p.PostId,
                     Title = p.Title,
-                    ShortDescription = p.Description != null && p.Description.Length > 120
+                    ShortDescription = p.Description.Length > 120
                         ? p.Description.Substring(0, 120) + "..."
-                        : p.Description ?? "",
+                        : p.Description,
 
-                                    PriceType = p.PriceType,
-                                    Price = p.Price,
-                                    MinPrice = p.MinPrice,
-                                    MaxPrice = p.MaxPrice,
+                    // ✅ THÊM CÁC TRƯỜNG GIÁ
+                    PriceType = p.PriceType,
+                    Price = p.Price,
+                    MinPrice = p.MinPrice,
+                    MaxPrice = p.MaxPrice,
 
-                                    PriceDisplay =
-                        p.PriceType == "NEGOTIABLE" ? "Thương lượng" :
-                        p.PriceType == "FIXED" && p.Price.HasValue ? p.Price.Value.ToString("N0") :
-                        p.PriceType == "RANGE" && p.MinPrice.HasValue && p.MaxPrice.HasValue
-                            ? $"{p.MinPrice:N0} - {p.MaxPrice:N0}"
-                            : "",
-
-                                    Address = p.Address,
-                                    CreatedAt = p.CreatedAt,
-                                    UserName = p.User.UserName,
-                                    Thumbnail = p.PostImages
-                        .OrderBy(i => i.PostImgId)
+                    Address = p.Address,
+                    CreatedAt = p.CreatedAt,
+                    UserName = p.User.UserName,
+                    Thumbnail = p.PostImages
                         .Select(i => i.PostImage1)
                         .FirstOrDefault()
                 })
-
                 .ToListAsync();
 
             return Ok(posts);
@@ -386,23 +376,94 @@ namespace ChoRe.Controllers
         }
         [AllowAnonymous]
         [HttpGet("all")]
-        public IActionResult GetAllPosts([FromQuery] int[]? statusIds)
+        public async Task<IActionResult> GetAllPosts([FromQuery] int[]? statusIds)
         {
-            var query = _context.Posts.AsNoTracking();
+            var query = _context.Posts
+                .AsNoTracking()
+                .Include(p => p.User)
+                .Include(p => p.PostImages)
+                .Where(p => p.PostStatusId == 2); // ✅ chỉ approved
 
+            // 🔍 Optional filter theo statusIds (nếu cần)
             if (statusIds != null && statusIds.Length > 0)
             {
                 query = query.Where(p => statusIds.Contains(p.PostStatusId));
             }
 
-            return Ok(query.Select(p => new
-            {
-                p.PostId,
-                p.BrandId,
-                p.Price
-            }).ToList());
+            var posts = await query
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new PostAllDto
+                {
+                    PostId = p.PostId,
+                    BrandId = p.BrandId,
+                    Title = p.Title,
+                    Address = p.Address,
+                    CreatedAt = p.CreatedAt,
+
+                    // ✅ GIÁ (an toàn null)
+                    PriceType = p.PriceType,
+                    Price = p.Price,
+                    MinPrice = p.MinPrice,
+                    MaxPrice = p.MaxPrice,
+
+                    UserName = p.User.UserName,
+
+                    Thumbnail = p.PostImages
+                        .OrderBy(i => i.PostImgId)
+                        .Select(i => i.PostImage1)
+                        .FirstOrDefault(),
+
+                    ShortDescription = p.Description.Length > 120
+                        ? p.Description.Substring(0, 120)
+                        : p.Description
+                })
+                .ToListAsync();
+
+            return Ok(posts);
         }
 
+        //[AllowAnonymous]
+        //[HttpGet("approved")]
+        //public async Task<IActionResult> GetApprovedPosts()
+        //{
+        //    var posts = await _context.Posts
+        //        .AsNoTracking()
+        //        .Include(p => p.User)
+        //        .Include(p => p.PostImages)
+        //        .Include(p => p.Brand)
+        //        .Where(p => p.PostStatusId == 2) // Chỉ lấy posts approved
+        //        .OrderByDescending(p => p.CreatedAt)
+        //        .Select(p => new
+        //        {
+        //            p.PostId,
+        //            p.BrandId,
+        //            p.Title,
+        //            p.Address,
+        //            p.CreatedAt,
+
+        //            // Giá
+        //            p.PriceType,
+        //            p.Price,
+        //            p.MinPrice,
+        //            p.MaxPrice,
+
+        //            // User
+        //            UserName = p.User.UserName,
+
+        //            // Image
+        //            Thumbnail = p.PostImages
+        //                .Select(i => i.PostImage1)
+        //                .FirstOrDefault(),
+
+        //            // Description
+        //            ShortDescription = p.Description.Length > 120
+        //                ? p.Description.Substring(0, 120)
+        //                : p.Description
+        //        })
+        //        .ToListAsync();
+
+        //    return Ok(posts);
+        //}
         //[HttpGet("/admin-posts")]
         //public async Task<IActionResult> GetPostsByAdmin()
         //{

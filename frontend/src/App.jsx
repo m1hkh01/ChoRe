@@ -1,33 +1,37 @@
-import './App.css'
-import { Routes, Route } from 'react-router-dom'
+import "./App.css";
+import { Routes, Route } from "react-router-dom";
 
-import { Login } from './pages/Login'
-import Register from './pages/Register'
-import Home from './pages/Home'
-import CreatePost from "./pages/CreatePost"
+/* ================= PAGES ================= */
+import Home from "./pages/Home";
+import { Login } from "./pages/Login";
+import Register from "./pages/Register";
+import CreatePost from "./pages/CreatePost";
+import PostDetail from "./pages/PostDetail";
+import ServicePackage from "./pages/ServicePackage/ServicePackage";
+import ServicePackageManager from "./pages/ServicePackage/ServicePackageManager";
+import TransactionPayPage from "./pages/Pay/TransactionPayPage";
+import ChatPage from "./pages/ChatPage";
 
-import MainLayout from './Layout/MainLayout'
-import AdminLayout from './Layout/AdminLayout'
-import CensorLayout from './Layout/CensorLayout'
+/* ================= LAYOUTS ================= */
+import MainLayout from "./Layout/MainLayout";
+import AdminLayout from "./Layout/AdminLayout";
+import CensorLayout from "./Layout/CensorLayout";
+import ChatLayout from "./Layout/ChatLayout";
 
-import ProtectedRoute from "./routes/ProtectedRoute"
-import RequireRole from './routes/RequireRole'
+/* ================= ROUTE GUARDS ================= */
+import ProtectedRoute from "./routes/ProtectedRoute";
+import RequireRole from "./routes/RequireRole";
 
-import UserManager from './pages/AdminComponents/UserManager.jsx'
-import SubscriptionPlanManager from './pages/AdminComponents/SubscriptionPlanManager.jsx'
-import UserSubscriptionManager from './pages/AdminComponents/UserSubscriptionManager.jsx'
-import PostManager from './pages/AdminComponents/PostManager'
-import BrandManager from './pages/AdminComponents/BrandManager.jsx'
-import CategoryManager from './pages/AdminComponents/CategoryManager.jsx'
-import BrandCategoryManager from './pages/AdminComponents/BrandCategoryManager.jsx'
-import SpecificationManager from './pages/AdminComponents/SpecificationManager.jsx'
-import PostDetail from './pages/PostDetail.jsx'
-import ServicePackage from './pages/ServicePackage/ServicePackage.jsx'
-import ServicePackageManager from './pages/ServicePackage/ServicePackageManager.jsx'
-import ChatLayout from './Layout/ChatLayout.jsx'
-import TransactionPayPage from './pages/Pay/TransactionPayPage.jsx'
-import ChatPage from './pages/ChatPage.jsx'
-import EscrowTransactions from './pages/AdminComponents/EscrowTransactions.jsx'
+/* ================= ADMIN COMPONENTS ================= */
+import UserManager from "./pages/AdminComponents/UserManager";
+import SubscriptionPlanManager from "./pages/AdminComponents/SubscriptionPlanManager";
+import UserSubscriptionManager from "./pages/AdminComponents/UserSubscriptionManager";
+import PostManager from "./pages/AdminComponents/PostManager";
+import BrandManager from "./pages/AdminComponents/BrandManager";
+import CategoryManager from "./pages/AdminComponents/CategoryManager";
+import BrandCategoryManager from "./pages/AdminComponents/BrandCategoryManager";
+import SpecificationManager from "./pages/AdminComponents/SpecificationManager";
+import EscrowTransactions from "./pages/AdminComponents/EscrowTransactions";
 
 function App() {
   return (
@@ -47,6 +51,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/pay/transaction/:transactionId"
           element={
@@ -55,6 +60,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/service-package"
           element={
@@ -63,6 +69,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/service-package-manager"
           element={
@@ -71,18 +78,22 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route path="/posts/:id" element={<PostDetail />} />
       </Route>
-      <Route
-        element={<ChatLayout />}
-        path="/chat"
-      >
-        <Route path="" element={
-          <ProtectedRoute>
-            <ChatPage />
-          </ProtectedRoute>
-        } />
+
+      {/* ================= CHAT ================= */}
+      <Route path="/chat" element={<ChatLayout />}>
+        <Route
+          index
+          element={
+            <ProtectedRoute>
+              <ChatPage />
+            </ProtectedRoute>
+          }
+        />
       </Route>
+
       {/* ================= ADMIN ================= */}
       <Route
         path="/admin"
@@ -92,41 +103,51 @@ function App() {
           </RequireRole>
         }
       >
-        <Route path="post-manager"
+        <Route
+          path="post-manager"
           element={
             <RequireRole roles={["Admin", "Censor"]}>
               <PostManager />
             </RequireRole>
           }
         />
-        <Route path="transaction-manager"
+
+        <Route
+          path="transaction-manager"
           element={
             <RequireRole roles={["Admin", "Censor"]}>
               <EscrowTransactions />
             </RequireRole>
           }
         />
-        <Route path="sub-manager"
+
+        <Route
+          path="sub-manager"
           element={
             <RequireRole roles={["Admin"]}>
               <SubscriptionPlanManager />
             </RequireRole>
           }
         />
-        <Route path="user-subscriptions"
+
+        <Route
+          path="user-subscriptions"
           element={
             <RequireRole roles={["Admin"]}>
               <UserSubscriptionManager />
             </RequireRole>
           }
         />
-        <Route path="user-manager"
+
+        <Route
+          path="user-manager"
           element={
             <RequireRole roles={["Admin"]}>
               <UserManager />
             </RequireRole>
           }
         />
+
         <Route
           path="brand-manager"
           element={
@@ -135,6 +156,7 @@ function App() {
             </RequireRole>
           }
         />
+
         <Route
           path="category-manager"
           element={
@@ -143,6 +165,7 @@ function App() {
             </RequireRole>
           }
         />
+
         <Route
           path="brand-category-manager"
           element={
@@ -151,6 +174,7 @@ function App() {
             </RequireRole>
           }
         />
+
         <Route
           path="specification-manager"
           element={
@@ -174,7 +198,7 @@ function App() {
       </Route>
 
     </Routes>
-  )
+  );
 }
 
-export default App
+export default App;

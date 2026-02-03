@@ -121,47 +121,67 @@ function Home() {
       .then(res => {
         setPosts(res.data);
 
-        // TỰ ĐỘNG TÍNH MAX PRICE TỪ POSTS
+        // ✅ TỰ ĐỘNG TÍNH MAX PRICE TỪ POSTS (chỉ lấy posts có giá)
         if (res.data && res.data.length > 0) {
-          const calculatedMax = Math.max(...res.data.map(p => p.price));
+          const pricesArray = res.data
+            .map(p => {
+              if (p.priceType === "FIXED" && p.price) return p.price;
+              if (p.priceType === "RANGE" && p.maxPrice) return p.maxPrice;
+              return 0;
+            })
+            .filter(price => price > 0);
 
-          if (calculatedMax > maxPriceInDB) {
-            setMaxPriceInDB(calculatedMax);
+          if (pricesArray.length > 0) {
+            const calculatedMax = Math.max(...pricesArray);
 
-            if (filters.priceRange[1] === maxPriceInDB || filters.priceRange[1] === 0) {
-              setFilters(prev => ({
-                ...prev,
-                priceRange: [prev.priceRange[0], calculatedMax]
-              }));
+            if (calculatedMax > maxPriceInDB) {
+              setMaxPriceInDB(calculatedMax);
+
+              if (filters.priceRange[1] === maxPriceInDB || filters.priceRange[1] === 0) {
+                setFilters(prev => ({
+                  ...prev,
+                  priceRange: [prev.priceRange[0], calculatedMax]
+                }));
+              }
             }
           }
         }
       })
       .catch(err => console.error("Lỗi load posts:", err));
   };
-
   // 👉 LOAD DATA BAN ĐẦU
   useEffect(() => {
     api.get("api/brands").then(res => setBrands(res.data));
     api.get("api/categories").then(res => setCategories(res.data));
     api.get("api/postcates").then(res => setPostCates(res.data));
 
-    // 👉 LOAD TẤT CẢ POSTS (KHÔNG FILTER) ĐỂ PHÂN TÍCH RELATIONSHIP
-    api.get("/api/posts/all", { params: {} })
+    // ✅ CHỈ LẤY POSTS ĐÃ APPROVED (statusIds=2)
+    api.get("/api/posts/all", { params: { statusIds: [2] } })
       .then(res => {
         setAllPosts(res.data);
         setPosts(res.data);
 
         if (res.data && res.data.length > 0) {
-          const calculatedMax = Math.max(...res.data.map(p => p.price));
-          setMaxPriceInDB(calculatedMax);
-          setFilters(prev => ({
-            ...prev,
-            priceRange: [0, calculatedMax]
-          }));
+          const pricesArray = res.data
+            .map(p => {
+              if (p.priceType === "FIXED" && p.price) return p.price;
+              if (p.priceType === "RANGE" && p.maxPrice) return p.maxPrice;
+              return 0;
+            })
+            .filter(price => price > 0);
+
+          if (pricesArray.length > 0) {
+            const calculatedMax = Math.max(...pricesArray);
+            setMaxPriceInDB(calculatedMax);
+            setFilters(prev => ({
+              ...prev,
+              priceRange: [0, calculatedMax]
+            }));
+          }
         }
       })
-      .catch(err => console.error("Lỗi load all posts:", err));
+      .catch(err => console.error("Lỗi load posts:", err));
+      
   }, []);
 
   // 👉 SET DEFAULT ADDRESS FILTER WHEN USER CHANGES
@@ -193,10 +213,24 @@ function Home() {
   // const _AvailableLocations = getAvailableLocations();
 
   // 👉 LỌC POSTS THEO PRICE RANGE TRÊN FRONTEND
+  // 👉 LỌC POSTS THEO PRICE RANGE TRÊN FRONTEND
   const getFilteredPosts = () => {
     return posts.filter(post => {
-      const price = post.price || post.Price || 0;
-      const priceMatch = price >= filters.priceRange[0] && price <= filters.priceRange[1];
+      // ✅ XỬ LÝ GIÁ THEO KIỂU
+      let priceMatch = true;
+
+      if (post.priceType === "NEGOTIABLE") {
+        // Bài thương lượng LUÔN hiển thị (không lọc theo giá)
+        priceMatch = true;
+      } else if (post.priceType === "FIXED") {
+        const price = post.price || 0;
+        priceMatch = price >= filters.priceRange[0] && price <= filters.priceRange[1];
+      } else if (post.priceType === "RANGE") {
+        // Hiển thị nếu có overlap với khoảng giá filter
+        const minPrice = post.minPrice || 0;
+        const maxPrice = post.maxPrice || 0;
+        priceMatch = maxPrice >= filters.priceRange[0] && minPrice <= filters.priceRange[1];
+      }
 
       // 👉 FILTER THEO ADDRESS
       const addressMatch = !filters.address || (post.address || post.Address || "").trim() === filters.address;

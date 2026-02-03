@@ -21,15 +21,35 @@ namespace ChoRe.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            return Ok(await _context.Brands.ToListAsync());
+            // ✅ SỬA: Chỉ select các field cần thiết
+            var brands = await _context.Brands
+                .Select(b => new
+                {
+                    b.BrandId,
+                    b.BrandName,
+                    b.Description,
+                    b.BrandLogo,
+                    b.ParentBrandId
+                })
+                .ToListAsync();
+
+            return Ok(brands);
         }
 
         [HttpGet("by-category/{cateId}")]
         public async Task<IActionResult> GetBrandByCategory(int cateId)
         {
+            // ✅ SỬA: Chỉ select các field cần thiết
             var brands = await _context.BrandCates
                 .Where(bc => bc.CateId == cateId)
-                .Select(bc => bc.Brand)
+                .Select(bc => new
+                {
+                    bc.Brand.BrandId,
+                    bc.Brand.BrandName,
+                    bc.Brand.Description,
+                    bc.Brand.BrandLogo,
+                    bc.Brand.ParentBrandId
+                })
                 .Distinct()
                 .ToListAsync();
 
@@ -46,17 +66,19 @@ namespace ChoRe.Controllers
                 {
                     b.BrandId,
                     b.BrandName,
+                    b.Description,
+                    b.BrandLogo,
                     SubBrands = b.SubBrands.Select(sb => new
                     {
                         sb.BrandId,
-                        sb.BrandName
+                        sb.BrandName,
+                        sb.Description,
+                        sb.BrandLogo
                     })
                 })
                 .ToListAsync();
 
             return Ok(brands);
         }
-
     }
-
 }

@@ -15,7 +15,43 @@ import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 function PostDetail() {
     const { id } = useParams();
     const [post, setPost] = useState(null);
+    // PostDetail.jsx
+    const renderPrice = () => {
+        if (!post.priceType) return null;
 
+        switch (post.priceType) {
+            case "NEGOTIABLE":
+                return (
+                    <div className="price-negotiable">
+                        <h3>Thương lượng</h3>
+                        <p className="text-muted">Liên hệ người bán để thỏa thuận giá</p>
+                    </div>
+                );
+
+            case "FIXED":
+                return (
+                    <div className="price-fixed">
+                        <h3>{post.price?.toLocaleString('vi-VN')} ₫</h3>
+                        <p className="text-muted">Giá cố định</p>
+                    </div>
+                );
+
+            case "RANGE":
+                return (
+                    <div className="price-range">
+                        <h3>
+                            {post.minPrice?.toLocaleString('vi-VN')} ₫
+                            <span className="mx-2">-</span>
+                            {post.maxPrice?.toLocaleString('vi-VN')} ₫
+                        </h3>
+                        <p className="text-muted">Khoảng giá có thể thương lượng</p>
+                    </div>
+                );
+
+            default:
+                return null;
+        }
+    };
     useEffect(() => {
         api.get(`/api/posts/${id}`).then(res => {
             setPost(res.data);

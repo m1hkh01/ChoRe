@@ -10,6 +10,39 @@ function PostPreviewModal({ post, onClose, onApprove, onReject }) {
         return new Date(iso).toLocaleString("vi-VN");
     };
 
+    // ✅ Hàm render giá theo kiểu
+    const renderPrice = () => {
+        if (!post.priceType) {
+            return <span className="price text-muted">Liên hệ</span>;
+        }
+
+        switch (post.priceType) {
+            case "NEGOTIABLE":
+                return (
+                    <span className="price" style={{ color: "#ff9800" }}>
+                        💬 Thương lượng
+                    </span>
+                );
+            
+            case "FIXED":
+                return (
+                    <span className="price">
+                        {post.price?.toLocaleString("vi-VN")} đ
+                    </span>
+                );
+            
+            case "RANGE":
+                return (
+                    <span className="price" style={{ color: "#2196f3" }}>
+                        {post.minPrice?.toLocaleString("vi-VN")} đ - {post.maxPrice?.toLocaleString("vi-VN")} đ
+                    </span>
+                );
+            
+            default:
+                return <span className="price text-muted">Liên hệ</span>;
+        }
+    };
+
     const baseURL = api.defaults.baseURL;
 
     return (
@@ -30,11 +63,10 @@ function PostPreviewModal({ post, onClose, onApprove, onReject }) {
                         <div className="ppm-section">
                             <h3>{post.title}</h3>
                             <div className="ppm-meta">
-                                <span>👤 {post.user.userName}</span>
+                                <span>👤 {post.user?.userName}</span>
                                 <span>🕒 {formatDate(post.createdAt)}</span>
-                                <span className="price">
-                                    {post.price.toLocaleString("vi-VN")} đ
-                                </span>
+                                {/* ✅ Sử dụng hàm render giá */}
+                                {renderPrice()}
                             </div>
                         </div>
 
@@ -46,19 +78,22 @@ function PostPreviewModal({ post, onClose, onApprove, onReject }) {
                             />
                         </div>
 
-                        <div className="ppm-section">
-                            <h4>Cấu hình chi tiết</h4>
-                            <table className="spec-table">
-                                <tbody>
-                                    {post.postSpecificationsDto.map((ps, index) => (
-                                        <tr key={index}>
-                                            <td>{ps.specName}</td>
-                                            <td>{ps.specValue}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                        {/* ✅ Thêm kiểm tra để tránh lỗi nếu không có spec */}
+                        {post.postSpecificationsDto && post.postSpecificationsDto.length > 0 && (
+                            <div className="ppm-section">
+                                <h4>Cấu hình chi tiết</h4>
+                                <table className="spec-table">
+                                    <tbody>
+                                        {post.postSpecificationsDto.map((ps, index) => (
+                                            <tr key={index}>
+                                                <td>{ps.specName}</td>
+                                                <td>{ps.specValue}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
 
                     {/* RIGHT */}

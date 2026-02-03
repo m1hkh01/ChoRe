@@ -6,7 +6,25 @@
     transition: all 0.2s ease;
     height: 100%;
 }
+.post-meta .price {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #d32f2f;
+    display: block;
+    margin-bottom: 5px;
+}
 
+/* Màu riêng cho từng loại giá */
+.price[style*="ff9800"] {
+    /* Thương lượng - Màu cam */
+    font-weight: 600;
+}
+
+.price[style*="2196f3"] {
+    /* Khoảng giá - Màu xanh */
+    font-weight: 600;
+    font-size: 0.95rem;
+}
 .post-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.08);
