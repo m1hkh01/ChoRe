@@ -33,6 +33,26 @@ export function ChatSidebar({userId, onJoinConversation }) {
         fetchChats();
     }, [userId]);
 
+    function TimeAgo(dateString) {
+        if (dateString == null) {
+            return;
+        }
+        const now = new Date();
+        const past = new Date(dateString);
+        const diffMs = now - past;
+
+        const seconds = Math.floor(diffMs / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+
+        if (seconds < 60) return `${seconds} giây trước`;
+        if (minutes < 60) return `${minutes} phút trước`;
+        if (hours < 24) return `${hours} giờ trước`;
+        return `${days} ngày trước`;
+    }
+
+
     return (
         <div className="w-72 bg-white shadow-sm rounded-4 h-full">
             <div className="p-2 border-b-[rgba(220,207,207,0.3)] border-b-2 text-2xl font-bold">Chat</div>
@@ -63,7 +83,7 @@ export function ChatSidebar({userId, onJoinConversation }) {
                             <div className="flex-1">
                                 <div className="flex justify-between items-center">
                                     <div className="text-md font-medium">{chat.senderName}</div>
-                                    <div className="text-xs font-extralight text-[rgba(0,0,0,0.5)]">{chat.lastMessageAt ?? ""}</div>
+                                    <div className="text-xs font-extralight text-[rgba(0,0,0,0.5)]">{TimeAgo(chat.lastMessageAt) ?? ""}</div>
                                 </div>
                                 <div className="text-xs text-gray-500 truncate mt-1">
                                     {chat.lastMessageContent ?? "Chưa có tin nhắn"}

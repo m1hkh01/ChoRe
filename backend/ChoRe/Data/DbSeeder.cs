@@ -493,7 +493,8 @@ namespace ChoReDB.Data
                 new EscrowTransStatus { EscTransStatusId = 5, StatusName = "Expired", Description = "Quá hạn" },
                 new EscrowTransStatus { EscTransStatusId = 6, StatusName = "Completed", Description = "Giao dịch hoàn tất" },
                 new EscrowTransStatus { EscTransStatusId = 7, StatusName = "Disputing", Description = "Tranh chấp" },
-                new EscrowTransStatus { EscTransStatusId = 8, StatusName = "Refunded", Description = "Đã hoàn tiền cho người mua" }
+                new EscrowTransStatus { EscTransStatusId = 8, StatusName = "Refunded", Description = "Đã hoàn tiền cho người mua" },
+                new EscrowTransStatus { EscTransStatusId = 9, StatusName = "RefuseRefund", Description = "Từ chối hoàn tiền cho người mua" }
 
             // new EscrowTransStatus { EscTransStatusId = 5, StatusName = "Failed", Description = "Thanh toán thất bại" }
             );
@@ -518,8 +519,9 @@ namespace ChoReDB.Data
 
             // ================= DISPUTE =================
             modelBuilder.Entity<DisputeStatus>().HasData(
-                new DisputeStatus { DisStatusId = 1, DisStatusName = "Open", Description = "Đang mở" },
-                new DisputeStatus { DisStatusId = 2, DisStatusName = "Resolved", Description = "Đã giải quyết" }
+                new DisputeStatus { DisStatusId = 1, DisStatusName = "Processing", Description = "Đang xử lý" },
+                new DisputeStatus { DisStatusId = 2, DisStatusName = "Refunded", Description = "Đã hoàn tiền cho người mua" },
+                new DisputeStatus { DisStatusId = 3, DisStatusName = "Rejected", Description = "Đã bị từ chối hoàn tiền" }
             );
 
             modelBuilder.Entity<Dispute>().HasData(
@@ -612,7 +614,27 @@ namespace ChoReDB.Data
                     IsActive = true
                 }
             );
-
+            modelBuilder.Entity<UserSubscription>().HasData(
+                new UserSubscription
+                {
+                    UserSubId = 2,
+                    UserId = 1,
+                    SubPlanId = 4,
+                    StartDate = new DateTime(2025, 1, 1),
+                    EndDate = new DateTime(2027, 1, 31),
+                    IsActive = true
+                }
+            );
+            modelBuilder.Entity<UserSubUsage>().HasData(
+                new UserSubUsage
+                {
+                    UsuId = 2,
+                    UserId = 1,
+                    RemainingSubFPF = 30,
+                    RemainingSubPost = 100,
+                    RemainingFreePost = 18,
+                }
+            );
             modelBuilder.Entity<UserSubUsage>().HasData(
                 new UserSubUsage
                 {

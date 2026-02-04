@@ -42,21 +42,23 @@ export function MessageList({ userId, messages, connectionRef }) {
                                 />
                             </div>
                         )} */}
-                        <div
-                            className={`px-3 py-2 rounded-lg text-md max-w-xs h-max mb-2 self-end ${msg.fromUserId == userId
-                                ? "bg-green-500 text-white rounded-br-none"
-                                : "bg-gray-200 text-gray-800 rounded-tl-none"
-                                }`}
-                        >
-                            {msg.chatContent ?? msg.ChatContent ?? msg.content ?? msg.Content}
-
+                        <div className="flex flex-col mb-2">
                             {(msg.imageUrls || msg.ImageUrls || (msg.messageImages && msg.messageImages.map)) && (
-                                <div className="mt-2 flex gap-2 flex-wrap">
+                                <div className="flex gap-1 flex-wrap">
                                     {(msg.imageUrls || msg.ImageUrls || (msg.messageImages && msg.messageImages.map(mi => mi.imageUrl)) || []).map((img, idx) => (
-                                        <img key={idx} src={`http://localhost:5121/images/chat-Image/${img}`} className="w-24 h-24 object-cover rounded" />
+                                        <img key={idx} src={`http://localhost:5121/images/chat-Image/${img}`} className="w-24 h-24 object-cover rounded shadow-sm mb-1 border" />
                                     ))}
                                 </div>
                             )}
+                            <div
+                                className={`px-3 py-2 rounded-lg text-md max-w-xs h-max mb-2 self-end ${msg.fromUserId == userId
+                                    ? "bg-green-500 text-white rounded-br-none"
+                                    : "bg-gray-200 text-gray-800 rounded-tl-none"
+                                    }`}
+                            >
+                                {msg.chatContent ?? msg.ChatContent ?? msg.content ?? msg.Content}
+
+                            </div>
                         </div>
                     </div>
                 );

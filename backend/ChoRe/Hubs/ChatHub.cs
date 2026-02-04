@@ -130,7 +130,7 @@ public class ChatHub : Hub
                         ? "Đã có giao dịch bạn cần xác nhận giao dịch trước"
                         : "Đã có giao dịch đang chờ bên còn lại xác nhận",
 
-            EscrowStatus.Pending => "Đã có giao dịch đang chờ thanh toán, không thể tạo thêm",
+            EscrowStatus.PendingPayment => "Đã có giao dịch đang chờ thanh toán, không thể tạo thêm",
             EscrowStatus.Paid => "Giao dịch đã được thanh toán, không thể tạo thêm",
             EscrowStatus.Completed => "Giao dịch đã hoàn tất, không thể tạo thêm",
             EscrowStatus.Disputing => "Giao dịch đang tranh chấp, không thể tạo thêm",

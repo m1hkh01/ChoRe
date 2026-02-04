@@ -12,13 +12,14 @@ public class TransactionDto
     public decimal PostPrice { get; set; }
     public DateTime CreateAt{ get; set; }
     public DateTime ExpiredAt { get; set; }
+    public string? Status { get; set; }
+    public string? StatusDescription { get; set; }
 
     public bool BuyerConfirmed { get; set; }
     public bool SellerConfirmed { get; set; }
     public string? TransactionOrderCode{ get; set; }
 
-    public string? Status { get; set; }
-    public string? StatusDescription { get; set; }
+    public int DisputeId{ get; set; }
     public string? DisputeReason { get; set; }
-    public IEnumerable<DisEvidenceDto>? DisEvidence{ get; set; }
+    public IEnumerable<DisEvidenceGroupDto>? DisEvidence{ get; set; }
 }

@@ -1,6 +1,6 @@
 import { faArrowRightArrowLeft, faImage, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import api from "../../api";
 import { useAuthStore } from "../../store/auth";
 import Swal from "sweetalert2";
@@ -11,6 +11,7 @@ export function ChatInput({ connectionRef, conversationId, post,buyerId }) {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [isTransation, setIsTransation] = useState(false);
     const [transactionData, setTransactionData] = useState(null);
+    const inputRef = useRef();
     // const [notification, setNotification] = useState("");
     const { user: currentUser } = useAuthStore();
     const confirmCreateTransaction = () => {
@@ -147,6 +148,7 @@ export function ChatInput({ connectionRef, conversationId, post,buyerId }) {
             }
         });
         setSelectedFiles((prev) => [...prev, ...files]);
+        inputRef.current.focus();
     }
 
     const handleRemoveImage = (index) => {
@@ -191,6 +193,7 @@ export function ChatInput({ connectionRef, conversationId, post,buyerId }) {
                     onChange={(e) => setMessage(e.target.value)}
                     className="flex-1 px-4 py-2 border rounded-full outline-none"
                     disabled={isTransation}
+                    ref={inputRef}
                 />
                 <button type="submit" disabled={!message && !isTransation} className={`${(message || isTransation) ? "text-green-600 cursor" : "text-black cursor-[not-allowed_!important]"} p-2 flex justify-center items-center text-md rounded-circle`}>
                     <FontAwesomeIcon icon={faPaperPlane} />

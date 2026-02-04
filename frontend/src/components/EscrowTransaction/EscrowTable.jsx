@@ -35,7 +35,7 @@ export default function EscrowTable({ data, onPreview }) {
                                 {t.amount.toLocaleString("vi-VN")} ₫
                             </td>
                             <td className="p-3 text-center">
-                                <span className={`${t.status == "Disputing" ? 'bg-red-600' : ''} text-sm font-bold py-2 px-2 rounded-2xl `}>{t.statusDescription}</span>
+                                <span className={`${t.status == "Disputing" ? 'bg-red-500 text-white' : ''} text-sm font-bold py-2 px-2 rounded-2xl `}>{t.statusDescription}</span>
                             </td>
                             <td className="p-3 text-center">
                                 <button

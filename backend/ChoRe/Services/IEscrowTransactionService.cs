@@ -26,12 +26,20 @@ public class EscrowTransactionService : IEscrowTransactionService
     }
     public async Task<List<TransactionDto>> GetListAsync(EscrowTransactionFilterRequest req)
     {
+        int[] getStatus = [
+            EscrowStatus.PendingPayment,
+            EscrowStatus.Paid,
+            EscrowStatus.Completed,
+            EscrowStatus.Disputing,
+            EscrowStatus.Cancelled
+        ];
         var query = _context.EscrowTransations
             .Include(x => x.BuyerUser)
             .Include(x => x.SellerUser)
             .Include(x => x.EscrowTransStatus)
             .Include(x => x.Disputes)
                 .ThenInclude(d=>d.DisputeEvidences)
+            .Where(x=> getStatus.Contains(x.EscrowTransStatusId))
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(req.Keyword))
@@ -58,18 +66,25 @@ public class EscrowTransactionService : IEscrowTransactionService
                 TransactionOrderCode = x.TransactionOrderCode,
                 BuyerName = x.BuyerUser.FullName,
                 SellerName = x.SellerUser.FullName,
+                BuyerId = x.BuyerUserId,
+                SellerId = x.SellerUserId,
                 PostPrice = x.PostPrice,
                 PlatformFee = x.PlatformFee,
                 Amount = x.TotalAmount,
                 Status = x.EscrowTransStatus.StatusName,
                 StatusDescription = x.EscrowTransStatus.Description,
                 CreateAt = x.CreateAt,
+                DisputeId = x.Disputes.DisputeId,
                 DisputeReason = x.Disputes.DisputeReason,
-                DisEvidence = x.Disputes.DisputeEvidences.Select(d=>new DisEvidenceDto
+                DisEvidence = x.Disputes.DisputeEvidences.GroupBy(d => d.SubmitByUserId).Select(g => new DisEvidenceGroupDto
                 {
-                    DisEvidenceLink = d.FileLink,
-                    Description = d.Description,
-                })
+                    SubmitByUserId = g.Key,
+                    Evidences = g.Select(d => new DisEvidenceDto
+                    {
+                        DisEvidenceLink = d.FileLink,
+                        Description = d.Description
+                    }).ToList()
+                }).ToList()
             })
             .ToListAsync();
     }
@@ -85,8 +100,20 @@ public class EscrowTransactionService : IEscrowTransactionService
     public async Task ResolveDisputeAsync(ResolveDisputeRequest req, int adminId)
     {
         var dispute = await _context.Disputes.FindAsync(req.DisputeId);
+        var transaction = await _context.EscrowTransations.FindAsync(req.EscrowTransId);
         if (dispute == null) throw new Exception("Không tìm thấy tranh chấp");
+        if (transaction == null) throw new Exception("Không tìm thấy giao dịch");
 
+        if (dispute.StatusId == DisStatus.Refunded)
+        {
+            transaction.EscrowTransStatusId = EscrowStatus.Refunded;
+        }
+        else
+        {
+            transaction.EscrowTransStatusId = EscrowStatus.RefuseRefund;
+        }
+
+        dispute.StatusId = req.DisputeSatatus;
         dispute.Decision = req.Decision;
         dispute.DecisionNote = req.DecisionNote;
         dispute.AssignedByAdminUserId = adminId;

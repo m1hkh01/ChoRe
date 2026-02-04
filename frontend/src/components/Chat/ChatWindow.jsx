@@ -32,7 +32,7 @@ export function ChatWindow({ conversationId }) {
                 });
                 connection.on("Notification", ({ notificationMessage }) => {
                     errorAlert(notificationMessage);
-                }) 
+                })
                 await connection.invoke("JoinConversation", conversationId.toString())
 
                 connection.on("ReceiveMessage", (msg) => {
@@ -88,16 +88,25 @@ export function ChatWindow({ conversationId }) {
     }, [conversationId, token]);
 
     return (
-        <div className="flex-1 flex flex-col bg-white h-full shadow-sm rounded-4">
-            <ChatHeader senderName={conversation?.senderName} senderAvatar={conversation?.senderAvatar} />
-            <ProductPreview post={conversation?.postInfo} />
-            <MessageList userId={user?.userId} messages={conversation?.chatMessages || []} connectionRef={connectionRef} />
-            <ChatInput
-                connectionRef={connectionRef}
-                conversationId={conversationId}
-                post={conversation?.postInfo}
-                buyerId={conversation?.buyerId}
-            />
-        </div>
+        <>
+            {
+                conversation ? (
+                    <div className="flex-1 flex flex-col bg-white h-full shadow-sm rounded-4">
+                        <ChatHeader senderName={conversation?.senderName} senderAvatar={conversation?.senderAvatar} />
+                        <ProductPreview post={conversation?.postInfo} />
+                        <MessageList userId={user?.userId} messages={conversation?.chatMessages || []} connectionRef={connectionRef} />
+                        <ChatInput
+                            connectionRef={connectionRef}
+                            conversationId={conversationId}
+                            post={conversation?.postInfo}
+                            buyerId={conversation?.buyerId}
+                        />
+                    </div>
+                ) : <div className="h-full flex flex-col justify-center text-center mx-auto">
+                        <h3>Chưa có cuộc trò chuyện nào</h3>
+                        <span>Trải nghiệm chat để làm rõ thông tin về mặt hàng trước khi bắt đầu thực hiện mua bán</span>
+                </div>
+            }
+        </>
     );
 }

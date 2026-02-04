@@ -18,3 +18,10 @@ namespace ChoRe.Models
         public virtual ICollection<Dispute> Disputes { get; set; }
     }
 }
+public static class DisStatus
+{
+    public const int Processing = 1;
+    public const int Refunded = 2;
+    public const int Rejected = 3;
+
+}
