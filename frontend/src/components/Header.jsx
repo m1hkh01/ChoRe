@@ -75,14 +75,18 @@ function Header() {
     };
 
     return (
-        <header className="flex items-center h-15 bg-green-600 p-4 border-b border-green-500/25 shadow-sm z-50">
+        <header className="flex items-center h-18 bg-green-600 p-4 border-b border-green-500/25 shadow-sm z-50">
             {/* LOGO */}
-            <Link to="/" className="flex items-center text-decoration-none w-37.5 mx-2">
-                <div className="h-11.25 min-w-25 px-8 rounded-full flex items-center justify-center text-2xl font-bold text-white">
-                    Chợ
-                    <span className="text-green-700">Rẻ</span>
+            <Link to="/" className="flex items-center">
+                <div className="p-2 flex items-center justify-center">
+                    <img
+                        src="/logodenrmvbg.png"
+                        alt="LogoChoRe"
+                        className="h-20 w-35 object-contain p-1"
+                    />
                 </div>
             </Link>
+
             <div className="relative" ref={dropdownRef}>
                 <div className="flex items-center 
                                 rounded-2 bg-(--primary-color) 
