@@ -39,7 +39,7 @@ export default function DisputeAction({ transaction, setOpenDecision, setDispute
                   hover:bg-red-700 text-white
                     text-sm font-medium"
                     onClick={() => {
-                        setDisputeData(prev => ({ ...prev, DisputeSatatus: 3 }))
+                        setDisputeData(prev => ({ ...prev, DisputeSatatus: 5 }))
                         setOpenDecision(true)
                     }}
                 >
@@ -49,7 +49,7 @@ export default function DisputeAction({ transaction, setOpenDecision, setDispute
                     hover:bg-green-700 text-white
                     text-sm font-medium"
                     onClick={() => {
-                        setDisputeData(prev => ({ ...prev, DisputeSatatus : 2 }))
+                        setDisputeData(prev => ({ ...prev, DisputeSatatus : 4 }))
                         setOpenDecision(true)
                     }}
                 >

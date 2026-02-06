@@ -1,91 +1,86 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ChatHeader } from "./ChatHeader";
 import { ChatInput } from "./ChatInput";
 import { MessageList } from "./MessageList";
 import { ProductPreview } from "./ProductPreview";
-import { createConnection } from "../../signalr/signalr";
+// import { createConnection } from "../../signalr/signalr";
 import { useAuthStore } from "../../store/auth";
 import { errorAlert } from "../../utils/alert";
+import { useSignalR } from "../../signalr/SignalRContext";
 export function ChatWindow({ conversationId }) {
-    const { token, user } = useAuthStore();
-    const connectionRef = useRef(null);
+    const { user } = useAuthStore();
+    const connectionRef = useSignalR();
     const [conversation, setConversation] = useState(null);
     useEffect(() => {
-        if (!conversationId) return;
-        let isMounted = true;
+        if (!conversationId || !connectionRef?.current) return;
 
-        const startConnection = async () => {
-            const connection = createConnection(token);
+        const connection = connectionRef.current;
 
-            connectionRef.current = connection;
-
-            try {
-
-                await connection.start();
-                console.log(" ✅ Connected");
-
-                if (!isMounted) return;
-
-                connection.on("LoadConversationMessages", (messages) => {
-                    console.log("đã nhận tin nhắn: ", messages);
-                    setConversation(messages);
-                });
-                connection.on("Notification", ({ notificationMessage }) => {
-                    errorAlert(notificationMessage);
-                })
-                await connection.invoke("JoinConversation", conversationId.toString())
-
-                connection.on("ReceiveMessage", (msg) => {
-                    console.log("đã nhận tin nhắn: ", msg)
-
-                    setConversation(prev => ({
-                        ...prev,
-                        chatMessages: [...(prev?.chatMessages ?? []), msg]
-                    }));
-
-                });
-
-                // Lắng nghe cập nhật giao dịch trung gian
-                connection.on("UpdateTransaction", (data) => {
-                    console.log("Cập nhật giao dịch: ", data);
-
-                    setConversation(prev => {
-                        if (!prev) return prev;
-
-                        const exists = prev.chatMessages.some(
-                            m => m.transaction?.transactionId === data.transaction.transactionId
-                        );
-
-                        return {
-                            ...prev,
-                            chatMessages: exists
-                                ? prev.chatMessages.map(m =>
-                                    m.transaction?.transactionId === data.transaction.transactionId
-                                        ? { ...m, transaction: data.transaction }
-                                        : m
-                                )
-                                : prev.chatMessages
-                        };
-                    });
-                });
-
-            } catch (err) {
-                console.error("❌ SignalR error:", err);
-            }
-
+        if (connection.state !== "Connected") {
+            console.warn("SignalR not connected yet");
+            return;
         }
-        startConnection();
+
+        // ===== handlers =====
+        const loadHandler = (messages) => {
+            setConversation(messages);
+        };
+
+        const receiveHandler = (msg) => {
+            setConversation(prev => ({
+                ...prev,
+                chatMessages: [...(prev?.chatMessages ?? []), msg]
+            }));
+        };
+
+        const updateTransactionHandler = (data) => {
+            setConversation(prev => {
+                if (!prev) return prev;
+
+                const exists = prev.chatMessages.some(
+                    m => m.transaction?.transactionId === data.transaction.transactionId
+                );
+
+                return exists
+                    ? {
+                        ...prev,
+                        chatMessages: prev.chatMessages.map(m =>
+                            m.transaction?.transactionId === data.transaction.transactionId
+                                ? { ...m, transaction: data.transaction }
+                                : m
+                        )
+                    }
+                    : prev;
+            });
+        };
+
+        const notificationHandler = ({ notificationMessage }) => {
+            errorAlert(notificationMessage);
+        };
+
+        // ===== register =====
+        connection.on("LoadConversationMessages", loadHandler);
+        connection.on("ReceiveMessage", receiveHandler);
+        connection.on("UpdateTransaction", updateTransactionHandler);
+        connection.on("Notification", notificationHandler);
+
+        // ===== join =====
+        connection.invoke("JoinConversation", conversationId.toString())
+            .catch(err => console.error("JoinConversation failed:", err));
 
         return () => {
-            isMounted = false;
+            // ===== cleanup =====
+            connection.off("LoadConversationMessages", loadHandler);
+            connection.off("ReceiveMessage", receiveHandler);
+            connection.off("UpdateTransaction", updateTransactionHandler);
+            connection.off("Notification", notificationHandler);
 
-
-            if (connectionRef.current) {
-                connectionRef.current.invoke("LeaveConversation", conversationId);
-                connectionRef.current.stop();
+            if (connection.state === "Connected") {
+                connection.invoke("LeaveConversation", conversationId.toString())
+                    .catch(() => { });
             }
         };
-    }, [conversationId, token]);
+    }, [conversationId, connectionRef]);
 
     return (
         <>
@@ -94,7 +89,11 @@ export function ChatWindow({ conversationId }) {
                     <div className="flex-1 flex flex-col bg-white h-full shadow-sm rounded-4">
                         <ChatHeader senderName={conversation?.senderName} senderAvatar={conversation?.senderAvatar} />
                         <ProductPreview post={conversation?.postInfo} />
-                        <MessageList userId={user?.userId} messages={conversation?.chatMessages || []} connectionRef={connectionRef} />
+                        <MessageList
+                            userId={user?.userId}
+                            messages={conversation?.chatMessages || []} 
+                            priceType={conversation?.postInfo?.priceType}
+                            connectionRef={connectionRef} />
                         <ChatInput
                             connectionRef={connectionRef}
                             conversationId={conversationId}

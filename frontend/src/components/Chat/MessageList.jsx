@@ -8,7 +8,7 @@ import { TransactionCard } from "./TransactionCard/TransactionCard";
 //     { from: "other", text: "Ok bạn" },
 // ];
 
-export function MessageList({ userId, messages, connectionRef }) {
+export function MessageList({ userId, messages, priceType, connectionRef }) {
     // console.log("Messages list: ", messages);
     return (
         <div className="flex-1 p-2 mt-2 space-y-3 overflow-y-auto">
@@ -18,6 +18,7 @@ export function MessageList({ userId, messages, connectionRef }) {
                     return (
                         <div key={i} className="flex justify-center">
                             <TransactionCard
+                                priceType={priceType}
                                 transaction={msg.transaction}
                                 currentUserId={userId}
                                 connectionRef={connectionRef}
@@ -51,9 +52,9 @@ export function MessageList({ userId, messages, connectionRef }) {
                                 </div>
                             )}
                             <div
-                                className={`px-3 py-2 rounded-lg text-md max-w-xs h-max mb-2 self-end ${msg.fromUserId == userId
-                                    ? "bg-green-500 text-white rounded-br-none"
-                                    : "bg-gray-200 text-gray-800 rounded-tl-none"
+                                className={`px-3 py-2 rounded-lg text-md max-w-xs h-max mb-2 ${msg.fromUserId == userId
+                                    ? "bg-green-500 text-white rounded-br-none self-end"
+                                    : "bg-gray-200 text-gray-800 rounded-tl-none self-start"
                                     }`}
                             >
                                 {msg.chatContent ?? msg.ChatContent ?? msg.content ?? msg.Content}

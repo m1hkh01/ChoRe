@@ -20,8 +20,10 @@ namespace ChoRe.Models
 }
 public static class DisStatus
 {
-    public const int Processing = 1;
-    public const int Refunded = 2;
-    public const int Rejected = 3;
+    public const int PendingSellerResponse = 1;
+    public const int SellerRejected = 2;
+    public const int UnderReview = 3;
+    public const int ResolvedRefund = 4;
+    public const int ResolvedReject = 5;
 
 }

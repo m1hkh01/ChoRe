@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import CancelledCard from "./states/CancelledCard";
 import CompletedCard from "./states/CompletedCard";
 import ConfirmingCard from "./states/ConfirmingCard";
@@ -8,40 +9,57 @@ import PendingPaymentCard from "./states/PendingPaymentCard";
 import RefundedCard from "./states/RefundedCard";
 import {useTransactionTimer} from "./useTransactionTimer";
 
-export function TransactionCard({ transaction, currentUserId, connectionRef }) {
-    const {timeRemaining } = useTransactionTimer(transaction)
+export function TransactionCard({ transaction, priceType, currentUserId, connectionRef }) {
+    const { timeRemaining } = useTransactionTimer(transaction)
+    const [isUpdatePrice, setIsUpdatePrice] = useState(false);
+    const [updateTransaction, setUpdateTransaction] = useState(transaction);
+    useEffect(() => {
+        setUpdateTransaction(transaction);
+    }, [transaction]);
+
     
-    if (!transaction) return null;
+    if (!updateTransaction) return null;
 
-    const isBuyer = transaction.buyerId === currentUserId;
+    const isBuyer = updateTransaction.buyerId === currentUserId;
     const confirmedByCurrentUser =
-        (isBuyer && transaction.buyerConfirmed) ||
-        (!isBuyer && transaction.sellerConfirmed);
+        (isBuyer && updateTransaction.buyerConfirmed) ||
+        (!isBuyer && updateTransaction.sellerConfirmed);
 
-    const canConfirm = transaction.status === "Confirming" && !confirmedByCurrentUser;
+    const canConfirm = updateTransaction.status === "Confirming" && !confirmedByCurrentUser;
 
     const handleConfirm = async () => {
+        console.log("Price: ", updateTransaction.postPrice);
+        console.log("Is Update price: ", isUpdatePrice);
         await connectionRef.current.invoke(
             "ConfirmEscrow",
-            transaction.transactionId,
-            isBuyer
+            updateTransaction.transactionId,
+            isBuyer,
+            Number(updateTransaction.postPrice),
+            isUpdatePrice
         );
     };
+    const onChangePrice = (value) => {
+        console.log("value: ", value);
+        setUpdateTransaction(prev => ({ ...prev, postPrice: Number(value) }));
+        setIsUpdatePrice(true);
+    }
 
-    switch (transaction.status) {
+    switch (updateTransaction.status) {
         case "Confirming":
             return (
                 <ConfirmingCard
+                    transaction={updateTransaction}
                     isBuyer={isBuyer}
                     confirmedByCurrentUser={confirmedByCurrentUser}
                     canConfirm={canConfirm}
                     onConfirm={handleConfirm}
+                    onChangePrice={onChangePrice}
                     timeRemaining={timeRemaining}
                 />
             );
 
         case "PendingPayment":
-            return <PendingPaymentCard transaction={transaction} connectionRef={connectionRef} platformFee={transaction.platformFee} isBuyer={isBuyer} timeRemaining={timeRemaining} />;
+            return <PendingPaymentCard transaction={updateTransaction} connectionRef={connectionRef} platformFee={updateTransaction.platformFee} isBuyer={isBuyer} timeRemaining={timeRemaining} />;
 
         case "Paid":
             return <PaidCard />;

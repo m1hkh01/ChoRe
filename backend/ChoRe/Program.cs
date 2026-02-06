@@ -71,6 +71,7 @@ builder.Services.AddSingleton<IUserIdProvider, JwtUserIdProvider>();
 
 
 builder.Services.AddHostedService<OrderExpireService>();
+builder.Services.AddHostedService<TransactionExpireService>();
 
 builder.Services.AddCors(options =>
                         options.AddDefaultPolicy(

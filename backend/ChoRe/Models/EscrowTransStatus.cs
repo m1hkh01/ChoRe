@@ -28,6 +28,8 @@ public static class EscrowStatus
     public const int Expired = 5;
     public const int Completed = 6;
     public const int Disputing = 7;
-    public const int Refunded = 8;
-    public const int RefuseRefund = 9;
+    public const int RefundRequested = 8;
+    public const int RefundRejected = 9;
+    public const int Refunded = 10;
 }
+

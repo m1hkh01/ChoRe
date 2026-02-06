@@ -2,6 +2,7 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import api from "../../api";
+import { useSignalR } from "../../signalr/SignalRContext";
 
 // const chats = Array(6).fill({
 //     conversationId:1,
@@ -15,23 +16,73 @@ import api from "../../api";
 export function ChatSidebar({userId, onJoinConversation }) {
     const [chats, setChats] = useState([]);
     const [currentConvertation, setCurrentConvertation] = useState(null);
+    const connectionRef = useSignalR();
+
+    function moveChatToTop(conversationId, newMessage) {
+        setChats(prev => {
+            // tìm chat cũ
+            const chat = prev.find(c => c.chatRoomId  == conversationId);
+            if (!chat) return prev;
+
+            // cập nhật nội dung
+            const updatedChat = {
+                ...chat,
+                lastMessageContent: newMessage.chatContent,
+                lastMessageAt: newMessage.createdAt
+            };
+
+            // loại bỏ chat cũ
+            const filtered = prev.filter(c => c.chatRoomId != conversationId);
+
+            // đưa lên đầu
+            return [updatedChat, ...filtered];
+        });
+    }
+
     useEffect(() => {
         const fetchChats = async () => {
             try {
                 const res = await api.get(`/api/chat/${userId}`);
                 setChats(res.data);
-
+                console.log("Data: ", res.data);
                 if (res.data.length > 0) {
                     onJoinConversation(res.data[0].chatRoomId);
                     setCurrentConvertation(res.data[0].chatRoomId);
                 }
-
-            } catch (error) {
-                console.error("Lỗi khi lấy danh sách chat:", error);
+            } catch (err) {
+                console.error(err);
             }
-        }
+        };
+
         fetchChats();
     }, [userId]);
+
+    useEffect(() => {
+        if (!connectionRef) return;
+
+        const interval = setInterval(() => {
+            const connection = connectionRef.current;
+            if (!connection) return;
+
+            console.log("Sidebar SignalR ready ✅");
+
+            const handler = (msg) => {
+                console.log("đã nhận tin nhắn sidebar:", msg);
+                moveChatToTop(msg.conversationId, msg);
+            };
+
+            connection.on("ReceiveMessage", handler);
+
+            clearInterval(interval);
+
+            return () => {
+                connection.off("ReceiveMessage", handler);
+            };
+        }, 300);
+
+        return () => clearInterval(interval);
+    }, [connectionRef]);
+
 
     function TimeAgo(dateString) {
         if (dateString == null) {

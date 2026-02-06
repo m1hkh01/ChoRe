@@ -493,8 +493,9 @@ namespace ChoReDB.Data
                 new EscrowTransStatus { EscTransStatusId = 5, StatusName = "Expired", Description = "Quá hạn" },
                 new EscrowTransStatus { EscTransStatusId = 6, StatusName = "Completed", Description = "Giao dịch hoàn tất" },
                 new EscrowTransStatus { EscTransStatusId = 7, StatusName = "Disputing", Description = "Tranh chấp" },
-                new EscrowTransStatus { EscTransStatusId = 8, StatusName = "Refunded", Description = "Đã hoàn tiền cho người mua" },
-                new EscrowTransStatus { EscTransStatusId = 9, StatusName = "RefuseRefund", Description = "Từ chối hoàn tiền cho người mua" }
+                new EscrowTransStatus { EscTransStatusId = 8, StatusName = "RefundRequested", Description = "Yêu cầu hoàn tiền" },
+                new EscrowTransStatus { EscTransStatusId = 9, StatusName = "RefundRejected", Description = "Từ chối hoàn tiền" },
+                new EscrowTransStatus { EscTransStatusId = 10, StatusName = "Refunded", Description = "Đã hoàn tiền" }
 
             // new EscrowTransStatus { EscTransStatusId = 5, StatusName = "Failed", Description = "Thanh toán thất bại" }
             );
@@ -519,9 +520,11 @@ namespace ChoReDB.Data
 
             // ================= DISPUTE =================
             modelBuilder.Entity<DisputeStatus>().HasData(
-                new DisputeStatus { DisStatusId = 1, DisStatusName = "Processing", Description = "Đang xử lý" },
-                new DisputeStatus { DisStatusId = 2, DisStatusName = "Refunded", Description = "Đã hoàn tiền cho người mua" },
-                new DisputeStatus { DisStatusId = 3, DisStatusName = "Rejected", Description = "Đã bị từ chối hoàn tiền" }
+                new DisputeStatus { DisStatusId = 1, DisStatusName = "PendingSellerResponse", Description = "Chờ người bán phản hồi" },
+                new DisputeStatus { DisStatusId = 2, DisStatusName = "SellerRejected", Description = "Người bán từ chối" },
+                new DisputeStatus { DisStatusId = 3, DisStatusName = "UnderReview", Description = "Đang xem xét" },
+                new DisputeStatus { DisStatusId = 4, DisStatusName = "ResolvedRefund", Description = "Đã hoàn tiền cho người mua" },
+                new DisputeStatus { DisStatusId = 5, DisStatusName = "ResolvedReject", Description = "Đã bị từ chối hoàn tiền" }
             );
 
             modelBuilder.Entity<Dispute>().HasData(

@@ -553,14 +553,32 @@ namespace ChoRe.Migrations
                         new
                         {
                             DisStatusId = 1,
-                            Description = "Đang mở",
-                            DisStatusName = "Open"
+                            Description = "Chờ người bán phản hồi",
+                            DisStatusName = "PendingSellerResponse"
                         },
                         new
                         {
                             DisStatusId = 2,
-                            Description = "Đã giải quyết",
-                            DisStatusName = "Resolved"
+                            Description = "Người bán từ chối",
+                            DisStatusName = "SellerRejected"
+                        },
+                        new
+                        {
+                            DisStatusId = 3,
+                            Description = "Đang xem xét",
+                            DisStatusName = "UnderReview"
+                        },
+                        new
+                        {
+                            DisStatusId = 4,
+                            Description = "Đã hoàn tiền cho người mua",
+                            DisStatusName = "ResolvedRefund"
+                        },
+                        new
+                        {
+                            DisStatusId = 5,
+                            Description = "Đã bị từ chối hoàn tiền",
+                            DisStatusName = "ResolvedReject"
                         });
                 });
 
@@ -632,7 +650,19 @@ namespace ChoRe.Migrations
                         new
                         {
                             EscTransStatusId = 8,
-                            Description = "Đã hoàn tiền cho người mua",
+                            Description = "Yêu cầu hoàn tiền",
+                            StatusName = "RefundRequested"
+                        },
+                        new
+                        {
+                            EscTransStatusId = 9,
+                            Description = "Từ chối hoàn tiền",
+                            StatusName = "RefundRejected"
+                        },
+                        new
+                        {
+                            EscTransStatusId = 10,
+                            Description = "Đã hoàn tiền cho người dùng",
                             StatusName = "Refunded"
                         });
                 });
@@ -1790,6 +1820,14 @@ namespace ChoRe.Migrations
                     b.HasData(
                         new
                         {
+                            UsuId = 2,
+                            RemainingFreePost = 18,
+                            RemainingSubFPF = 30m,
+                            RemainingSubPost = 100,
+                            UserId = 1
+                        },
+                        new
+                        {
                             UsuId = 1,
                             RemainingFreePost = 18,
                             RemainingSubFPF = 30m,
@@ -1845,6 +1883,15 @@ namespace ChoRe.Migrations
                             StartDate = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             SubPlanId = 4,
                             UserId = 3
+                        },
+                        new
+                        {
+                            UserSubId = 2,
+                            EndDate = new DateTime(2027, 1, 31, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            StartDate = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            SubPlanId = 4,
+                            UserId = 1
                         });
                 });
 

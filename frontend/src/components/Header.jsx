@@ -226,6 +226,12 @@ function Header() {
                             >
                                 Quản lý Gói
                             </Link>
+                            <Link
+                                to="/user-transactions"
+                                className="block px-4 py-2 text-sm hover:bg-gray-100"
+                            >
+                                Quản lý các giao dịch
+                            </Link>
 
                             {renderDashboardLink()}
 

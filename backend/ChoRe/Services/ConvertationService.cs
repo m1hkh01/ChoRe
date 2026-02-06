@@ -48,6 +48,7 @@ public class ConvertationService : IConvertationService
             .Include(c => c.Seller)
             .Include(c => c.Post)
             .Where(c => c.BuyerId == userId || c.SellerId == userId)
+            .OrderByDescending(c=>c.LastMessageAt)
             .Select(c=> new ConversationDto
             {
                 ChatRoomId = c.ChatRoomId,
@@ -62,7 +63,7 @@ public class ConvertationService : IConvertationService
                 {
                     PostTitle = c.Post.Title,
                     PostPrice = c.Post.Price,
-                    PostImageUrl = c.Post.PostImages != null && c.Post.PostImages.Count > 0 ? c.Post.PostImages.First().ToString() : null,
+                    PostImageUrl = c.Post.PostImages != null && c.Post.PostImages.Count > 0 ? c.Post.PostImages.First().PostImage1.ToString() : null,
                     UserId = c.SellerId
                 } : null
             })

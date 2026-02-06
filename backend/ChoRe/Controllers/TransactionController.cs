@@ -13,27 +13,35 @@ public class TransactionController : ControllerBase
         _transactionService = transactionService;
         _hubContext = hubContext;
     }
-    [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetTransactionById(int id)
+
+    [HttpGet("escrow-status")]
+    public async Task<IActionResult> GetTransactionStatuses()
     {
-        var transaction = await _transactionService.GetTransationByIdAsync(id);
+        var statuses = await _transactionService.GetStatusesAsync(false);
+        return Ok(statuses);
+    }
+    [HttpGet("service-status")]
+    public async Task<IActionResult> GetServiceStatuses()
+    {
+        var statuses = await _transactionService.GetStatusesAsync(false, false);
+        return Ok(statuses);
+    }
+
+    [HttpPost("escrow/{id:int}")]
+    public async Task<IActionResult> GetEscrowTransactionById(int id,[FromBody] EscrowTransactionFilterRequest req)
+    {
+        var transaction = await _transactionService.GetEscrowTransationByIdAsync(id, req);
         if (transaction == null) return NotFound();
 
-        return Ok(new TransactionDto
-        {
-            TransactionId = transaction.EscrowTransId,
-            ChatRoomId = transaction.ChatMessage.ChatRoomId,
-            BuyerId = transaction.BuyerUserId,
-            SellerId = transaction.SellerUserId,
-            PostId = transaction.PostId,
-            Amount = transaction.TotalAmount,
-            PostPrice = transaction.PostPrice,
-            PlatformFee = transaction.PlatformFee,
-            Status = transaction.EscrowTransStatus.StatusName,
-            StatusDescription = transaction.EscrowTransStatus.Description,
-            ExpiredAt = transaction.ExpiredAt,
-            TransactionOrderCode = transaction.TransactionOrderCode,
-        });
+        return Ok(transaction);
+    }
+    [HttpPost("service/{id:int}")]
+    public async Task<IActionResult> GetServiceTransactionById(int id,[FromBody] EscrowTransactionFilterRequest req)
+    {
+        var transaction = await _transactionService.GetServiceTransationByIdAsync(id, req);
+        if (transaction == null) return NotFound();
+
+        return Ok(transaction);
     }
     [HttpPost("pay")]
     public async Task<IActionResult> PayTransaction([FromBody] PayOrderRequest rq)

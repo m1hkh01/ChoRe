@@ -1,19 +1,27 @@
 import { faArrowRightArrowLeft, faImage, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../../api";
 import { useAuthStore } from "../../store/auth";
 import Swal from "sweetalert2";
+import { ConfirmPriceModal } from "./ConfirmPriceModal";
 
-export function ChatInput({ connectionRef, conversationId, post,buyerId }) {
+export function ChatInput({ connectionRef, conversationId, post, buyerId }) {
     const [message, setMessage] = useState("");
     const [previewImages, setPreviewImages] = useState([]);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [isTransation, setIsTransation] = useState(false);
     const [transactionData, setTransactionData] = useState(null);
+    const [isOpenConfirmPrice, setIsOpenConfirmPrice] = useState(false);
+    const [updatePost, setUpdatePost] = useState(post);
     const inputRef = useRef();
     // const [notification, setNotification] = useState("");
     const { user: currentUser } = useAuthStore();
+
+    useEffect(() => {
+        setUpdatePost(post);
+    }, [post])
+
     const confirmCreateTransaction = () => {
         Swal.fire({
             title: "Bạn có chắc muốn tạo giao dịch trung gian không?",
@@ -29,7 +37,7 @@ export function ChatInput({ connectionRef, conversationId, post,buyerId }) {
                 cancelButton:
                     "bg-red-500 text-white text-md px-4 py-2 rounded hover:bg-red-700",
             },
-        }).then(async(result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
                 // const canCreate = await connectionRef.current.invoke(
                 //     "CheckExistingTransaction",
@@ -38,13 +46,32 @@ export function ChatInput({ connectionRef, conversationId, post,buyerId }) {
 
                 // if (!canCreate) return;
 
-                handleCreateTransaction();
+                if (currentUser.userId == updatePost.userId) {
+                    setIsOpenConfirmPrice(true);
+                }
+                else {
+                    handleCreateTransaction();
+                }
+
             }
             else {
                 return;
             }
         });
     };
+
+
+
+    const onClosePriceModal = () => {
+        setIsOpenConfirmPrice(false);
+    }
+
+    const onSubmitPriceModal = (price) => {
+        // cập nhật giá chốt
+        console.log("New Price: ",price);
+        handleCreateTransaction(Number(price));
+        setIsOpenConfirmPrice(false);
+    }
 
     const sendMessage = async (options = {}) => {
 
@@ -73,6 +100,7 @@ export function ChatInput({ connectionRef, conversationId, post,buyerId }) {
         try {
             if (forceTransaction && transactionPayload) {
 
+                console.log("Transaction: ", transactionPayload);
 
                 // Gửi transaction data
                 await connectionRef.current.invoke(
@@ -106,25 +134,29 @@ export function ChatInput({ connectionRef, conversationId, post,buyerId }) {
         setTransactionData(null);
     };
 
-    const handleCreateTransaction = async () => {
-        if (!post) {
+    const handleCreateTransaction = async (postPrice = 0) => {
+        if (!updatePost) {
             alert("Không có thông tin sản phẩm");
             return;
         }
 
 
 
-        const platformFee = Math.round(post.postPrice * 0.05);
-        const totalAmount = post.postPrice + platformFee;
+        // Nếu giá thuộc kiểu không thuộc kiểu cố định thì set tạm giá, phí sàn tổng tiền = 0         
+        const isPriceFixed = updatePost.priceType.toLowerCase() == "fixed";
+        const platformFee = isPriceFixed ? Math.round(updatePost.postPrice * 0.05) : Math.round(postPrice * 0.05);
+        const totalAmount = isPriceFixed ? updatePost.postPrice + platformFee : platformFee + postPrice;
+
+        console.log("Post: ", updatePost);
         const txData = {
-            postId: post.postId,
+            postId: updatePost.postId,
             buyerId: buyerId,
-            sellerId: post.userId,
+            sellerId: updatePost.userId,
             amount: totalAmount,
-            postPrice: post.postPrice,
+            postPrice: isPriceFixed ? updatePost.postPrice : postPrice,
             platformFee: platformFee,
-            buyerConfirmed: currentUser.userId != post.userId,
-            sellerConfirmed: currentUser.userId == post.userId,
+            buyerConfirmed: currentUser.userId != updatePost.userId,
+            sellerConfirmed: currentUser.userId == updatePost.userId,
         };
 
         setTransactionData(txData);
@@ -199,6 +231,11 @@ export function ChatInput({ connectionRef, conversationId, post,buyerId }) {
                     <FontAwesomeIcon icon={faPaperPlane} />
                 </button>
             </form>
+            {
+                isOpenConfirmPrice && (
+                    <ConfirmPriceModal onClose={onClosePriceModal} onSubmit={onSubmitPriceModal}>
+                    </ConfirmPriceModal>
+                )}
         </div>
     );
 }

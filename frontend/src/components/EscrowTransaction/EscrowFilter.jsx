@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import api from "@/api";
 // import { FaSearch, FaFilter } from "react-icons/fa";
 
-const STATUS = [
-    { label: "Tất cả", value: "" },
-    { label: "Đang xác nhận", value: "Confirming" },
-    { label: "Chờ thanh toán", value: "PendingPayment" },
-    { label: "Đã thanh toán", value: "Paid" },
-    { label: "Tranh chấp", value: "Disputing" },
-    { label: "Hủy", value: "Cancelled" },
-];
+// const STATUS = [
+//     { label: "Tất cả", value: "" },
+//     { label: "Đang xác nhận", value: "Confirming" },
+//     { label: "Chờ thanh toán", value: "PendingPayment" },
+//     { label: "Đã thanh toán", value: "Paid" },
+//     { label: "Tranh chấp", value: "Disputing" },
+//     { label: "Hủy", value: "Cancelled" },
+// ];
 
 export default function EscrowFilter({ onChange }) {
     const [keyword, setKeyword] = useState("");
@@ -107,7 +107,7 @@ export default function EscrowFilter({ onChange }) {
                 <div
                     onClick={() => {
                         setStatus("");
-                        onChange({ keyword, statusId: ""});
+                        onChange({ keyword, statusId: null});
                     }}
                     className={`
                             px-4 py-2 rounded-3xl text-sm font-medium cursor-pointer transition

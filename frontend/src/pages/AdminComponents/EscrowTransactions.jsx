@@ -11,6 +11,7 @@ export default function EscrowTransactions() {
     const [filter, setFilter] = useState({});
     const [selected, setSelected] = useState(null);
 
+
     const {
         currentPage,
         setCurrentPage,
@@ -21,6 +22,10 @@ export default function EscrowTransactions() {
         itemsPerPage: 6,
         maxPageIndex: 5
     });
+
+    const itemsPerPage = 6;
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedData = transactions.slice(startIndex, startIndex + itemsPerPage);
 
     useEffect(() => {
         const loadData = async () => {
@@ -38,7 +43,7 @@ export default function EscrowTransactions() {
             <EscrowFilter onChange={setFilter} />
 
             <EscrowTable
-                data={transactions}
+                data={paginatedData}
                 onPreview={(t) => setSelected(t)}
             />
             <EscrowPagination

@@ -72,7 +72,10 @@ public class ChatHub : Hub
                     PostId = c.PostId,
                     PostTitle = c.Post.Title,
                     PostPrice = c.Post.Price,
-                    PostImageUrl = c.Post.PostImages != null && c.Post.PostImages.Count > 0 ? c.Post.PostImages.First().ToString() : null,
+                    MinPrice = c.Post.MinPrice,
+                    MaxPrice = c.Post.MaxPrice,
+                    PriceType = c.Post.PriceType,
+                    PostImageUrl = c.Post.PostImages != null && c.Post.PostImages.Count > 0 ? c.Post.PostImages.First().PostImage1.ToString() : null,
                     UserId = c.SellerId
                 } : null
 
@@ -144,7 +147,7 @@ public class ChatHub : Hub
         return false;
     }
 
-    public async Task ConfirmEscrow(int transactionId, bool isBuyer)
+    public async Task ConfirmEscrow(int transactionId, bool isBuyer , int postPrice, bool updatePrice)
     {
         try
         {
@@ -166,9 +169,16 @@ public class ChatHub : Hub
                 transaction.BuyerConfirmed = true;
             else
                 transaction.SellerConfirmed = true;
-            if(transaction.BuyerConfirmed && transaction.SellerConfirmed)
+            if (transaction.BuyerConfirmed && transaction.SellerConfirmed)
             {
                 transaction.EscrowTransStatusId = 2; // 2 = PendingPayment (Chờ thanh toán);
+            }
+            if (updatePrice)
+            {                
+                var platformFee = Math.Round(postPrice * 0.05M);
+                transaction.PostPrice = postPrice;
+                transaction.PlatformFee = platformFee;
+                transaction.TotalAmount = postPrice + platformFee;
             }
             await _context.SaveChangesAsync();
             await _context.Entry(transaction)
@@ -242,7 +252,7 @@ public class ChatHub : Hub
     // }
     public async Task SendMessage(
         string conversationId,
-        string content,
+        string? content,
         string[]? imageUrls,
         bool isTransation,
         TransactionDto? transactionDto
@@ -285,8 +295,8 @@ public class ChatHub : Hub
                     BuyerUserId = transactionDto.BuyerId,
                     SellerUserId = transactionDto.SellerId,
                     PostId = transactionDto.PostId,
-                    TotalAmount = transactionDto.Amount + platformFee,
-                    PostPrice = transactionDto.Amount,
+                    TotalAmount = transactionDto.Amount,
+                    PostPrice = transactionDto.PostPrice,
                     PlatformFee = platformFee,
                     EscrowTransStatusId = 1, // Chờ 2 bên xác nhận
                     CreateAt = DateTime.Now,
@@ -335,6 +345,7 @@ public class ChatHub : Hub
                     "ReceiveMessage",
                     new
                     {
+                        ConversationId = conversationId,
                         FromUserId = senderId,
                         ChatContent = "Giao dịch trung gian",
                         MessageType = "Transaction",
@@ -365,6 +376,7 @@ public class ChatHub : Hub
                     "ReceiveMessage",
                     new
                     {
+                        ConversationId = conversationId,
                         FromUserId = senderId,
                         ChatContent = content,
                         MessageType = "Text",

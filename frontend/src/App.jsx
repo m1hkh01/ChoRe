@@ -11,6 +11,7 @@ import ServicePackage from "./pages/ServicePackage/ServicePackage";
 import ServicePackageManager from "./pages/ServicePackage/ServicePackageManager";
 import TransactionPayPage from "./pages/Pay/TransactionPayPage";
 import ChatPage from "./pages/ChatPage";
+import TransactionManagementPage from "./pages/TransactionManagementPage";
 
 /* ================= LAYOUTS ================= */
 import MainLayout from "./Layout/MainLayout";
@@ -66,6 +67,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ServicePackage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/user-transactions"
+          element={
+            <ProtectedRoute>
+              <TransactionManagementPage />
             </ProtectedRoute>
           }
         />

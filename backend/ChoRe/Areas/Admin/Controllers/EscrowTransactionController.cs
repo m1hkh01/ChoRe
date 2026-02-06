@@ -15,7 +15,7 @@ public class EscrowTransactionController : ControllerBase
     [HttpGet("status")]
     public async Task<IActionResult> GetStatus()
     {
-        return Ok(await _service.GetStatusesAsync());
+        return Ok(await _service.GetStatusesAsync(true));
     }
 
     [HttpPost("filter")]

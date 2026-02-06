@@ -6,14 +6,13 @@ export function useTransactionTimer(transaction) {
 
     useEffect(() => {
         if (!transaction?.expiredAt) return;
-
+        
         const update = () => {
             const now = new Date();
             const expiredTime = new Date(transaction.expiredAt);
             const diff = expiredTime.getTime() - now.getTime();
 
-            const expirableStatuses = ["Confirming", "Pending"];
-
+            const expirableStatuses = ["Confirming", "PendingPayment"];
             if (diff <= 0 && expirableStatuses.includes(transaction.status)) {
                 setIsExpired(true);
                 setTimeRemaining("Đã hết hạn");

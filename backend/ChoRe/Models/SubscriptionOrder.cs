@@ -30,7 +30,7 @@ namespace ChoRe.Models
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public DateTime? PaidAt { get; set; }
+        public DateTime PaidAt { get; set; }
 
         public DateTime? ExpiredAt { get; set; }
 
