@@ -1,9 +1,15 @@
 import { Link, Outlet } from "react-router-dom";
 import "@/assets/admin.css";
 import { useAuthStore } from "../store/auth";
+import { useState } from "react";
 
 function AdminLayout() {
     const { user } = useAuthStore();
+    const [expandedMenu, setExpandedMenu] = useState(null);
+
+    const toggleMenu = (menuName) => {
+        setExpandedMenu(expandedMenu === menuName ? null : menuName);
+    };
     return (
         <div className="admin-container">
             {/* SIDEBAR */}
@@ -38,14 +44,14 @@ function AdminLayout() {
                     <Link to="/admin/brand-manager" className="menu-item">
                         Quản lý hãng
                     </Link>
+                        <Link to="/admin/brand-category-manager" className="menu-item">
+                        Quản lý phân loại hãng
+                    </Link>
                     <Link to="/admin/category-manager" className="menu-item">
                         Quản lý phân loại
                     </Link>
-                    <Link to="/admin/brand-category-manager" className="menu-item">
-                        Quản lý phân loại hãng
-                    </Link>
                     <Link to="/admin/specification-manager" className="menu-item">
-                        Quản lý cấu hình phân loại
+                        Cấu hình phân loại
                     </Link>
                     <Link to="/admin/sub-manager" className="menu-item">
                         Quản lý gói dịch vụ

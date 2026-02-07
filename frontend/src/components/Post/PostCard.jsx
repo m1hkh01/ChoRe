@@ -15,21 +15,21 @@ function PostCard({ post }) {
                         Thương lượng
                     </span>
                 );
-            
+
             case "FIXED":
                 return (
                     <span className="price">
                         {post.price ? post.price.toLocaleString('vi-VN') + " ₫" : "Liên hệ"}
                     </span>
                 );
-            
+
             case "RANGE":
                 return (
                     <span className="price" style={{ color: "#2196f3" }}>
                         {post.minPrice?.toLocaleString('vi-VN')} ₫ - {post.maxPrice?.toLocaleString('vi-VN')} ₫
                     </span>
                 );
-            
+
             default:
                 return <span className="price text-muted">Liên hệ</span>;
         }
@@ -68,7 +68,7 @@ function PostCard({ post }) {
                     <div className="post-meta">
                         {/* ✅ SỬA DỤNG HÀM RENDER AN TOÀN */}
                         {renderPrice()}
-                        
+
                         <span className="address">
                             {post.address}
                         </span>

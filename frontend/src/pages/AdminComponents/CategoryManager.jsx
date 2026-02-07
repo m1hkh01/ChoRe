@@ -85,7 +85,7 @@ function CategoryManager() {
 
     return (
         <div className="p-4">
-            <h3>Quản lý danh mục</h3>
+            <h3>Quản lý phân loại</h3>
 
             {error && <div className="alert alert-danger">{error}</div>}
 

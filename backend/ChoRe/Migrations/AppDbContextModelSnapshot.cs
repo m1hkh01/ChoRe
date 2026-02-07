@@ -662,7 +662,7 @@ namespace ChoRe.Migrations
                         new
                         {
                             EscTransStatusId = 10,
-                            Description = "Đã hoàn tiền cho người dùng",
+                            Description = "Đã hoàn tiền",
                             StatusName = "Refunded"
                         });
                 });
@@ -1552,7 +1552,7 @@ namespace ChoRe.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<DateTime?>("PaidAt")
+                    b.Property<DateTime>("PaidAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("SubPlanId")

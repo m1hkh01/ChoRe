@@ -16,6 +16,10 @@
   font-family: 'Inter', sans-serif;
 }
 
+body {
+  background: #F4F4F4;
+}
+
 .app-content {
   flex: 1; /* 👉 đẩy footer xuống đáy */
 }

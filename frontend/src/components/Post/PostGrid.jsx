@@ -10,12 +10,9 @@ function PostGrid({ posts }) {
     }
 
     return (
-        <div className="row g-4">
+        <div className="post-grid">
             {posts.map(post => (
-                <div
-                    key={post.postId}
-                    className="col-12 col-sm-6 col-md-4 col-lg-3"
-                >
+                <div key={post.postId} className="post-grid-item">
                     <PostCard post={post} />
                 </div>
             ))}

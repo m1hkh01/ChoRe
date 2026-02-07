@@ -242,7 +242,7 @@ function Home() {
   const filteredPosts = getFilteredPosts();
 
   return (
-    <div>
+    <div className="home-wrapper">
       <Swiper
         modules={[Autoplay, Navigation, Pagination]}
         spaceBetween={30}
@@ -256,7 +256,7 @@ function Home() {
         }}
         navigation
         pagination={{ clickable: true }}
-        className="w-[90%] h-[300px] mb-8 mt-2 shadow-[0_0_5px_rgba(0,0,0,0.1)] rounded-lg mx-auto"
+        className="w-[90%] h-[200px] mb-8 mt-2 shadow-[0_0_5px_rgba(0,0,0,0.1)] rounded-lg mx-auto"
       >
         <SwiperSlide>
           <img src="src/Images/banner1.jpg" className="w-full h-full object-cover" />
@@ -268,7 +268,7 @@ function Home() {
           <img src="src/Images/banner3.jpg" className="w-full h-full object-cover" />
         </SwiperSlide>
       </Swiper>
-      <main className="container" style={{ marginTop: "80px" }}>
+      <main className="home-main" style={{ marginTop: "80px" }}>
         {/* POSTS */}
         <section>
           {filteredPosts.length === 0 ? (
@@ -277,10 +277,10 @@ function Home() {
             </div>
           ) : (
             <div className="row g-4">
-              <section>
+              <div className="cards-panel">
                 <h4 className="mb-4 fw-semibold">Tin đăng mới nhất</h4>
                 <PostGrid posts={filteredPosts} />
-              </section>
+              </div>
             </div>
           )}
         </section>

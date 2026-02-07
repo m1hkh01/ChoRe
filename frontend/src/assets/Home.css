@@ -279,3 +279,67 @@
   color: #475569;
 }
 
+/* Full-page background wrapper */
+.home-wrapper {
+  background: #F4F4F4;
+  min-height: 100vh;
+}
+
+/* Page background and cards panel */
+.home-main {
+  background: #F4F4F4;
+  padding: 24px 5% 48px 5%;
+  max-width: 100%;
+}
+
+.cards-panel {
+  background: #ffffff;
+  padding: 12px 10px; /* reduce horizontal padding */
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  max-width: 1100px; /* narrower white panel */
+  margin: 0 auto;
+}
+
+/* Grid: 5 cards per row on large screens */
+.post-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px; /* smaller gaps make cards look smaller */
+}
+
+.post-grid-item {
+  display: flex;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 100px) {
+  .post-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .post-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .post-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .cards-panel { padding: 12px; }
+  .home-main { padding: 20px 3% 40px 3%; }
+}
+
+@media (max-width: 480px) {
+  .post-grid { 
+    grid-template-columns: 1fr; 
+    gap: 12px;
+  }
+  .cards-panel { padding: 10px; }
+  .home-main { padding: 16px 4% 32px 4%; }
+}
+

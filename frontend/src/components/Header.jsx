@@ -1,14 +1,17 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faAngleDown, faSearch, faMobileScreen, faAngleRight, faList } from "@fortawesome/free-solid-svg-icons";
+import { faAngleDown, faSearch, faMobileScreen, faAngleRight, faList, faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { faComment, faBell, faHeart } from "@fortawesome/free-regular-svg-icons";
 import { useEffect, useRef, useState } from "react";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import "@/assets/Header.css";
 
 function Header() {
     const { user, logout } = useAuthStore();
     const [open, setOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [profileOpen, setProfileOpen] = useState(false);
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
     const handleCreatePost = () => {
@@ -21,7 +24,7 @@ function Header() {
         }
     };
 
-    // Đóng khi click ra ngoài
+    // Close mobile menu and dropdowns when clicking outside
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -30,7 +33,10 @@ function Header() {
         };
 
         const handleEsc = (e) => {
-            if (e.key === "Escape") setOpen(false);
+            if (e.key === "Escape") {
+                setOpen(false);
+                setMobileMenuOpen(false);
+            }
         };
 
         document.addEventListener("mousedown", handleClickOutside);
@@ -41,8 +47,10 @@ function Header() {
             document.removeEventListener("keydown", handleEsc);
         };
     }, []);
+
     const handleLogout = () => {
         logout();
+        setMobileMenuOpen(false);
         navigate("/login");
     };
 
@@ -53,7 +61,11 @@ function Header() {
             return (
                 <Link
                     to="/admin/post-manager"
-                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    className="header-dropdown-item"
+                    onClick={() => {
+                        setProfileOpen(false);
+                        setMobileMenuOpen(false);
+                    }}
                 >
                     Trang quản trị Admin
                 </Link>
@@ -64,7 +76,11 @@ function Header() {
             return (
                 <Link
                     to="/censor/post-censor"
-                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    className="header-dropdown-item"
+                    onClick={() => {
+                        setProfileOpen(false);
+                        setMobileMenuOpen(false);
+                    }}
                 >
                     Trang kiểm duyệt
                 </Link>
@@ -75,178 +91,204 @@ function Header() {
     };
 
     return (
-        <header className="flex items-center h-18 bg-green-600 p-4 border-b border-green-500/25 shadow-sm z-50">
-            {/* LOGO */}
-            <Link to="/" className="flex items-center">
-                <div className="p-2 flex items-center justify-center">
-                    <img
-                        src="/logodenrmvbg.png"
-                        alt="LogoChoRe"
-                        className="h-20 w-35 object-contain p-1"
-                    />
-                </div>
-            </Link>
-
-            <div className="relative" ref={dropdownRef}>
-                <div className="flex items-center 
-                                rounded-2 bg-(--primary-color) 
-                                w-auto p-2 text-md 
-                                font-semibold text-white
-                                cursor-pointer"
-                    onClick={() => setOpen(!open)}
-                >
-                    <FontAwesomeIcon icon={faList} />
-                    <span onClick={(e) => { e.stopPropagation(); setOpen((prev) => !prev) }}>Danh mục</span>
-                    <FontAwesomeIcon icon={faAngleDown} />
-                </div>
-
-                {open && (
-                    <>
-                        <div className="absolute right-0 z-100 mt-2 w-48 bg-white rounded-lg shadow-lg">
-                            <div className="flex justify-between items-center p-2 text-[16px] font-semibold hover:bg-gray-100">
-                                <FontAwesomeIcon icon={faMobileScreen} />
-                                <span className="px-2 flex-1">Điện thoại</span>
-                                <FontAwesomeIcon icon={faAngleRight} />
-                            </div>
-                            <div className="flex justify-between items-center p-2 text-[16px] font-semibold hover:bg-gray-100">
-                                <FontAwesomeIcon icon={faMobileScreen} />
-                                <span className="px-2 flex-1">Laptop</span>
-                                <FontAwesomeIcon icon={faAngleRight} />
-                            </div>
-                            <div className="flex justify-between items-center p-2 text-[16px] font-semibold hover:bg-gray-100">
-                                <FontAwesomeIcon icon={faMobileScreen} />
-                                <span className="px-2 flex-1">Bàn phím</span>
-                                <FontAwesomeIcon icon={faAngleRight} />
-                            </div>
-                            <div className="flex justify-between items-center p-2 text-[16px] font-semibold hover:bg-gray-100">
-                                <FontAwesomeIcon icon={faMobileScreen} />
-                                <span className="px-2 flex-1">PC, Màn hình</span>
-                                <FontAwesomeIcon icon={faAngleRight} />
-                            </div>
-                            <div className="flex justify-between items-center p-2 text-[16px] font-semibold hover:bg-gray-100">
-                                <FontAwesomeIcon icon={faMobileScreen} />
-                                <span className="px-2 flex-1">Âm thanh, mic thu âm</span>
-                                <FontAwesomeIcon icon={faAngleRight} />
-                            </div>
-                            <div className="flex justify-between items-center p-2 text-[16px] font-semibold hover:bg-gray-100">
-                                <FontAwesomeIcon icon={faMobileScreen} />
-                                <span className="px-2 flex-1">Phụ kiện</span>
-                                <FontAwesomeIcon icon={faAngleRight} />
-                            </div>
-                            <div className="flex justify-between items-center p-2 text-[16px] font-semibold hover:bg-gray-100">
-                                <FontAwesomeIcon icon={faMobileScreen} />
-                                <span className="px-2 flex-1">Đồng hồ thông minh</span>
-                                <FontAwesomeIcon icon={faAngleRight} />
-                            </div>
-                        </div>
-                    </>
-                )}
-            </div>
-            {/* NAV */}
-            <nav className="flex-1 flex justify-center items-center gap-6">
-                <div className="w-[calc(100%-200px)] flex-1 mx-5 h-11 rounded-4xl bg-[white] flex items-center justify-between">
-                    <div className="w-7.5 flex justify-end">
-                        <FontAwesomeIcon icon={faSearch} />
-                    </div>
-                    <input
-                        type="text"
-                        placeholder="Tìm kiếm sản phẩm, danh mục hay thương hiệu mong muốn ..."
-                        className="w-full h-full rounded-4xl px-4 outline-none border-none"
-                    />
-                </div>
-            </nav>
-            {/* ACTIONS */}
-            <div className="flex items-center gap-2">
-                {/* Nhắn tin */}
-                <Link to="/chat" className="w-10 h-10 text-black rounded-circle d-flex justify-center items-center bg-white cursor-pointer">
-                    <FontAwesomeIcon icon={faComment} className="text-xl" />
-                </Link>
-                {/* Tin yêu thích */}
-                <div className="w-10 h-10 rounded-circle d-flex justify-center items-center bg-white cursor-pointer">
-                    <FontAwesomeIcon icon={faHeart} className="text-xl" />
-                </div>
-                {/* Thông báo */}
-                <div className="w-10 h-10 rounded-circle d-flex justify-center items-center bg-white cursor-pointer">
-                    <FontAwesomeIcon icon={faBell} className="text-xl " />
-                </div>
-                {/* GÓI PRO */}
-                <Link
-                    to="/service-package"
-                    className="text-black text-decoration-none font-semibold text-xl px-3"
-                >
-                    Gói <span className="text-yellow-400">PRO</span>
+        <header className="header">
+            <div className="header-container">
+                {/* LOGO (desktop) */}
+                <Link to="/" className="header-logo desktop-only">
+                    <img src="/logodenrmvbg.png" alt="LogoChoRe" />
                 </Link>
 
-                {/* ĐĂNG TIN */}
-                <button
-                    onClick={handleCreatePost}
-                    className="
-        flex items-center gap-1
-        rounded-2
-        bg-(--primary-color)
-        px-3 py-2
-        text-sm font-semibold text-white
-        cursor-pointer
-        hover:opacity-95
-        transition
-    "
-                >
-                    <FontAwesomeIcon icon={faPlus} />
-                    <span>Đăng tin</span>
-                </button>
+                {/* MOBILE TOP: hamburger, centered logo, heart+bell */}
+                <div className="mobile-top mobile-only">
+                    <button 
+                        className="mobile-menu-btn"
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        aria-label="Open menu"
+                    >
+                        <FontAwesomeIcon icon={mobileMenuOpen ? faTimes : faBars} />
+                    </button>
 
-                {/* AUTH */}
-                {!user ? (
-                    <div className="flex gap-2">
-                        <Link
-                            to="/login"
-                            className="bg-[#1A6A3A] text-sm text-decoration-none text-white px-3 py-2 rounded-lg font-bold hover:opacity-95 hover:-translate-y-px transition"
-                        >
-                            Đăng nhập
+                    <Link to="/" className="mobile-logo">
+                        <img src="/logodenrmvbg.png" alt="LogoChoRe" />
+                    </Link>
+
+                    <div className="mobile-top-actions">
+                        <Link to="/favorites" className="action-icon" title="Tin yêu thích">
+                            <FontAwesomeIcon icon={faHeart} />
+                        </Link>
+                        <Link to="/notifications" className="action-icon" title="Thông báo">
+                            <FontAwesomeIcon icon={faBell} />
                         </Link>
                     </div>
-                ) : (
-                    <div className="relative group">
-                        <div className="w-10 h-10 rounded-circle bg-(--primary-color) flex justify-center items-center text-xl">
-                            <img src="https://i.pravatar.cc/40" className="w-full h-full p-1 rounded-circle" />
+                </div>
+
+                {/* CATEGORY DROPDOWN - Desktop */}
+                <div className="header-category desktop-only" ref={dropdownRef}>
+                    <button 
+                        className="category-btn"
+                        onClick={() => setOpen(!open)}
+                    >
+                        <FontAwesomeIcon icon={faList} />
+                        <span>Danh mục</span>
+                        <FontAwesomeIcon icon={faAngleDown} className={open ? "open" : ""} />
+                    </button>
+
+                    {open && (
+                        <div className="category-dropdown">
+                            {["Điện thoại", "Laptop", "Bàn phím", "PC, Màn hình", "Âm thanh, mic thu âm", "Phụ kiện", "Đồng hồ thông minh"].map((item) => (
+                                <div key={item} className="category-item">
+                                    <FontAwesomeIcon icon={faMobileScreen} />
+                                    <span>{item}</span>
+                                    <FontAwesomeIcon icon={faAngleRight} />
+                                </div>
+                            ))}
                         </div>
+                    )}
+                </div>
 
-                        {/* DROPDOWN */}
-                        <div className="absolute right-0 top-8 z-10 mt-2 w-52 bg-white rounded-lg shadow-lg hidden group-hover:block">
-                            <Link
-                                to="/profile"
-                                className="block px-4 py-2 text-sm rounded-lg hover:bg-gray-100"
-                            >
-                                Trang cá nhân
-                            </Link>
+                {/* SEARCH BAR - Desktop */}
+                <div className="header-search desktop-only">
+                    <FontAwesomeIcon icon={faSearch} />
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm sản phẩm, danh mục hay thương hiệu..."
+                    />
+                </div>
 
-                            <Link
-                                to="/service-package-manager"
-                                className="block px-4 py-2 text-sm hover:bg-gray-100"
-                            >
-                                Quản lý Gói
-                            </Link>
-                            <Link
-                                to="/user-transactions"
-                                className="block px-4 py-2 text-sm hover:bg-gray-100"
-                            >
-                                Quản lý các giao dịch
-                            </Link>
+                {/* ACTIONS - Desktop */}
+                <div className="header-actions desktop-only">
+                    {/* Chat */}
+                    <Link to="/chat" className="action-icon" title="Nhắn tin">
+                        <FontAwesomeIcon icon={faComment} />
+                    </Link>
 
-                            {renderDashboardLink()}
-
-                            <div className="border-t my-1"></div>
-
-                            <button
-                                onClick={handleLogout}
-                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                            >
-                                Đăng xuất
-                            </button>
-                        </div>
+                    {/* Favorites */}
+                    <div className="action-icon" title="Tin yêu thích">
+                        <FontAwesomeIcon icon={faHeart} />
                     </div>
-                )}
+
+                    {/* Notifications */}
+                    <div className="action-icon" title="Thông báo">
+                        <FontAwesomeIcon icon={faBell} />
+                    </div>
+
+                    {/* Pro Package */}
+                    <Link to="/service-package" className="action-text">
+                        Gói <span className="pro-badge">PRO</span>
+                    </Link>
+
+                    {/* Create Post Button */}
+                    <button onClick={handleCreatePost} className="action-btn-create">
+                        <FontAwesomeIcon icon={faPlus} />
+                        <span>Đăng tin</span>
+                    </button>
+
+                    {/* Auth */}
+                    {!user ? (
+                        <Link to="/login" className="action-btn-login">
+                            Đăng nhập
+                        </Link>
+                    ) : (
+                        <div className="profile-dropdown-wrapper">
+                            <button 
+                                className="profile-avatar"
+                                onClick={() => setProfileOpen(!profileOpen)}
+                            >
+                                <img src="https://i.pravatar.cc/40" alt="Profile" />
+                            </button>
+
+                            {profileOpen && (
+                                <div className="profile-dropdown">
+                                    <Link 
+                                        to="/profile" 
+                                        className="header-dropdown-item"
+                                        onClick={() => setProfileOpen(false)}
+                                    >
+                                        Trang cá nhân
+                                    </Link>
+                                    <Link 
+                                        to="/service-package-manager"
+                                        className="header-dropdown-item"
+                                        onClick={() => setProfileOpen(false)}
+                                    >
+                                        Quản lý Gói
+                                    </Link>
+                                    <Link 
+                                        to="/user-transactions"
+                                        className="header-dropdown-item"
+                                        onClick={() => setProfileOpen(false)}
+                                    >
+                                        Quản lý các giao dịch
+                                    </Link>
+                                    {renderDashboardLink()}
+                                    <div className="dropdown-divider"></div>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="header-dropdown-item logout-btn"
+                                    >
+                                        Đăng xuất
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* (mobile menu button moved into mobile-top) */}
             </div>
+
+            {/* MOBILE SEARCH ROW (category integrated) */}
+            <div className="mobile-search-row mobile-only">
+                <button className="mobile-category-btn" onClick={() => setOpen(!open)}>
+                    <FontAwesomeIcon icon={faList} />
+                    <span>Danh mục</span>
+                    <FontAwesomeIcon icon={faAngleDown} className={open ? "open" : ""} />
+                </button>
+
+                <div className="mobile-search">
+                    <input type="text" placeholder="Tìm kiếm sản phẩm, danh mục hay thương hiệu..." />
+                    <button className="mobile-search-btn"><FontAwesomeIcon icon={faSearch} /></button>
+                </div>
+            </div>
+
+            {/* MOBILE CATEGORY DROPDOWN (floating panel with backdrop) */}
+            {open && (
+                <>
+                    <div className="mobile-backdrop mobile-only" onClick={() => setOpen(false)} />
+                    <div className="mobile-category-panel mobile-only" onClick={(e) => e.stopPropagation()}>
+                        {["Điện thoại", "Laptop", "Bàn phím", "PC, Màn hình", "Âm thanh, mic thu âm", "Phụ kiện", "Đồng hồ thông minh"].map((item) => (
+                            <div key={item} className="category-item">
+                                <FontAwesomeIcon icon={faMobileScreen} />
+                                <span>{item}</span>
+                                <FontAwesomeIcon icon={faAngleRight} />
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
+
+            {/* BOTTOM NAV - Mobile */}
+            <nav className="mobile-bottom-nav mobile-only" role="navigation" aria-label="Mobile bottom navigation">
+                <Link to="/" className="bottom-nav-item">
+                    <span className="icon">🏠</span>
+                    <span className="label">Trang chủ</span>
+                </Link>
+                <Link to="/manage-posts" className="bottom-nav-item">
+                    <span className="icon">📑</span>
+                    <span className="label">Quản lý</span>
+                </Link>
+                <Link to="/post/create" className="bottom-nav-item create-btn">
+                    <span className="plus">+</span>
+                </Link>
+                <Link to="/chat" className="bottom-nav-item">
+                    <span className="icon">💬</span>
+                    <span className="label">Liên hệ</span>
+                </Link>
+                <Link to="/profile" className="bottom-nav-item">
+                    <span className="icon">👤</span>
+                    <span className="label">Tài khoản</span>
+                </Link>
+            </nav>
         </header>
     );
 }
