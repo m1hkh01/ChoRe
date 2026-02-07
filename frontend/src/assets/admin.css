@@ -1,9 +1,21 @@
 @import url("../index.css");
 
+:root {
+    --admin-primary: #16a34a;
+    --admin-primary-hover: #15803d;
+    --admin-primary-light: #22c55e;
+    --admin-primary-dark: #166534;
+    --admin-bg: #f3f4f6;
+    --admin-card-bg: #ffffff;
+    --admin-text: #1f2937;
+    --admin-text-light: #6b7280;
+    --admin-border: #e5e7eb;
+}
+
 .admin-container {
     width: 100%;
     height: 100vh;
-    background-color: #eee;
+    background-color: var(--admin-bg);
     display: flex;
     overflow-y: auto;
 }
@@ -11,81 +23,215 @@
 .sidebar {
     position: sticky;
     top: 0;
-    width: 250px;
+    width: 280px;
     height: 100vh;
-    background-color: var(--primary-color);
+    background: linear-gradient(180deg, var(--admin-primary) );
     display: flex;
     flex-direction: column;
-     align-items: stretch;
-    gap: 5px;
+    align-items: stretch;
+    gap: 0;
     color: white;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
-.sidebar .sidebar-logo{
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    object-fit: cover;
-    padding: 1px;
-    box-shadow: 0 0 4px rgba(255, 255, 255, 0.7);
-    margin-top: 5px;
+/* Chrome, Edge, Safari scrollbar */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
 }
 
-.sidebar h3 {
-    margin-top: 5px;
-    font-size: 22px;
-    font-weight: bold;
-}
-
-.sidebar .admin-info {
-    width: 90%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 4px;
-}
-
-.admin-info .admin-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    object-fit: cover;
-    padding: 1px;
-    /* box-shadow: 0 0 5px rgba(255, 255, 255, 0.3); */
-}
-
-.admin-info .admin-name {
-    font-family: 'Playfair Display', sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.sidebar .menu {
-    display: flex;
-    flex-direction: column;
-    margin-top: 5px;
-    text-align: left;
-    width: 100%;
-    height: 100%;
+.sidebar::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.sidebar .menu a {
-    /* display: block; */
-    width: 100%;
-    height: 50px;
-    padding: 8px 24px;
-    text-decoration: none;
-    text-align: left;
-    color: white;
-    font-size: 18px;
-    font-weight: 400;
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
 }
 
-.sidebar .menu a:hover {
-    background-color: var(--primary-color-hover);
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* ADMIN INFO */
+.admin-info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-logo-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+.admin-logo-link:hover {
+    opacity: 0.7;
+}
+
+.admin-logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.admin-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.admin-role {
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0.8;
+    letter-spacing: 0.5px;
+}
+
+/* MENU */
+.menu {
+    display: flex;
+    flex-direction: column;
+    margin-top: 8px;
+    text-align: left;
+    width: 100%;
+    background: transparent;
+    flex: 1;
+}
+
+.menu-group {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+}
+
+.menu-group-toggle {
+    width: 100%;
+    height: 48px;
+    padding: 8px 16px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: opacity 0.2s ease;
+    margin: 4px 0;
+    border-radius: 8px;
+    margin-left: 8px;
+    margin-right: 8px;
+    width: calc(100% - 16px);
+}
+
+.menu-group-toggle:hover {
+    opacity: 0.8;
+}
+
+.menu-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.menu-group-toggle .arrow {
+    font-size: 12px;
+    transition: transform 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.7;
+}
+
+.menu-group-toggle .arrow.open {
+    transform: rotate(0deg);
+}
+
+.menu-submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.menu-submenu.show {
+    max-height: 600px;
+}
+
+.submenu-item {
+    width: calc(100% - 32px);
+    height: 42px;
+    padding: 8px 16px;
+    margin-left: 16px;
+    margin-right: 16px;
+    margin-bottom: 4px;
+    font-size: 14px;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: 6px;
+    color: white;
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: opacity 0.2s ease;
+    opacity: 0.85;
+}
+
+.submenu-item:hover {
+    opacity: 1;
+}
+
+.submenu-item:active {
+    opacity: 0.9;
+}
+
+/* SIDEBAR FOOTER */
+.sidebar-footer {
+    padding: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: auto;
+}
+
+.logout-btn {
+    width: 100%;
+    height: 44px;
+    padding: 8px 16px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+    background-color: rgba(255, 0, 0, 0.2);
+    border-color: rgba(255, 0, 0, 0.3);
+}
+
+.logout-btn:active {
+    background-color: rgba(255, 0, 0, 0.3);
 }
 
 .admin-container .main-content {
@@ -93,8 +239,6 @@
     display: flex;
     flex-direction: column;
 }
-
-/* ===== Post Manager ===== */
 
 .post-container{
     width: 100%;
