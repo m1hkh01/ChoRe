@@ -49,7 +49,7 @@ function PostManager() {
     };
 
     const searchByUserName = (search) => {
-        setPostsFilter(posts.filter(item=>item.user.userName.includes(search)))
+        setPostsFilter(posts.filter(item => item.user.userName.includes(search)))
     }
     const debounceSearch = debounce(searchByUserName, 500);
 
@@ -90,18 +90,7 @@ function PostManager() {
                 <div className="title">
                     <span>Quản lý bài viết</span>
                 </div>
-                <div className="header">
-                    <h4>Danh sách bài viết cần duyệt</h4>
-                    <div className="d-flex">
-                        {/* <div className="filter">
-                            <button className="btn-filter">Lọc</button>
-                            <div className="filter-box">
-
-                            </div>
-                        </div> */}
-                        <input type="text" placeholder="Tìm kiếm theo tên người dùng ..." onChange={(e)=>debounceSearch(e.target.value)} />
-                    </div>
-                </div>
+                
                 <div className="list-post">
                     {posts.length > 0 ? (
                         <table className="post-table">
@@ -116,7 +105,7 @@ function PostManager() {
                                 </tr>
                             </thead>
                             <tbody>
-                                { postsFilter.length > 0 ?  postsFilter.map(post => (
+                                {postsFilter.length > 0 ? postsFilter.map(post => (
                                     <tr key={post.postId}>
                                         <td>{post.postId}</td>
                                         <td>{post.title}</td>
@@ -139,12 +128,12 @@ function PostManager() {
                                         </td>
                                     </tr>
                                 )) : (
-                                        <tr>
-                                            <td colSpan={6}>
-                                                <h4 className="text-center mt-3">Không có bài viết nào phù hợp</h4>
-                                            </td>
-                                        </tr>
-                                    )
+                                    <tr>
+                                        <td colSpan={6}>
+                                            <h4 className="text-center mt-3">Không có bài viết nào phù hợp</h4>
+                                        </td>
+                                    </tr>
+                                )
                                 }
                             </tbody>
                         </table>

@@ -1,0 +1,372 @@
+/* PostDetailsDr.css */
+
+.post-details-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+}
+
+/* Header */
+.details-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.details-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #ffffff;
+    border-radius: 10px;
+    flex-shrink: 0;
+    font-size: 16px;
+}
+
+.details-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+/* Divider */
+.details-divider {
+    height: 1px;
+    background: linear-gradient(90deg, #e5e7eb 0%, transparent 100%);
+    margin-bottom: 20px;
+}
+
+/* Content */
+.details-content {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #374151;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Typography Styles */
+.details-content h1,
+.details-content h2,
+.details-content h3,
+.details-content h4,
+.details-content h5,
+.details-content h6 {
+    font-weight: 700;
+    color: #111827;
+    margin-top: 24px;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.details-content h1 {
+    font-size: 24px;
+}
+
+.details-content h2 {
+    font-size: 20px;
+}
+
+.details-content h3 {
+    font-size: 18px;
+}
+
+.details-content h4 {
+    font-size: 16px;
+}
+
+.details-content h5,
+.details-content h6 {
+    font-size: 14px;
+}
+
+.details-content p {
+    margin-bottom: 16px;
+    line-height: 1.8;
+}
+
+.details-content p:last-child {
+    margin-bottom: 0;
+}
+
+/* Lists */
+.details-content ul,
+.details-content ol {
+    margin-bottom: 16px;
+    padding-left: 24px;
+}
+
+.details-content li {
+    margin-bottom: 8px;
+    line-height: 1.8;
+}
+
+.details-content ul li {
+    list-style-type: disc;
+}
+
+.details-content ol li {
+    list-style-type: decimal;
+}
+
+/* Links */
+.details-content a {
+    color: #2563eb;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.details-content a:hover {
+    color: #1d4ed8;
+}
+
+/* Blockquotes */
+.details-content blockquote {
+    margin: 20px 0;
+    padding: 16px 20px;
+    border-left: 4px solid #22c55e;
+    background: #f9fafb;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    color: #4b5563;
+}
+
+/* Code */
+.details-content code {
+    padding: 2px 6px;
+    background: #f3f4f6;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #dc2626;
+}
+
+.details-content pre {
+    background: #1f2937;
+    color: #f9fafb;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+}
+
+.details-content pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 13px;
+}
+
+/* Tables */
+.details-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.details-content th,
+.details-content td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.details-content th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #111827;
+}
+
+.details-content tr:last-child td {
+    border-bottom: none;
+}
+
+.details-content tr:hover {
+    background: #f9fafb;
+}
+
+/* Images */
+.details-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 16px 0;
+    display: block;
+}
+
+/* Horizontal Rule */
+.details-content hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, #e5e7eb 50%, transparent 100%);
+    margin: 24px 0;
+}
+
+/* Strong and Emphasis */
+.details-content strong,
+.details-content b {
+    font-weight: 700;
+    color: #111827;
+}
+
+.details-content em,
+.details-content i {
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .post-details-card {
+        padding: 16px;
+        border-radius: 10px;
+    }
+
+    .details-header {
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .details-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+        border-radius: 8px;
+    }
+
+    .details-title {
+        font-size: 16px;
+    }
+
+    .details-divider {
+        margin-bottom: 16px;
+    }
+
+    .details-content {
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+    .details-content h1 {
+        font-size: 20px;
+    }
+
+    .details-content h2 {
+        font-size: 18px;
+    }
+
+    .details-content h3 {
+        font-size: 16px;
+    }
+
+    .details-content h4 {
+        font-size: 15px;
+    }
+
+    .details-content h5,
+    .details-content h6 {
+        font-size: 14px;
+    }
+
+    .details-content ul,
+    .details-content ol {
+        padding-left: 20px;
+    }
+
+    .details-content blockquote {
+        padding: 12px 16px;
+        margin: 16px 0;
+    }
+
+    .details-content table {
+        font-size: 12px;
+    }
+
+    .details-content th,
+    .details-content td {
+        padding: 10px 8px;
+    }
+
+    .details-content pre {
+        padding: 12px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .post-details-card {
+        padding: 14px;
+    }
+
+    .details-header {
+        gap: 8px;
+    }
+
+    .details-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 13px;
+    }
+
+    .details-title {
+        font-size: 15px;
+    }
+
+    .details-content {
+        font-size: 12px;
+    }
+
+    .details-content h1 {
+        font-size: 18px;
+        margin-top: 20px;
+    }
+
+    .details-content h2 {
+        font-size: 16px;
+        margin-top: 18px;
+    }
+
+    .details-content h3 {
+        font-size: 15px;
+        margin-top: 16px;
+    }
+
+    .details-content p {
+        margin-bottom: 12px;
+    }
+
+    .details-content li {
+        margin-bottom: 6px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .post-details-card {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+    }
+
+    .details-icon {
+        display: none;
+    }
+
+    .details-content {
+        font-size: 12pt;
+        color: #000;
+    }
+
+    .details-content a {
+        color: #000;
+        text-decoration: none;
+    }
+}

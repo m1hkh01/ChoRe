@@ -1,15 +1,22 @@
 import { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUser, faComment, faPhone, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import api from "@/api";
 import { useAuthStore } from "@/store/auth";
 import { useNavigate } from "react-router-dom";
+import "@/assets/PostSeller.css";
 
 function PostSeller({ user, postId }) {
-     console.log("PostSeller user:", user);
     const [showPhone, setShowPhone] = useState(false);
     const { user: buyer } = useAuthStore();
     const navigate = useNavigate();
 
     const CreateChat = async () => {
+        if (!buyer) {
+            navigate("/login");
+            return;
+        }
+
         try {
             await api.post("/api/chat", {
                 buyerId: buyer.userId,
@@ -19,64 +26,72 @@ function PostSeller({ user, postId }) {
             navigate("/chat");
         } catch (error) {
             console.error("Lỗi tạo phòng chat:", error);
+            alert("Không thể tạo cuộc trò chuyện");
         }
     };
 
     const maskPhone = (phone) => {
         if (!phone) return "";
-        return phone.slice(0, 5) + "*".repeat(phone.length - 5);
+        const visiblePart = phone.slice(0, 4);
+        const maskedPart = "*".repeat(phone.length - 4);
+        return visiblePart + maskedPart;
     };
 
     return (
-        <div className="mt-3">
-            {/* LABEL */}
-            <div className="fw-bold mb-2">Người bán</div>
-
-            {/* AVATAR + NAME */}
-            <div className="d-flex align-items-center gap-2 mb-3">
-                <img
-                    src={
-                        user.avatar
-                            ? `http://localhost:5121/uploads/${user.avatar}`
-                            : "/default-avatar.png"
-                    }
-                    alt="avatar"
-                    width={42}
-                    height={42}
-                    className="rounded-circle object-fit-cover"
-                />
-
-                <span className="fw-semibold" style={{ fontSize: "14px" }}>
-                    {user.fullName}
-                </span>
+        <div className="seller-card" style={{marginTop: 10}}>
+            {/* Header */}
+            <div className="seller-header">
+                {/* <div className="seller-icon">
+                    <FontAwesomeIcon icon={faUser} />
+                </div> */}
+                <h3 className="seller-title">Thông tin người bán</h3>
             </div>
 
-            {/* ACTIONS */}
-            <div className="d-flex gap-2">
-                <button
-                    type="button"
-                    onClick={CreateChat}
-                    className="flex-fill py-2 rounded border-0 fw-bold text-white"
-                    style={{ backgroundColor: "#22c55e" }}
-                >
-                    Chat
+            <div className="seller-divider"></div>
+
+            {/* Seller Info */}
+            <div className="seller-info">
+                <div className="seller-avatar">
+                    {user.avatar ? (
+                        <img
+                            src={`http://localhost:5121/uploads/${user.avatar}`}
+                            alt={user.fullName}
+                        />
+                    ) : (
+                        <FontAwesomeIcon icon={faUser} />
+                    )}
+                </div>
+                <div className="seller-details">
+                    <div className="seller-name">{user.fullName}</div>
+                    <div className="seller-status">Người bán</div>
+                </div>
+            </div>
+
+            {/* Actions */}
+            <div className="seller-actions">
+                <button className="action-btn action-btn-primary" onClick={CreateChat}>
+                    <FontAwesomeIcon icon={faComment} />
+                    <span>Chat ngay</span>
                 </button>
 
                 {!showPhone ? (
                     <button
-                        className="flex-fill py-2 rounded bg-light border fw-semibold"
+                        className="action-btn action-btn-secondary"
                         onClick={() => setShowPhone(true)}
                     >
-                        {maskPhone(user.phoneNumber)}
+                        <FontAwesomeIcon icon={faEye} />
+                        <span>{maskPhone(user.phoneNumber)}</span>
                     </button>
                 ) : (
                     <a
                         href={`tel:${user.phoneNumber}`}
-                        className="flex-fill py-2 rounded btn btn-outline-success fw-semibold d-flex align-items-center justify-content-center"
+                        className="action-btn action-btn-phone"
                     >
-                        {user.phoneNumber}
+                        <FontAwesomeIcon icon={faPhone} />
+                        <span>{user.phoneNumber}</span>
                     </a>
                 )}
+
             </div>
         </div>
     );

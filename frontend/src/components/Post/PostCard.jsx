@@ -1,97 +1,107 @@
-    import { Link } from "react-router-dom";
-    import "./PostCard.css";
-    import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-    import { faMapMarkerAlt, faStore } from "@fortawesome/free-solid-svg-icons";
+import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMapMarkerAlt, faUser, faHeart } from "@fortawesome/free-solid-svg-icons";
+import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
+import { useState } from "react";
+import "./PostCard.css";
 
-    function PostCard({ post }) {
-        // ✅ Hàm hiển thị giá theo kiểu
-        const renderPrice = () => {
-            if (!post.priceType) {
-                return <span className="card-price">Liên hệ</span>;
-            }
+function PostCard({ post }) {
+    const [isFavorite, setIsFavorite] = useState(false);
 
-            switch (post.priceType) {
-                case "NEGOTIABLE":
-                    return (
-                        <span className="card-price negotiable">
-                            Thương lượng
-                        </span>
-                    );
+    const renderPrice = () => {
+        if (!post.priceType) {
+            return <span className="price-text price-contact">Liên hệ</span>;
+        }
 
-                case "FIXED":
-                    return (
-                        <span className="card-price fixed">
-                            {post.price ? post.price.toLocaleString('vi-VN') + " ₫" : "Liên hệ"}
-                        </span>
-                    );
+        switch (post.priceType) {
+            case "NEGOTIABLE":
+                return <span className="price-text price-negotiable">Thương lượng</span>;
+            case "FIXED":
+                return (
+                    <span className="price-text price-fixed">
+                        {post.price ? post.price.toLocaleString('vi-VN') + " ₫" : "Liên hệ"}
+                    </span>
+                );
+            case "RANGE":
+                return (
+                    <span className="price-text price-range">
+                        {post.minPrice?.toLocaleString('vi-VN')} - {post.maxPrice?.toLocaleString('vi-VN')} ₫
+                    </span>
+                );
+            default:
+                return <span className="price-text price-contact">Liên hệ</span>;
+        }
+    };
 
-                case "RANGE":
-                    return (
-                        <span className="card-price range">
-                            {post.minPrice?.toLocaleString('vi-VN')} - {post.maxPrice?.toLocaleString('vi-VN')} ₫
-                        </span>
-                    );
+    const handleFavoriteClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsFavorite(!isFavorite);
+    };
 
-                default:
-                    return <span className="card-price">Liên hệ</span>;
-            }
-        };
-
-        return (
-            <Link to={`/posts/${post.postId}`} className="post-card-link">
-                <div className="post-card">
-                    {/* THUMBNAIL */}
-                    <div className="card-image-wrapper">
-                        <img
-                            src={
-                                post.thumbnail
-                                    ? `http://localhost:5121/uploads/${post.thumbnail}`
-                                    : "/no-image.png"
-                            }
-                            alt={post.title}
-                            className="card-image"
+    return (
+        <div className="post-card-container">
+            <Link to={`/posts/${post.postId}`} className="post-card">
+                {/* Image Section */}
+                <div className="post-card-image-wrapper">
+                    <img
+                        src={post.thumbnail ? `http://localhost:5121/uploads/${post.thumbnail}` : "/no-image.png"}
+                        alt={post.title}
+                        className="post-card-image"
+                        loading="lazy"
+                    />
+                    
+                    {/* Favorite Button */}
+                    <button
+                        onClick={handleFavoriteClick}
+                        className="favorite-btn"
+                        aria-label="Add to favorites"
+                    >
+                        <FontAwesomeIcon 
+                            icon={isFavorite ? faHeart : faHeartRegular} 
+                            className={isFavorite ? "favorite-active" : ""}
                         />
-                        <div className="card-overlay"></div>
+                    </button>
+                </div>
+
+                {/* Content Section */}
+                <div className="post-card-body">
+                    {/* Title */}
+                    <h3 className="post-title">{post.title}</h3>
+
+                    {/* Price */}
+                    <div className="post-price">
+                        {renderPrice()}
                     </div>
 
-                    {/* CONTENT */}
-                    <div className="card-content">
-                        {/* TITLE */}
-                        <h3 className="card-title" title={post.title}>
-                            {post.title}
-                        </h3>
-
-                        {/* PRICE - HIGHLIGHT */}
-                        <div className="card-price-section">
-                            {renderPrice()}
-                        </div>
-
-                        {/* DESCRIPTION */}
-                        <div
-                            className="card-desc"
-                            dangerouslySetInnerHTML={{
-                                __html: post.shortDescription
-                            }}
+                    {/* Description */}
+                    {post.shortDescription && (
+                        <p 
+                            className="post-description"
+                            dangerouslySetInnerHTML={{ __html: post.shortDescription }}
                         />
+                    )}
 
-                        {/* FOOTER */}
-                        <div className="card-footer">
-                            {/* ADDRESS */}
-                            <div className="card-address">
-                                <FontAwesomeIcon icon={faMapMarkerAlt} className="icon-small" />
+                    {/* Footer Info */}
+                    <div className="post-footer">
+                        {post.address && (
+                            <div className="post-info">
+                                <FontAwesomeIcon icon={faMapMarkerAlt} />
                                 <span>{post.address}</span>
                             </div>
-
-                            {/* SELLER */}
-                            <div className="card-seller">
-                                <FontAwesomeIcon icon={faStore} className="icon-small" />
+                        )}
+                        
+                        {post.userName && (
+                            <div className="post-info">
+                                <FontAwesomeIcon icon={faUser} />
                                 <span>{post.userName}</span>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </Link>
-        );
-    }
+        </div>
+    );
+}
 
-    export default PostCard;
+export default PostCard;

@@ -3,9 +3,9 @@ import "@/assets/admin.css";
 import { useAuthStore } from "../store/auth";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-    faFileLines, 
-    faUsers, 
+import {
+    faFileLines,
+    faUsers,
     faBox,
     faNewspaper,
     faTags,
@@ -38,18 +38,22 @@ function AdminLayout() {
             <aside className="sidebar">
                 {/* ADMIN INFO */}
                 <div className="admin-info">
-                    <Link to="/" className="admin-logo-link">
-                        <img src="/logo.png" alt="logo" className="admin-logo" />
+                    <Link to="/" className="header-logo desktop-only">
+                        <img
+                            src="/logodenrmvbg.png"
+                            alt="LogoChoRe"
+                            className="h-8 w-10 object-contain"
+                        />
                     </Link>
-                    <h3 className="admin-name">{ user.fullName }</h3>
-                    <span className="admin-role">Administrator</span>
+
+                    <h3 className="admin-name">Hi, {user.fullName}</h3>
                 </div>
 
                 {/* MENU */}
                 <nav className="menu">
                     {/* QUẢN LÝ NỘI DUNG */}
                     <div className="menu-group">
-                        <button 
+                        <button
                             className="menu-group-toggle"
                             onClick={() => toggleMenu("content")}
                         >
@@ -58,7 +62,7 @@ function AdminLayout() {
                                 <span>Quản lý Nội dung</span>
                             </span>
                             <span className={`arrow ${expandedMenu.content ? "open" : ""}`}>
-                                <FontAwesomeIcon icon={expandedMenu.content ? faBars : faBars} style={{transform: 'rotate(-90deg)'}} />
+                                <FontAwesomeIcon icon={expandedMenu.content ? faBars : faBars} style={{ transform: 'rotate(-90deg)' }} />
                             </span>
                         </button>
                         <div className={`menu-submenu ${expandedMenu.content ? "show" : ""}`}>
@@ -82,7 +86,7 @@ function AdminLayout() {
 
                     {/* QUẢN LÝ NGƯỜI DÙNG */}
                     <div className="menu-group">
-                        <button 
+                        <button
                             className="menu-group-toggle"
                             onClick={() => toggleMenu("users")}
                         >
@@ -91,7 +95,7 @@ function AdminLayout() {
                                 <span>Quản lý Người dùng</span>
                             </span>
                             <span className={`arrow ${expandedMenu.users ? "open" : ""}`}>
-                                <FontAwesomeIcon icon={faBars} style={{transform: 'rotate(-90deg)'}} />
+                                <FontAwesomeIcon icon={faBars} style={{ transform: 'rotate(-90deg)' }} />
                             </span>
                         </button>
                         <div className={`menu-submenu ${expandedMenu.users ? "show" : ""}`}>
@@ -106,7 +110,7 @@ function AdminLayout() {
 
                     {/* QUẢN LÝ DỊCH VỤ */}
                     <div className="menu-group">
-                        <button 
+                        <button
                             className="menu-group-toggle"
                             onClick={() => toggleMenu("services")}
                         >
@@ -115,7 +119,7 @@ function AdminLayout() {
                                 <span>Quản lý Dịch vụ</span>
                             </span>
                             <span className={`arrow ${expandedMenu.services ? "open" : ""}`}>
-                                <FontAwesomeIcon icon={faBars} style={{transform: 'rotate(-90deg)'}} />
+                                <FontAwesomeIcon icon={faBars} style={{ transform: 'rotate(-90deg)' }} />
                             </span>
                         </button>
                         <div className={`menu-submenu ${expandedMenu.services ? "show" : ""}`}>
@@ -131,7 +135,7 @@ function AdminLayout() {
 
                 {/* FOOTER SECTION */}
                 <div className="sidebar-footer">
-                    <button className="logout-btn" onClick={() => {}}>
+                    <button className="logout-btn" onClick={() => { }}>
                         <FontAwesomeIcon icon={faSignOutAlt} />
                         <span>Đăng xuất</span>
                     </button>
