@@ -5,6 +5,41 @@
     margin: 0 auto;
     padding: 8px;
 }
+.post-status {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 8px;
+    color: white;
+    background: black;
+    z-index: 5;
+}
+
+/* Approved */
+.post-approved {
+    background: #22c55e;
+}
+
+/* Pending */
+.post-pending {
+    background: #f59e0b;
+}
+
+/* Rejected */
+.post-rejected {
+    background: #ef4444;
+}
+
+/* Sold */
+.post-sold {
+    background: #6b7280;
+}
+.post-card-image-wrapper {
+    position: relative;
+}
 
 .post-card {
     display: flex;

@@ -33,6 +33,8 @@ import CategoryManager from "./pages/AdminComponents/CategoryManager";
 import BrandCategoryManager from "./pages/AdminComponents/BrandCategoryManager";
 import SpecificationManager from "./pages/AdminComponents/SpecificationManager";
 import EscrowTransactions from "./pages/AdminComponents/EscrowTransactions";
+import Profile from "./pages/Profile";
+import ProfilePage from "./pages/Profile";
 
 function App() {
   return (
@@ -52,7 +54,16 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/:userId" element={<ProfilePage />} />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/pay/transaction/:transactionId"
           element={

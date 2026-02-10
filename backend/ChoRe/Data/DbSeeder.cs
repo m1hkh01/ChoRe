@@ -122,7 +122,10 @@ namespace ChoReDB.Data
             modelBuilder.Entity<PostStatus>().HasData(
                 new PostStatus { PostStatusId = 1, PostStatusName = "Pending", Description = "Tin đăng đang chờ phê duyệt!" },
                 new PostStatus { PostStatusId = 2, PostStatusName = "Approved", Description = "Tin đăng đã được phê duyệt!" },
-                new PostStatus { PostStatusId = 3, PostStatusName = "Reject", Description = "Tin đăng đã bị từ chối!" }
+                new PostStatus { PostStatusId = 3, PostStatusName = "Reject", Description = "Tin đăng đã bị từ chối!" },
+                new PostStatus { PostStatusId = 4, PostStatusName = "Selling", Description = "Tin đang được rao bán" },
+                new PostStatus { PostStatusId = 5, PostStatusName = "Sold", Description = "Tin đã bán xong" },
+                new PostStatus { PostStatusId = 6, PostStatusName = "Hidden", Description = "Tin đã ẩn" }
             );
 
             // ================= POST ================= 
