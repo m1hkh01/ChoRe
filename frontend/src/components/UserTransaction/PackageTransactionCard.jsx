@@ -3,7 +3,7 @@ import { STATUS_STYLES } from "../../constants/StatusStyles";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
 
 export default function PackageTransactionCard({ transaction, setSelectedTransaction }) {
-
+    console.log("Package: ", transaction);
     return (
         <div className="bg-white rounded-2xl flex gap-2 w-full justify-between border border-gray-100 shadow-sm p-3 hover:shadow-md transition">
 

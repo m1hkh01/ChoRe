@@ -18,11 +18,18 @@ public class TransactionExpireService : BackgroundService
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
             var expiredTransactions = await context.EscrowTransations
-                .Where(t => t.EscrowTransStatusId == EscrowStatus.Confirming && t.ExpiredAt < DateTime.UtcNow)
+                .Where(t =>
+                    (
+                        t.EscrowTransStatusId == EscrowStatus.Confirming
+                        || t.EscrowTransStatusId == EscrowStatus.PendingPayment
+                    )
+                    && t.ExpiredAt < DateTime.UtcNow)
                 .ToListAsync(stoppingToken);
+
 
             if (expiredTransactions.Any())
             {
+                Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                 foreach (var transation in expiredTransactions)
                     transation.EscrowTransStatusId = EscrowStatus.Expired;
 

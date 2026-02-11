@@ -27,12 +27,12 @@ export default function EscrowTransactions() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const paginatedData = transactions.slice(startIndex, startIndex + itemsPerPage);
 
+    const loadData = async () => {
+        console.log("Filter: ",filter)
+        const res = await api.post('api/admin/transactions/filter',filter);
+        setTransactions(res.data);
+    };
     useEffect(() => {
-        const loadData = async () => {
-            console.log("Filter: ",filter)
-            const res = await api.post('api/admin/transactions/filter',filter);
-            setTransactions(res.data);
-        };
         loadData();
     },[filter])
 
@@ -56,6 +56,7 @@ export default function EscrowTransactions() {
                 <EscrowPreviewModal
                     transaction={selected}
                     onClose={() => setSelected(null)}
+                    reload={loadData}
                 />
             )}
         </div>

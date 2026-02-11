@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ChoRe.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -345,7 +345,7 @@ namespace ChoRe.Migrations
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     OrdStatusId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    PaidAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    PaidAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ExpiredAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
@@ -940,7 +940,7 @@ namespace ChoRe.Migrations
                     { 7, "Tranh chấp", "Disputing" },
                     { 8, "Yêu cầu hoàn tiền", "RefundRequested" },
                     { 9, "Từ chối hoàn tiền", "RefundRejected" },
-                    { 10, "Đã hoàn tiền cho người dùng", "Refunded" }
+                    { 10, "Đã hoàn tiền", "Refunded" }
                 });
 
             migrationBuilder.InsertData(
@@ -960,7 +960,10 @@ namespace ChoRe.Migrations
                 {
                     { 1, "Tin đăng đang chờ phê duyệt!", "Pending" },
                     { 2, "Tin đăng đã được phê duyệt!", "Approved" },
-                    { 3, "Tin đăng đã bị từ chối!", "Reject" }
+                    { 3, "Tin đăng đã bị từ chối!", "Reject" },
+                    { 4, "Tin đang được rao bán", "Selling" },
+                    { 5, "Tin đã bán xong", "Sold" },
+                    { 6, "Tin đã ẩn", "Hidden" }
                 });
 
             migrationBuilder.InsertData(

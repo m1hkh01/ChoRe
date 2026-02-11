@@ -194,7 +194,7 @@ function Header() {
                                 className="profile-avatar"
                                 onClick={() => setProfileOpen(!profileOpen)}
                             >
-                                <img src="https://i.pravatar.cc/40" alt="Profile" />
+                                    <img src={`http://localhost:5121/uploads/${user.avatar}`} alt="Profile" />
                             </button>
 
                             {profileOpen && (

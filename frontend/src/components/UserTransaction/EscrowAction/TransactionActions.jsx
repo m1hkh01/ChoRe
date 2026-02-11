@@ -1,13 +1,60 @@
+import { useState } from "react";
+import api from "../../../api";
 import { ActionGroup } from "./ActionGroup";
+import { Toast } from "../../../utils/toast";
+import { useNavigate } from "react-router-dom";
 
-export function TransactionActions({ status, isBuyer }) {
+export function TransactionActions({
+    status,
+    isBuyer,
+    currentPrice,
+    setPrice,
+    confirmByCurrentUser,
+    openReasonModal,
+    openEvidenceModal,
+    handleConfirm,
+    handleUpdateStatusTransaction,
+    handlePayment,
+    disputeId,
+    hasEvidence,
+    disputeStatus
+}) {
     if (status === "Confirming") {
-        return (
-            <ActionGroup
-                primary="Xác nhận"
-                secondary="Hủy"
-            />
-        );
+        if (confirmByCurrentUser) {
+            return (
+                <ActionGroup
+                    primary={`Chờ ${isBuyer ? "người bán" : "người mua"} xác nhận`}
+                    secondary="Hủy"
+                    onSecondary={()=>handleUpdateStatusTransaction("reject","Đã hủy giao dịch")}
+                    primaryDisabled
+                />
+            )
+        }
+        if (!confirmByCurrentUser) {
+            return (
+                <ActionGroup
+                    primary="Xác nhận"
+                    secondary="Hủy"
+                    onPrimary={handleConfirm}
+                    onSecondary={()=>handleUpdateStatusTransaction("reject", "Đã hủy giao dịch")}
+                    extra={
+                        !isBuyer && (
+                            <input
+                                type="text"
+                                placeholder={`Giá hiện tại: ${currentPrice}`}
+                                // disabled={currentPrice != 0}
+                                onChange={(e) => {
+                                    const raw = e.target.value.replace(/\D/g, "");
+                                    e.target.value = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                                    setPrice(raw)
+                                }}
+                                className="rounded-xl p-2 w-60 h-max border shadow-sm"
+                            />
+                        )
+                    }
+                />
+            );
+        }
     }
 
     if (status === "PendingPayment" && isBuyer) {
@@ -15,6 +62,8 @@ export function TransactionActions({ status, isBuyer }) {
             <ActionGroup
                 primary="Thanh toán"
                 secondary="Hủy giao dịch"
+                onPrimary={handlePayment}
+                onSecondary={()=>handleUpdateStatusTransaction("reject", "Đã hủy giao dịch")}
             />
         );
     }
@@ -22,7 +71,10 @@ export function TransactionActions({ status, isBuyer }) {
     if (status === "Paid" && isBuyer) {
         return (
             <ActionGroup
-                primary="Yêu cầu hoàn tiền"
+                primary="Đã nhận được hàng"
+                secondary="Yêu cầu hoàn tiền"
+                onPrimary={()=>handleUpdateStatusTransaction("complete","Giao dịch đã hoàn tất")}
+                onSecondary={()=>openReasonModal()}
             />
         );
     }
@@ -32,24 +84,38 @@ export function TransactionActions({ status, isBuyer }) {
             return (
                 <ActionGroup
                     primary="Hủy yêu cầu hoàn tiền"
+                    onPrimary={()=>handleUpdateStatusTransaction("refund-cancel", "Đã hủy bỏ yêu cầu hoàn tiền")}
                 />
             );
         }
-
         return (
             <ActionGroup
                 primary="Chấp nhận hoàn tiền"
                 secondary="Từ chối hoàn tiền"
+                onPrimary={()=>handleUpdateStatusTransaction("refund-confirm", "Đã đồng ý yêu cầu hoàn tiền", disputeId)}
+                onSecondary={()=>handleUpdateStatusTransaction("refund-reject", "Đã từ chối yêu cầu hoàn tiền", disputeId)}
             />
         );
     }
-    if (status === "RefundRejected" && isBuyer) {
+    if (status === "RefundRejected" && isBuyer && disputeStatus != "ResolvedReject") {
+        // console.log("DisputeStatus: ");
         return (
             <ActionGroup
                 primary="Yêu cầu hệ thống can thiệp"
                 secondary="Hủy yêu cầu hoàn tiền"
+                onPrimary={()=>openEvidenceModal()}
+                onSecondary={()=>handleUpdateStatusTransaction("refund-cancel", "Đã hủy bỏ yêu cầu hoàn tiền", disputeId)}
             />
         );
+    }
+    if (status === "Disputing") {
+        return (
+            <ActionGroup
+                primary={`${hasEvidence ? "Nộp thêm bằng chứng" : "Nộp bằng chứng"}`}
+                secondary="Bằng chứng đã nộp"
+                onPrimary={() => openEvidenceModal()}
+            />
+        )
     }
 
     return null;

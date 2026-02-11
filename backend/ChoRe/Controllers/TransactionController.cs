@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Transactions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -28,21 +29,34 @@ public class TransactionController : ControllerBase
     }
 
     [HttpPost("escrow/{id:int}")]
-    public async Task<IActionResult> GetEscrowTransactionById(int id,[FromBody] EscrowTransactionFilterRequest req)
+    public async Task<IActionResult> GetEscrows(int id,[FromBody] EscrowTransactionFilterRequest req)
     {
-        var transaction = await _transactionService.GetEscrowTransationByIdAsync(id, req);
+        var transaction = await _transactionService.GetEscrowsByIdAsync(id, req);
         if (transaction == null) return NotFound();
 
         return Ok(transaction);
     }
     [HttpPost("service/{id:int}")]
-    public async Task<IActionResult> GetServiceTransactionById(int id,[FromBody] EscrowTransactionFilterRequest req)
+    public async Task<IActionResult> GetServices(int id, [FromBody] EscrowTransactionFilterRequest req)
     {
-        var transaction = await _transactionService.GetServiceTransationByIdAsync(id, req);
+        var transaction = await _transactionService.GetServicesByIdAsync(id, req);
         if (transaction == null) return NotFound();
 
         return Ok(transaction);
     }
+    
+    
+    [HttpGet("escrow-pay/{id:int}")]
+    public async Task<IActionResult> GetEscrowById(int id)
+    {
+        var escrow = await _transactionService.GetEscrowByIdAsync(id);
+        if (escrow is null)
+        {
+            return NotFound();
+        }
+        return Ok(escrow);
+    }
+
     [HttpPost("pay")]
     public async Task<IActionResult> PayTransaction([FromBody] PayOrderRequest rq)
     {
@@ -71,5 +85,52 @@ public class TransactionController : ControllerBase
         {
             return BadRequest(new { error = "Có lỗi xảy ra : " + ex.Message });
         }
+    }
+    [HttpPost("confirm")]
+    public async Task<IActionResult> ConfirmTransaction(ConfirmTransactionDto req)
+    {
+        var transaction = await _transactionService.ConfirmTransaction(req.TransactionId, req.IsBuyer, req.PostPrice, req.UpdatePrice);
+        if (transaction is null)
+        {
+            return NotFound(new { Message = "Đã có lỗi xảy ra vui lòng thử lại sau" });
+        }
+        return Ok(new { Message = "Xác nhận giao dịch thành công" });
+    }
+    [HttpPut("reject/{id:int}")]
+    public async Task<IActionResult> RejectTransaction(int id)
+    {
+        await _transactionService.RejectTransaction(id);
+        return Ok();
+    }
+    [HttpPost("refund/{id:int}")]
+    public async Task<IActionResult> RefundRequest(int id,[FromBody] RefundRequestDto req)
+    {
+        await _transactionService.RefundRequest(id, req);
+        return Ok();
+    }
+    [HttpPut("complete/{id:int}")]
+    public async Task<IActionResult> CompleteTransaction(int id)
+    {
+        await _transactionService.CompleteTransaction(id);
+        return Ok();
+    }
+    [HttpPut("refund-confirm/{id:int}")]
+    public async Task<IActionResult> RefundConfirmTransaction(int id)
+    {
+        await _transactionService.RefundConfirmTransaction(id);
+        return Ok();
+    }
+    [HttpPut("refund-reject/{id:int}")]
+    public async Task<IActionResult> RefundRejectTransaction(int id)
+    {
+        await _transactionService.RefundRejectTransaction(id);
+        return Ok();
+    }
+    [HttpPost("refund-system/{id:int}")]
+    public async Task<IActionResult> RefundSystemTransaction(int id, List<DisEvidenceDto>? evidence)
+    {
+        var userId = int.Parse(User.FindFirst("UserId").Value);
+        await _transactionService.RefundSystemTransaction(id, evidence, userId);
+        return Ok();
     }
 }

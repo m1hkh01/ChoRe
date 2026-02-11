@@ -151,10 +151,8 @@ public class ChatHub : Hub
     {
         try
         {
-            var transaction = await _context.EscrowTransations
-                                    .Include(t => t.EscrowTransStatus)
-                                    .Include(t => t.ChatMessage)
-                                    .FirstOrDefaultAsync(t => t.EscrowTransId == transactionId);
+            var transaction = await _transactionService.ConfirmTransaction(transactionId, isBuyer, postPrice, updatePrice);
+            await _context.SaveChangesAsync();
             
             if (transaction is null)
             {
@@ -165,25 +163,6 @@ public class ChatHub : Hub
                 });
                 return;
             }
-            if (isBuyer)
-                transaction.BuyerConfirmed = true;
-            else
-                transaction.SellerConfirmed = true;
-            if (transaction.BuyerConfirmed && transaction.SellerConfirmed)
-            {
-                transaction.EscrowTransStatusId = 2; // 2 = PendingPayment (Chờ thanh toán);
-            }
-            if (updatePrice)
-            {                
-                var platformFee = Math.Round(postPrice * 0.05M);
-                transaction.PostPrice = postPrice;
-                transaction.PlatformFee = platformFee;
-                transaction.TotalAmount = postPrice + platformFee;
-            }
-            await _context.SaveChangesAsync();
-            await _context.Entry(transaction)
-                .Reference(t => t.EscrowTransStatus)
-                .LoadAsync();
 
             // Gửi giao dịch về Client để cập nhật trạng thái giao dịch
             var chatMessage = transaction.ChatMessage;

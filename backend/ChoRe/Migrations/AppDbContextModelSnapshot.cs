@@ -1319,6 +1319,24 @@ namespace ChoRe.Migrations
                             PostStatusId = 3,
                             Description = "Tin đăng đã bị từ chối!",
                             PostStatusName = "Reject"
+                        },
+                        new
+                        {
+                            PostStatusId = 4,
+                            Description = "Tin đang được rao bán",
+                            PostStatusName = "Selling"
+                        },
+                        new
+                        {
+                            PostStatusId = 5,
+                            Description = "Tin đã bán xong",
+                            PostStatusName = "Sold"
+                        },
+                        new
+                        {
+                            PostStatusId = 6,
+                            Description = "Tin đã ẩn",
+                            PostStatusName = "Hidden"
                         });
                 });
 

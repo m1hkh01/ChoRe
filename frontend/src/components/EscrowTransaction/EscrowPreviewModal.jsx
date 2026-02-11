@@ -3,8 +3,9 @@ import DisputeAction from "./DisputeAction";
 import { DecisionModal } from "./DecisionModal";
 import { Toast } from "../../utils/toast";
 import api from "../../api";
+import { STATUS_STYLES } from "../../constants/StatusStyles";
 
-export default function EscrowPreviewModal({ transaction, onClose }) {
+export default function EscrowPreviewModal({ transaction, onClose, reload}) {
     const [openDecision, setOpenDecision] = useState(false);
     const [disputeData, setDisputeData] = useState({
         EscrowTransId: transaction.transactionId,
@@ -73,7 +74,7 @@ export default function EscrowPreviewModal({ transaction, onClose }) {
 
                                     <div className="w-[40%]">
                                         <p className="text-gray-500 my-2">Trạng thái</p>
-                                        <span className="inline-block px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                                        <span className={`inline-block px-3 py-1 text-xs rounded-full ${STATUS_STYLES[transaction.status]}`}>
                                             {transaction.statusDescription}
                                         </span>
                                     </div>

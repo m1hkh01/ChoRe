@@ -13,7 +13,7 @@ export default function TransactionPayPage() {
         const fetchTransaction = async () => {
             try {
                 const res = await api.get(
-                    `/api/transaction/${Number(transactionId)}`
+                    `/api/transaction/escrow-pay/${Number(transactionId)}`
                 );
                 setTransaction(res.data);
             } catch (err) {

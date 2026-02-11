@@ -3,12 +3,135 @@ import { STATUS_STYLES } from "../../constants/StatusStyles";
 import { useTransactionTimer } from "../Chat/TransactionCard/useTransactionTimer";
 import { faClock } from "@fortawesome/free-solid-svg-icons";
 import { TransactionActions } from "./EscrowAction/TransactionActions";
+import { useState } from "react";
+import { useAuthStore } from "../../store/auth";
+import { ReasonRefundModal } from "./EscrowAction/ReasonRefundModal";
+import { useNavigate } from "react-router-dom";
+import { Toast } from "../../utils/toast";
+import api from "../../api";
+import { EvidenceModal } from "./EscrowAction/EvidenceModal";
 
-export function EscrowTransactionCard({ transaction, currentUserIsSeler }) {
-    
+export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}) {
+    const [openReasonRefundModal, setOpenReasonRefundModal] = useState(false);
+    const [openEvidenceModal, setOpenEvidenceModal] = useState(false);
+    const { user } = useAuthStore();
+    const [price, setPrice] = useState(transaction.postPrice);
+    const [dispute, setDispute] = useState({
+        EscrowTransId: Number(transaction.transactionId),
+        OpenedByUserId: Number(user.userId),
+        DisputeReason: ""
+    })
+    const navigate = useNavigate();
     const { timeRemaining } = useTransactionTimer(transaction)
     const formatMoney = (value) =>
         value.toLocaleString("vi-VN") + " đ";
+    const confirmByCurrentUser = (!currentUserIsSeler && transaction.buyerConfirmed) ||
+        (currentUserIsSeler && transaction.sellerConfirmed);
+    // console.log("ConfirmbyCurrentUser: ", !currentUserIsSeler);
+
+    // Handle Action
+    const handleUpdateStatusTransaction = async (apiName, successMessage, id = transaction.transactionId) => {
+        try {
+            await api.put(`api/transaction/${apiName}/${Number(id)}`);
+            Toast.fire({
+                icon: "success",
+                title: `${successMessage}`
+            })
+            reload();
+        }
+        catch (e) {
+            console.log("co loi xay ra: ", e);
+            Toast.fire({
+                icon: "error",
+                title: "Có lỗi xảy ra vui lòng thử lại"
+            });
+        }
+    }
+
+    const handleConfirm = async () => {
+        try {
+            if (price === 0) {
+                Toast.fire({
+                    icon: "error",
+                    title: "Giá không được < 0"
+                });
+                return;
+            }
+            const req = {
+                TransactionId: transaction.transactionId,
+                IsBuyer: !currentUserIsSeler,
+                PostPrice: Number(price),
+                UpdatePrice: price != transaction.postPrice
+            }
+            const res = await api.post("api/transaction/confirm", req);
+            Toast.fire({
+                icon: "success",
+                title: res.data.message
+            })
+            reload();
+        }
+        catch (e) {
+            console.log("co loi xay ra: ", e);
+            Toast.fire({
+                icon: "error",
+                title: "Có lỗi xảy ra vui lòng thử lại sau"
+            });
+        }
+    }
+    const handlePayment = () => {
+        navigate(`/pay/transaction/${transaction.transactionId}`)
+    }
+    const handleRefundTransaction = async () =>{
+        try{
+            if (dispute.DisputeReason == '') {
+            Toast.fire({
+                icon: "error",
+                title:"Vui lòng chọn lý do hoàn tiền"
+            })
+            return; 
+        }
+            await api.post(`api/transaction/refund/${Number(transaction.transactionId)}`, dispute);
+            Toast.fire({
+                icon: "success",
+                title: "Đã gửi yêu cầu hoàn tiền"
+            })
+            reload();
+            setOpenReasonRefundModal(false);
+        }
+        catch (e) {
+            console.log("co loi xay ra: ", e);
+            Toast.fire({
+                icon: "error",
+                title: "Có lỗi xảy ra vui lòng thử lại sau"
+            });
+        }
+        
+    }
+    const handleRequestSystemIntervention = async (evidences) => {
+        console.log("Evidences: ", evidences);
+        try {
+            if (evidences.length == 0 && evidences.Any(e => e.driveLink == "" && e.description == "")) {
+                Toast.fire({
+                    icon: "error",
+                    title: "Vui lòng gửi ít nhất 1 bằng chứng"
+                })
+                return;
+            }
+            await api.post(`api/transaction/refund-system/${Number(transaction.disputeId)}`,evidences);
+            Toast.fire({
+                icon: "success",
+                title: "Đã gửi yêu cầu hệ thống can thiệp"
+            });
+            setOpenEvidenceModal(false);
+            reload();
+        } catch (e) {
+            console.log("Có lỗi xảy ra: ", e);
+            Toast.fire({
+                icon: "error",
+                title: "Có lỗi xảy ra vui lòng thử lại"
+            });
+        }
+    };
     return (
         <div
             key={transaction.transactionId}
@@ -60,7 +183,7 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler }) {
                 </div>
 
                 {/* Bottom */}
-                <div className="flex justify-between items-center mt-2">
+                <div className="flex justify-between flex-wrap items-center mt-2">
                     <div className="flex items-center gap-3 text-red-500 text-sm">
                         {/* <Clock size={16} /> */}
                         {/* {console.log("transaction Status: ",transaction)} */}
@@ -76,8 +199,22 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler }) {
                             #{transaction.transactionOrderCode}
                         </span>
                     </div>
-                    
-                    <TransactionActions status={transaction.status} isBuyer={!currentUserIsSeler}/>
+
+                    <TransactionActions
+                        status={transaction.status}
+                        isBuyer={!currentUserIsSeler}
+                        currentPrice={price}
+                        setPrice={setPrice}
+                        confirmByCurrentUser={confirmByCurrentUser}
+                        openReasonModal={() => setOpenReasonRefundModal(true)}
+                        openEvidenceModal={() => setOpenEvidenceModal(true)}
+                        handleConfirm={handleConfirm}
+                        handlePayment={handlePayment}
+                        handleUpdateStatusTransaction={handleUpdateStatusTransaction}
+                        disputeId={transaction.disputeId}
+                        hasEvidence={transaction.disEvidence.length > 0}
+                        disputeStatus={transaction.disputeStatus}
+                    />
                     {/* {transaction.status === "Confirming" && (
                         <div className="flex gap-3">
                             <button className="px-4 py-2 bg-green-600 text-white !rounded-xl hover:bg-green-700 transition">
@@ -90,6 +227,9 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler }) {
                     )} */}
                 </div>
             </div>
+            
+            {openReasonRefundModal && (<ReasonRefundModal onClose={()=>setOpenReasonRefundModal(false)} onSubmit={handleRefundTransaction} setDispute={setDispute}></ReasonRefundModal>)}
+            {openEvidenceModal && (<EvidenceModal onClose={()=>setOpenEvidenceModal(false)} onSubmit={handleRequestSystemIntervention} setDispute={setDispute}></EvidenceModal>)}
         </div>
     )
 }

@@ -7,4 +7,6 @@ export const STATUS_STYLES = {
     Expired: "bg-gray-200 text-gray-600",
     Disputing: "bg-orange-200 text-orange-900",
     Refunded: "bg-orange-100 text-orange-700",
+    RefundRequested: "bg-orange-100 text-orange-700",
+    RefundRejected: "bg-orange-100 text-orange-700"
 };

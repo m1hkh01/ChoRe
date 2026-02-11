@@ -8,6 +8,7 @@ import PaidCard from "./states/PaidCard";
 import PendingPaymentCard from "./states/PendingPaymentCard";
 import RefundedCard from "./states/RefundedCard";
 import {useTransactionTimer} from "./useTransactionTimer";
+import RefundRejectedCard from "./states/RefundRejected";
 
 export function TransactionCard({ transaction, priceType, currentUserId, connectionRef }) {
     const { timeRemaining } = useTransactionTimer(transaction)
@@ -51,6 +52,7 @@ export function TransactionCard({ transaction, priceType, currentUserId, connect
                     transaction={updateTransaction}
                     isBuyer={isBuyer}
                     confirmedByCurrentUser={confirmedByCurrentUser}
+                    priceType={transaction.priceType}
                     canConfirm={canConfirm}
                     onConfirm={handleConfirm}
                     onChangePrice={onChangePrice}
@@ -78,6 +80,9 @@ export function TransactionCard({ transaction, priceType, currentUserId, connect
 
         case "Refunded":
             return <RefundedCard />;
+        case "RefundRejected":
+            return <RefundRejectedCard />;
+        
 
         default:
             return null;

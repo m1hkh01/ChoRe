@@ -61,6 +61,8 @@ public class PackageService : IPackageService
         subOrder.OrdStatusId = 2;
 
         var now = DateTime.UtcNow;
+        subOrder.PaidAt = now;
+
         userSubscription.SubPlanId = subOrder.SubPlanId;
         userSubscription.StartDate = now;
         userSubscription.EndDate = now.AddDays(subOrder.SubscriptionPlan.DurationDays);

@@ -28,10 +28,10 @@ namespace ChoRe.Models
         public int? AssignedByAdminUserId { get; set; }
 
         [StringLength(50)]
-        public string Decision { get; set; }
+        public string Decision { get; set; } = "";
 
         [StringLength(1000)]
-        public string DecisionNote { get; set; }
+        public string DecisionNote { get; set; } = "";
 
         public DateTime CreateAt { get; set; } = DateTime.Now;
 

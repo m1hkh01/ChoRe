@@ -54,45 +54,57 @@ function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
 
     return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-            <div className="w-full max-w-5xl bg-white rounded-3xl shadow-lg p-6">
+            <div className="w-full max-w-5xl bg-white rounded-3xl shadow-lg !p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* ===== LEFT INFO ===== */}
-                    <div className="bg-gray-50 rounded-2xl p-6 flex flex-col justify-between">
+                    <div className="bg-gray-50 rounded-2xl !p-4 flex flex-col justify-between">
                         <div>
-                            <h2 className="text-xl font-bold mb-4">
+                            <h2 className="text-xl font-bold mb-2">
                                 Thông tin thanh toán
                             </h2>
 
                             {paymentType === "Transaction" ? (
                                 <>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-base text-gray-600 mb-1">
                                         Thanh toán giao dịch trung gian
                                     </p>
-                                    <span className="inline-block mt-2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                                        {transaction.transactionOrderCode}
-                                    </span>
-
-                                    <div className="mt-6 space-y-2">
+                                    <div className="mt-2 !space-y-2">
+                                        <div className="flex justify-between border-b border-gray-400">
+                                            <PayRow
+                                                label="Người bán"
+                                                value={transaction.sellerName}
+                                            />
+                                            <PayRow
+                                                label="Người mua"
+                                                value={transaction.buyerName}
+                                            />
+                                        </div>
+                                        <div className="flex justify-between border-b border-gray-400">
+                                            <PayRow
+                                                label="Giá sản phẩm"
+                                                value={`${transaction.postPrice.toLocaleString(
+                                                    "vi-VN"
+                                                )} ₫`}
+                                            />
+                                            <PayRow
+                                                label="Phí giao dịch"
+                                                value={`${transaction.platformFee.toLocaleString(
+                                                    "vi-VN"
+                                                )} ₫`}
+                                            />
+                                        </div>
                                         <PayRow
-                                            label="Giá sản phẩm"
-                                            value={`${transaction.postPrice.toLocaleString(
-                                                "vi-VN"
-                                            )} ₫`}
-                                        />
-                                        <PayRow
-                                            label="Phí sàn giao dịch"
-                                            value={`+ ${transaction.platformFee.toLocaleString(
-                                                "vi-VN"
-                                            )} ₫`}
-                                            highlight
+                                            label="Mã giao dịch"
+                                            value={transaction.transactionOrderCode}
+                                            full
                                         />
                                     </div>
 
-                                    <div className="border-t mt-4 pt-4 flex justify-between items-center">
-                                        <span className="font-medium text-gray-600">
+                                    <div className="border-t border-t-gray-400 mt-1 pt-4 flex justify-between items-center">
+                                        <span className="text-lg font-bold text-gray-600">
                                             Tổng tiền
                                         </span>
-                                        <span className="text-2xl font-bold text-blue-600">
+                                        <span className="text-2xl font-bold text-red-500">
                                             {transaction.amount.toLocaleString(
                                                 "vi-VN"
                                             )}{" "}
@@ -131,10 +143,10 @@ function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
                             )}
 
                             {/* WARNING */}
-                            <div className="mt-4 flex gap-2 bg-orange-50 border border-orange-200 p-3 rounded-lg text-sm">
+                            <div className="mt-2 flex gap-2 bg-orange-50 border border-orange-200 p-3 rounded-lg text-sm">
                                 <FontAwesomeIcon
                                     icon={faTriangleExclamation}
-                                    className="text-orange-500 mt-0.5"
+                                    className="text-orange-500 mt-1"
                                 />
                                 <p>
                                     <strong>Lưu ý:</strong> Chợ Rẻ không hoàn tiền
@@ -144,7 +156,7 @@ function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
                             </div>
                         </div>
 
-                        <div className="mt-6 space-y-3">
+                        <div className="mt-2 space-y-3">
                             <ConfirmPay onPay={handlePay} />
                             <button
                                 onClick={onClose}
@@ -156,13 +168,13 @@ function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
                     </div>
 
                     {/* ===== RIGHT QR / TRANSFER ===== */}
-                    <div className="rounded-2xl border p-6 flex flex-col items-center">
+                    <div className="rounded-2xl border !p-6 flex flex-col items-center">
                         {/* SWITCH */}
-                        <div className="relative flex bg-gray-100 rounded-lg p-1 mb-6 w-full max-w-xs">
+                        <div className="relative flex justify-content-between bg-gray-100 rounded-lg p-1 !mb-6 w-full max-w-xs">
                             <div
-                                className="absolute top-1 h-[calc(100%-8px)] w-1/2 bg-white rounded-lg transition-all duration-300"
+                                className="absolute top-1 h-[calc(100%-8px)] w-[140px] bg-white rounded-lg transition-all duration-300"
                                 style={{
-                                    left: isQrCode ? "4px" : "50%",
+                                    left: isQrCode ? "10px" : "52%",
                                 }}
                             />
                             <SwitchItem
@@ -194,7 +206,7 @@ function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
                                 </p>
                             </>
                         ) : (
-                            <div className="w-full max-w-xs space-y-3">
+                            <div className="w-full max-w-xs !space-y-3">
                                 <TransferRow
                                     label="Tên tài khoản"
                                     value="Nguyen Cu Nhat"
@@ -212,6 +224,7 @@ function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
                                 <TransferRow
                                     label="Nội dung"
                                     value={orderCode}
+                                    bold
                                 />
 
                                 <div className="flex gap-2 bg-orange-50 border border-orange-200 p-3 rounded-lg text-sm">

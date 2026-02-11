@@ -11,12 +11,12 @@ export default function DisputeAction({ transaction, setOpenDecision, setDispute
             <p className="text-sm text-gray-700 mb-4">
                 <b>Lý do:</b> {transaction.disputeReason}
             </p>
-            <div className="text-sm text-gray-700 mb-4 flex flex-wrap justify-center">
-                <div className="text-lg font-bold w-full text-center mb-2 ">Bằng chứng</div>
+            <div className="text-sm text-gray-700 mb-4 flex flex-wrap justify-between">
+                <div className="text-lg font-bold w-full mb-2 ">Bằng chứng</div>
                 {
                     transaction.disEvidence ? transaction.disEvidence.map((d,index) => (
                         <>
-                            <div className="w-1/2 flex flex-col items-center">
+                            <div className="w-1/2 flex flex-col items-start">
                                 {transaction.buyerId == d.submitByUserId ? <p key={index} className="text-gray-600 font-semibold text-md ">Người mua</p> : <p key={index} className="text-gray-600 font-semibold text-md">Người bán</p>}
                                 {
                                     d.evidences.length > 0 ? d.evidences.map((e,index)=>

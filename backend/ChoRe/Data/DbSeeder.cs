@@ -523,7 +523,7 @@ namespace ChoReDB.Data
 
             // ================= DISPUTE =================
             modelBuilder.Entity<DisputeStatus>().HasData(
-                new DisputeStatus { DisStatusId = 1, DisStatusName = "PendingSellerResponse", Description = "Chờ người bán phản hồi" },
+                new DisputeStatus { DisStatusId = 1, DisStatusName = "Pending", Description = "Chờ người bán phản hồi" },
                 new DisputeStatus { DisStatusId = 2, DisStatusName = "SellerRejected", Description = "Người bán từ chối" },
                 new DisputeStatus { DisStatusId = 3, DisStatusName = "UnderReview", Description = "Đang xem xét" },
                 new DisputeStatus { DisStatusId = 4, DisStatusName = "ResolvedRefund", Description = "Đã hoàn tiền cho người mua" },

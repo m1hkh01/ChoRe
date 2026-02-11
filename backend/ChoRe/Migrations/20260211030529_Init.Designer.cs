@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChoRe.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260207041448_UpdateDB20")]
-    partial class UpdateDB20
+    [Migration("20260211030529_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1322,6 +1322,24 @@ namespace ChoRe.Migrations
                             PostStatusId = 3,
                             Description = "Tin đăng đã bị từ chối!",
                             PostStatusName = "Reject"
+                        },
+                        new
+                        {
+                            PostStatusId = 4,
+                            Description = "Tin đang được rao bán",
+                            PostStatusName = "Selling"
+                        },
+                        new
+                        {
+                            PostStatusId = 5,
+                            Description = "Tin đã bán xong",
+                            PostStatusName = "Sold"
+                        },
+                        new
+                        {
+                            PostStatusId = 6,
+                            Description = "Tin đã ẩn",
+                            PostStatusName = "Hidden"
                         });
                 });
 

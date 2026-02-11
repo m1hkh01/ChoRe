@@ -12,24 +12,26 @@ export default function TransactionManagementPage() {
     const [escrowTransaction, setEscrowTransaction] = useState([]);
     const [serviceTransaction, setServiceTransaction] = useState([]);
     const { user } = useAuthStore();
+
+    const userId = user.userId;
+    const fetchData = async () => {
+        if (activeTab === "escrow") {
+            const res = await api.post(
+                `api/transaction/escrow/${user.userId}`,
+                filter
+            );
+            setEscrowTransaction(res.data);
+        } else {
+            const res = await api.post(
+                `api/transaction/service/${user.userId}`,
+                filter
+            );
+            setServiceTransaction(res.data);
+        }
+    };
     useEffect(() => {
-        if (activeTab == "escrow") {
-            const fetchData = async () => {
-                const res = await api.post(`api/transaction/escrow/${user.userId}`, filter)
-                console.log("User Escrow Transaction: ", res.data);
-                setEscrowTransaction(res.data);
-            }
-            fetchData();
-        }
-        else {
-            const fetchData = async () => {
-                const res = await api.post(`api/transaction/service/${user.userId}`, filter)
-                console.log("User Service Transaction: ", res.data);
-                setServiceTransaction(res.data);
-            }
-            fetchData();
-        }
-    },[filter, user])
+       fetchData();
+    }, [filter,userId]);
 
     return (
         <div className="!p-6 bg-gray-100 min-h-screen">
@@ -41,7 +43,7 @@ export default function TransactionManagementPage() {
             <TransactionTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
             <div className="mt-6">
-                {activeTab === "escrow" && <EscrowTab transactions= { escrowTransaction } />}
+                {activeTab === "escrow" && <EscrowTab transactions={escrowTransaction} userId={user.userId} reload={fetchData} />}
                 {activeTab === "package" && <PackageTab transactions= {serviceTransaction} />}
             </div>
         </div>
