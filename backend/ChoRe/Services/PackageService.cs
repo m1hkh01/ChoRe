@@ -7,8 +7,9 @@ public interface IPackageService
 {
     Task<List<SubscriptionPlan>> GetAllSubPlan();
     Task<UserSubscription?> GetSubPlanByUserId(int id);
-    Task<SubscriptionOrder> CreateSubPlanOrder(int userId, SubscriptionPlan subscription);
-    Task PaySubPlanOrder(UserSubUsage userSubUsage,UserSubscription userSubscription, string orderCode);
+    Task<ServiceTransactionDto> CreateSubPlanOrder(int userId, SubscriptionPlan subscription);
+    Task PaySubPlanOrder(UserSubUsage userSubUsage, UserSubscription userSubscription, string orderCode);
+    Task<ServiceTransactionDto> GetServiceOrder(int id);
 }
 public class PackageService : IPackageService
 {
@@ -30,25 +31,56 @@ public class PackageService : IPackageService
                             .FirstOrDefaultAsync(usSub => usSub.UserId == id);
     }
 
-    public async Task<SubscriptionOrder> CreateSubPlanOrder(int userId, SubscriptionPlan subscription)
+    public async Task<ServiceTransactionDto> CreateSubPlanOrder(int userId, SubscriptionPlan subscription)
     {
+        var existingOrder = await _context.SubscriptionOrders
+                                .Include(s=>s.SubscriptionPlan)
+                                .FirstOrDefaultAsync(s =>
+                                s.UserId == userId &&
+                                s.SubPlanId == subscription.SubPlanId &&
+                                s.OrdStatusId == EscrowStatus.PendingPayment);
+        var now = DateTime.UtcNow;
+        if(existingOrder != null){
+            existingOrder.CreatedAt = now;
+            existingOrder.ExpiredAt = now.AddMinutes(15);
+
+            await _context.SaveChangesAsync();
+
+
+            return new ServiceTransactionDto
+            {
+                OrderId = existingOrder.OrderId,
+                ServiceName = existingOrder.SubscriptionPlan.SubPlanName,
+                ServiceCode = existingOrder.OrderCode,
+                ServicePrice = existingOrder.Amount,
+            };
+        }
+
         var datePart = DateTime.Now.ToString("yyyyMMdd-HHmmss");
         var randomPart = Guid.NewGuid().ToString("N")[..4].ToUpper();
         var orderCode = $"SUB-{userId}-{datePart}-{randomPart}";
-        var now = DateTime.UtcNow;
         var subPlanOrder = new SubscriptionOrder
         {
             OrderCode = orderCode,
             UserId = userId,
             SubPlanId = subscription.SubPlanId,
             Amount = subscription.SubPlanPrice,
-            OrdStatusId = 1,//Pending
+            OrdStatusId = EscrowStatus.PendingPayment,
             CreatedAt = now,
             ExpiredAt = now.AddMinutes(15)
         };
         _context.SubscriptionOrders.Add(subPlanOrder);
         await _context.SaveChangesAsync();
-        return subPlanOrder;
+
+        var query = new ServiceTransactionDto
+        {
+            OrderId = subPlanOrder.OrderId,
+            ServiceName = subPlanOrder.SubscriptionPlan.SubPlanName,
+            ServiceCode = subPlanOrder.OrderCode,
+            ServicePrice = subPlanOrder.Amount,
+        };
+
+        return query;
     }
 
     public async Task PaySubPlanOrder(UserSubUsage userSubUsage, UserSubscription userSubscription,string orderCode)
@@ -58,7 +90,7 @@ public class PackageService : IPackageService
         {
             throw new KeyNotFoundException("Không tìm thấy đơn hàng");
         }
-        subOrder.OrdStatusId = 2;
+        subOrder.OrdStatusId = EscrowStatus.Paid;
 
         var now = DateTime.UtcNow;
         subOrder.PaidAt = now;
@@ -72,5 +104,26 @@ public class PackageService : IPackageService
         userSubUsage.RemainingSubPost = subOrder.SubscriptionPlan.MaxPostPerSub;
 
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<ServiceTransactionDto> GetServiceOrder(int id)
+    {
+        var order = await _context.SubscriptionOrders
+                        .Include(s => s.SubscriptionPlan)
+                        .Include(s => s.OrderStatus)
+                        .FirstOrDefaultAsync(s => s.OrderId == id);
+        if(order is null){
+            return new ServiceTransactionDto();
+        }
+        var query = new ServiceTransactionDto
+        {
+            OrderId = order.OrderId,
+            ServiceName = order.SubscriptionPlan.SubPlanName,
+            ServiceCode = order.OrderCode,
+            ServicePrice = order.Amount,
+            Status = order.OrderStatus.StatusName,
+            StatusDescription = order.OrderStatus.Description,
+        };
+        return query;
     }
 }

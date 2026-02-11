@@ -35,8 +35,16 @@ public class ServicePackageController : ControllerBase
     {
         var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
         var order = await _service.CreateSubPlanOrder(userId, subscription);
-        return Ok(new { OrderCode = order.OrderCode });
+        return Ok(new { OrderCode = order.ServiceCode });
     }
+
+    [HttpGet("service-order/{id:int}")]
+    public async Task<IActionResult> GetServiceOrder(int id)
+    {
+        var order = await _service.GetServiceOrder(id);
+        return Ok(order);
+    }
+
     [HttpPost("pay-order")]
     public async Task<IActionResult> PaySubPlanOrder(PayOrderRequest rq)
     {

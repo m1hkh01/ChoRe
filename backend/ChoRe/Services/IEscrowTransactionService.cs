@@ -223,14 +223,14 @@ public class EscrowTransactionService : IEscrowTransactionService
         // .Include(t => t.EscrowTransStatus)
         // .FirstOrDefaultAsync(t => t.EscrowTransId == id);
     }
-    
+
     public async Task<TransactionDto?> GetEscrowByIdAsync(int id)
     {
         var escrow = await _context.EscrowTransations
             .Include(x => x.BuyerUser)
             .Include(x => x.SellerUser)
-            .Include(x=>x.ChatMessage)
-            .FirstOrDefaultAsync(e=>e.EscrowTransId == id);
+            .Include(x => x.ChatMessage)
+            .FirstOrDefaultAsync(e => e.EscrowTransId == id);
         if (escrow is null) return new TransactionDto();
         var query = new TransactionDto
         {
@@ -272,10 +272,13 @@ public class EscrowTransactionService : IEscrowTransactionService
             .OrderByDescending(o => o.CreatedAt)
             .Select(o => new ServiceTransactionDto
             {
+                OrderId = o.OrderId,
                 ServiceName = o.SubscriptionPlan.SubPlanName,
                 ServiceType = "Mua gói",
                 ServiceCode = o.OrderCode,
                 ServicePrice = o.Amount,
+                Status = o.OrderStatus.StatusName,
+                StatusDescription = o.OrderStatus.Description,
                 DurationDays = o.SubscriptionPlan.DurationDays,
                 StartDate = o.PaidAt,
                 ExpiredAt = o.PaidAt.AddDays(o.SubscriptionPlan.DurationDays),
@@ -400,13 +403,13 @@ public class EscrowTransactionService : IEscrowTransactionService
     }
     public async Task RefundSystemTransaction(int disputeId, List<DisEvidenceDto>? evidences, int userId)
     {
-        var dispute = await _context.Disputes.Include(d=>d.DisputeEvidences).FirstOrDefaultAsync(d=>d.DisputeId == disputeId);
+        var dispute = await _context.Disputes.Include(d => d.DisputeEvidences).FirstOrDefaultAsync(d => d.DisputeId == disputeId);
         if (dispute is null)
         {
             Console.WriteLine("Không tìm thấy tranh chấp / hoàn tiền");
             return;
         }
-        if(evidences != null && evidences.Count() > 0)
+        if (evidences != null && evidences.Count() > 0)
         {
             evidences.ForEach(e =>
             {
@@ -441,5 +444,5 @@ public class EscrowTransactionService : IEscrowTransactionService
         }
     }
 
-    
+
 }

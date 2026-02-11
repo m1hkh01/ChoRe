@@ -10,6 +10,7 @@ import PostDetail from "./pages/PostDetail";
 import ServicePackage from "./pages/ServicePackage/ServicePackage";
 import ServicePackageManager from "./pages/ServicePackage/ServicePackageManager";
 import TransactionPayPage from "./pages/Pay/TransactionPayPage";
+import PackagePayPage from "./pages/Pay/PackagePayPage";
 import ChatPage from "./pages/ChatPage";
 import TransactionManagementPage from "./pages/TransactionManagementPage";
 
@@ -69,6 +70,15 @@ function App() {
           element={
             <ProtectedRoute>
               <TransactionPayPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/pay/package/:orderId"
+          element={
+            <ProtectedRoute>
+              <PackagePayPage />
             </ProtectedRoute>
           }
         />

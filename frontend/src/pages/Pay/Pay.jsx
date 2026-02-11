@@ -12,10 +12,11 @@ import SwitchItem from "./PayComponents/SwitchItem";
 import TransferRow from "./PayComponents/TransferRow";
 
 function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
+    console.log("Package: ", pkg);
     const totalAmount =
         paymentType === "Transaction"
             ? transaction.amount
-            : pkg.subPlanPrice;
+            : pkg.servicePrice || pkg.subPlanPrice;
 
     const qrcode = `https://qr.sepay.vn/img?acc=0379530805&bank=MB&amount=${totalAmount}&des=${orderCode}`;
 
@@ -23,7 +24,7 @@ function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
 
     const handlePay = async () => {
         try {
-            
+
             if (pkg) {
                 const res = await api.post("/api/package/pay-order", { orderCode });
                 onClose();
@@ -36,8 +37,7 @@ function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
                     PostId: transaction.postId,
                     ChatRoomId: transaction.chatRoomId?.toString()
                 });
-                console.log("Pay transaction: ", paySuccess);
-    
+
                 Toast.fire({
                     icon: paySuccess ? "success" : "error",
                     text: paySuccess
@@ -114,28 +114,29 @@ function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
                                 </>
                             ) : (
                                 <>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-sm text-gray-600 mb-0">
                                         Gói dịch vụ đã chọn
                                     </p>
-                                    <span className="inline-block mt-2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                                        {pkg.subPlanName}
+                                    <span className="inline-block my-2 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                                        {pkg.serviceName || pkg.subPlanName}
                                     </span>
 
-                                    <div className="mt-6 space-y-2">
+                                    <div className="!mt-4 space-y-2 mb-0">
                                         <PayRow
                                             label="Mã đơn hàng"
                                             value={orderCode}
+                                            full
                                         />
                                     </div>
 
-                                    <div className="border-t mt-4 pt-4 flex justify-between items-center">
-                                        <span className="font-medium text-gray-600">
+                                    <div className="border-t border-t-gray-400 mt-2 pt-4 flex justify-between items-center">
+                                        <span className="text-lg font-semibold text-gray-600">
                                             Tổng tiền
                                         </span>
-                                        <span className="text-2xl font-bold text-blue-600">
-                                            {pkg.subPlanPrice.toLocaleString(
+                                        <span className="text-2xl font-bold text-red-600">
+                                            {pkg.servicePrice?.toLocaleString(
                                                 "vi-VN"
-                                            )}{" "}
+                                                ) || pkg.subPlanPrice.toLocaleString("vi-VN")}{" "}
                                             ₫
                                         </span>
                                     </div>

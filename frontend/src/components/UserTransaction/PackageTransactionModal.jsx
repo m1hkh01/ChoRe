@@ -1,10 +1,24 @@
 import { faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { STATUS_STYLES } from "../../constants/StatusStyles";
+import { useNavigate } from "react-router-dom";
+
+const STATUS_LABELS = {
+    PendingPayment: "Chờ thanh toán",
+    Paid: "Đã thanh toán",
+    Completed: "Thành công",
+    Cancelled: "Đã hủy",
+    Expired: "Hết hạn"
+};
 
 export default function PackageTransactionModal({ transaction, onClose }) {
+    const navigate = useNavigate();
+
     if (!transaction) return null;
 
     const isPackage = transaction.serviceType == "Mua gói";
+    const status = transaction.status || "PendingPayment";
+    const statusLabel = STATUS_LABELS[status] || status;
 
     const formatDate = (date) => {
         if (date) {
@@ -14,6 +28,12 @@ export default function PackageTransactionModal({ transaction, onClose }) {
     }
     const formatMoney = (value) =>
         value.toLocaleString("vi-VN") + " đ";
+
+    const handlePayment = () => {
+        onClose();
+        navigate(`/pay/package/${transaction.serviceCode}`);
+    };
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
 
@@ -34,10 +54,10 @@ export default function PackageTransactionModal({ transaction, onClose }) {
                     </h2>
                     <div className="text-sm text-gray-500 mt-1 flex gap-2">
                         <span className="py-1">
-                            Mã giao dịch: #{transaction.code}
+                            Mã giao dịch: #{transaction.serviceCode}
                         </span>
-                        <span className="inline-block px-3 py-1 h-max text-xs rounded-full bg-emerald-100 text-emerald-600 font-medium">
-                            Thành công
+                        <span className={`inline-block px-3 py-1 h-max text-xs rounded-full font-medium ${STATUS_STYLES[status]}`}>
+                            {statusLabel}
                         </span>
                     </div>
 
@@ -53,7 +73,7 @@ export default function PackageTransactionModal({ transaction, onClose }) {
 
                     <div className="flex justify-between">
                         <span className="text-gray-500 text-base">Thời điểm mua</span>
-                        <span>{formatDate(transaction.startDate)}</span>
+                        <span>{status == "PendingPayment" ? "Chưa thanh toán" : formatDate(transaction.startDate)}</span>
                     </div>
 
                     <div className="flex justify-between">
@@ -74,12 +94,12 @@ export default function PackageTransactionModal({ transaction, onClose }) {
 
                             <div className="flex justify-between">
                                 <span className="text-gray-500 text-base">Ngày bắt đầu</span>
-                                <span className="text-base">{formatDate(transaction.startDate)}</span>
+                                <span className="text-base">{status == "PendingPayment" ? "Chưa thanh toán" : formatDate(transaction.startDate)}</span>
                             </div>
 
                             <div className="flex justify-between">
                                 <span className="text-gray-500 text-base">Ngày hết hạn</span>
-                                <span className="text-base">{formatDate(transaction.expiredAt)}</span>
+                                <span className="text-base">{status == "PendingPayment" ? "Chưa thanh toán" : formatDate(transaction.expiredAt)}</span>
                             </div>
                         </>
                     )}
@@ -87,7 +107,15 @@ export default function PackageTransactionModal({ transaction, onClose }) {
                 </div>
 
                 {/* Footer */}
-                <div className="!mt-3 text-right">
+                <div className="!mt-3 flex gap-2 justify-end">
+                    {status === "PendingPayment" && (
+                        <button
+                            onClick={handlePayment}
+                            className="px-4 py-2 !rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition"
+                        >
+                            Thanh toán ngay
+                        </button>
+                    )}
                     <button
                         onClick={onClose}
                         className="px-4 py-2 !rounded-lg bg-gray-100 hover:bg-gray-200 transition"
