@@ -554,7 +554,7 @@ namespace ChoRe.Migrations
                         {
                             DisStatusId = 1,
                             Description = "Chờ người bán phản hồi",
-                            DisStatusName = "PendingSellerResponse"
+                            DisStatusName = "Pending"
                         },
                         new
                         {
@@ -694,6 +694,9 @@ namespace ChoRe.Migrations
                     b.Property<DateTime>("ExpiredAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsRated")
+                        .HasColumnType("bit");
+
                     b.Property<decimal>("PlatformFee")
                         .HasColumnType("decimal(18,2)");
 
@@ -742,6 +745,7 @@ namespace ChoRe.Migrations
                             CreateAt = new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             EscrowTransStatusId = 2,
                             ExpiredAt = new DateTime(2025, 1, 4, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsRated = false,
                             PlatformFee = 3m,
                             PostId = 1,
                             PostPrice = 10000000m,
@@ -1570,7 +1574,7 @@ namespace ChoRe.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<DateTime>("PaidAt")
+                    b.Property<DateTime?>("PaidAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("SubPlanId")
@@ -1990,10 +1994,16 @@ namespace ChoRe.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("PostId")
                         .HasColumnType("int");
 
                     b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReviewType")
                         .HasColumnType("int");
 
                     b.Property<int>("ReviewerId")
@@ -2002,10 +2012,17 @@ namespace ChoRe.Migrations
                     b.Property<int>("SellerId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Tags")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("ReviewId");
 
                     b.HasIndex("ChatRoomId")
                         .IsUnique();
+
+                    b.HasIndex("OrderId")
+                        .IsUnique()
+                        .HasFilter("[OrderId] IS NOT NULL");
 
                     b.HasIndex("PostId");
 
@@ -2024,7 +2041,11 @@ namespace ChoRe.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReviewImageId"));
 
-                    b.Property<string>("ImageUrl")
+                    b.Property<string>("FileType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileUrl")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
@@ -2037,6 +2058,29 @@ namespace ChoRe.Migrations
                     b.HasIndex("ReviewId");
 
                     b.ToTable("ReviewImages");
+                });
+
+            modelBuilder.Entity("ReviewTag", b =>
+                {
+                    b.Property<int>("ReviewTagId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReviewTagId"));
+
+                    b.Property<int>("ReviewId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tag")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("ReviewTagId");
+
+                    b.HasIndex("ReviewId");
+
+                    b.ToTable("ReviewTags");
                 });
 
             modelBuilder.Entity("ChoRe.Models.Brand", b =>
@@ -2519,6 +2563,11 @@ namespace ChoRe.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ChoRe.Models.EscrowTransation", "Order")
+                        .WithOne("Review")
+                        .HasForeignKey("Review", "OrderId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("ChoRe.Models.Post", "Post")
                         .WithMany()
                         .HasForeignKey("PostId")
@@ -2538,6 +2587,8 @@ namespace ChoRe.Migrations
 
                     b.Navigation("ChatRoom");
 
+                    b.Navigation("Order");
+
                     b.Navigation("Post");
 
                     b.Navigation("Reviewer");
@@ -2549,6 +2600,17 @@ namespace ChoRe.Migrations
                 {
                     b.HasOne("Review", "Review")
                         .WithMany("ReviewImages")
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Review");
+                });
+
+            modelBuilder.Entity("ReviewTag", b =>
+                {
+                    b.HasOne("Review", "Review")
+                        .WithMany("ReviewTags")
                         .HasForeignKey("ReviewId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2609,6 +2671,9 @@ namespace ChoRe.Migrations
                         .IsRequired();
 
                     b.Navigation("Disputes")
+                        .IsRequired();
+
+                    b.Navigation("Review")
                         .IsRequired();
                 });
 
@@ -2694,6 +2759,8 @@ namespace ChoRe.Migrations
             modelBuilder.Entity("Review", b =>
                 {
                     b.Navigation("ReviewImages");
+
+                    b.Navigation("ReviewTags");
                 });
 #pragma warning restore 612, 618
         }

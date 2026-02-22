@@ -115,6 +115,8 @@ namespace ChoRe.Data
         public DbSet<SubscriptionOrder> SubscriptionOrders { get; set; }
         /// <summary>Bảng Reviews - Đánh giá giữa người mua và người bán</summary>
         public DbSet<Review> Reviews { get; set; }
+        /// <summary>Bảng ReviewTags - Các tag kèm theo đánh giá</summary>
+        public DbSet<ReviewTag> ReviewTags { get; set; }
         /// <summary>Bảng ReviewImages - Hình ảnh kèm theo đánh giá</summary>
         public DbSet<ReviewImage> ReviewImages { get; set; }
         /// <summary> Bảng ReportReview - Báo cáo đánh giá vi phạm </summary>
@@ -419,10 +421,23 @@ namespace ChoRe.Data
                 .WithMany()
                 .HasForeignKey(r => r.ChatRoomId)
                 .OnDelete(DeleteBehavior.Restrict);
+            // Review - Order
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Order)
+                .WithOne(o => o.Review)
+                .HasForeignKey<Review>(r => r.OrderId)
+                .OnDelete(DeleteBehavior.SetNull);
             // Đảm bảo mỗi ChatRoom chỉ có 1 Review
             modelBuilder.Entity<Review>()
                 .HasIndex(r => r.ChatRoomId)
                 .IsUnique();
+
+            // ReviewTag -> Review
+            modelBuilder.Entity<ReviewTag>()
+                .HasOne(rt => rt.Review)
+                .WithMany(r => r.ReviewTags)
+                .HasForeignKey(rt => rt.ReviewId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // ReportReview -> Reporter (User báo cáo đánh giá)
             modelBuilder.Entity<ReportReview>()
@@ -976,6 +991,11 @@ namespace ChoRe.Data
                 .Property(sp => sp.SubPlanName)
                 .IsRequired()
                 .HasMaxLength(200);
+            // --- REVIEW TAG ---
+            modelBuilder.Entity<ReviewTag>()
+                .Property(rt => rt.Tag)
+                .IsRequired()
+                .HasMaxLength(100);
         }
 
         /// <summary>

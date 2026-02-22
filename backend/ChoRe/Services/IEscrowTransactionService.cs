@@ -13,7 +13,7 @@ public interface IEscrowTransactionService
     Task<TransactionDto?> GetEscrowByIdAsync(int id);
     Task<List<ServiceTransactionDto>>? GetServicesByIdAsync(int id, EscrowTransactionFilterRequest req);
     Task<EscrowTransation> PayTransaction(PayOrderRequest rq);
-    Task<EscrowTransation?> ConfirmTransaction(int transactionId, bool isBuyer, int postPrice, bool updatePrice);
+    Task<EscrowTransation?> ConfirmTransaction(int transactionId, bool isBuyer, decimal postPrice, bool updatePrice);
     Task RejectTransaction(int transactionId);
     Task RefundRequest(int transactionId, RefundRequestDto req);
     Task CompleteTransaction(int transactionId);
@@ -157,6 +157,11 @@ public class EscrowTransactionService : IEscrowTransactionService
             .Include(x => x.SellerUser)
             .Include(x => x.EscrowTransStatus)
             .Include(x => x.Post)
+            .Include(x => x.ChatMessage)
+            .Include(x=>x.Review)
+                .ThenInclude(r => r.ReviewImages)
+            .Include(x=>x.Review)
+                .ThenInclude(r => r.ReviewTags)
             .Include(x => x.Disputes)
                 .ThenInclude(d => d.DisputeEvidences)
             .Include(x => x.Disputes)
@@ -190,6 +195,8 @@ public class EscrowTransactionService : IEscrowTransactionService
                 SellerConfirmed = x.SellerConfirmed,
                 // BuyerId = x.BuyerUserId,
                 SellerId = x.SellerUserId,
+                ChatRoomId = x.ChatMessage != null ? x.ChatMessage.ChatRoomId : 0,
+                PostId = x.PostId,
                 PostPrice = x.PostPrice,
                 PostImage = x.Post.PostImages.First().PostImage1 ?? "",
                 PostTitle = x.Post.Title,
@@ -199,6 +206,7 @@ public class EscrowTransactionService : IEscrowTransactionService
                 StatusDescription = x.EscrowTransStatus.Description,
                 CreateAt = x.CreateAt,
                 ExpiredAt = x.ExpiredAt,
+                IsRated = x.IsRated,
                 DisputeId = x.Disputes != null ? x.Disputes.DisputeId : 0,
                 DisputeReason = x.Disputes != null ? x.Disputes.DisputeReason : null,
                 DisputeStatus = x.Disputes != null ? x.Disputes.DisputeStatus.DisStatusName : null,
@@ -214,7 +222,24 @@ public class EscrowTransactionService : IEscrowTransactionService
                                         Description = d.Description
                                     }).ToList()
                                 }).ToList()
-                            : new List<DisEvidenceGroupDto>()
+                            : new List<DisEvidenceGroupDto>(),
+                Review = x.IsRated ? new ReviewDto
+                {
+                    ReviewId = x.Review.ReviewId,
+                    Rating = x.Review.Rating,
+                    Comment = x.Review.Comment,
+                    Tags = x.Review.ReviewTags != null ? x.Review.ReviewTags
+                        .Select(t => t.Tag)
+                        .ToList() : new List<string>(),
+                    ReviewImages = x.Review.ReviewImages != null ? x.Review.ReviewImages
+                        .Select(ri => new ReviewImageDto
+                        {
+                            FileUrl = ri.FileUrl,
+                            Type = ri.FileType
+                        })
+                        .ToList() : new List<ReviewImageDto>()
+                } : null
+
             })
             .ToListAsync();
 
@@ -280,8 +305,8 @@ public class EscrowTransactionService : IEscrowTransactionService
                 Status = o.OrderStatus.StatusName,
                 StatusDescription = o.OrderStatus.Description,
                 DurationDays = o.SubscriptionPlan.DurationDays,
-                StartDate = o.PaidAt,
-                ExpiredAt = o.PaidAt.AddDays(o.SubscriptionPlan.DurationDays),
+                StartDate = o.PaidAt ?? null,
+                ExpiredAt = o.PaidAt.HasValue ? o.PaidAt.Value.AddDays(o.SubscriptionPlan.DurationDays) : null,
             })
             .ToListAsync();
 
@@ -311,7 +336,7 @@ public class EscrowTransactionService : IEscrowTransactionService
         return transaction;
     }
 
-    public async Task<EscrowTransation?> ConfirmTransaction(int transactionId, bool isBuyer, int postPrice, bool updatePrice)
+    public async Task<EscrowTransation?> ConfirmTransaction(int transactionId, bool isBuyer, decimal postPrice, bool updatePrice)
     {
         try
         {
@@ -335,7 +360,12 @@ public class EscrowTransactionService : IEscrowTransactionService
             }
             if (updatePrice)
             {
-                var platformFee = Math.Round(postPrice * 0.05M);
+                // Phí sàn tối thiểu là 20000 và tối đa là 500000
+                var platformFee = Math.Min(
+                                    Math.Max(
+                                        Math.Round(postPrice * 0.03M),
+                                    20000),
+                                500000);
                 transaction.PostPrice = postPrice;
                 transaction.PlatformFee = platformFee;
                 transaction.TotalAmount = postPrice + platformFee;
@@ -398,7 +428,7 @@ public class EscrowTransactionService : IEscrowTransactionService
             Console.WriteLine("Không tìm thấy tranh chấp / hoàn tiền");
             return;
         }
-        dispute.StatusId = DisStatus.ResolvedReject;
+        dispute.StatusId = DisStatus.SellerRejected;
         await UpdateStatus(dispute.EscrowTransId, EscrowStatus.RefundRejected);
     }
     public async Task RefundSystemTransaction(int disputeId, List<DisEvidenceDto>? evidences, int userId)

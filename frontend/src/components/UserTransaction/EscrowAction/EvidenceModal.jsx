@@ -1,9 +1,10 @@
 import { useState } from "react";
 
-export function EvidenceModal({ onSubmit, onClose }) {
-    const [evidences, setEvidences] = useState([
+export function EvidenceModal({ onSubmit, onClose, disEvidences }) {
+    const [evidences, setEvidences] = useState( disEvidences.length > 0 ? disEvidences.map(d=>d.evidences) : [
         { Description: "", DisEvidenceLink: "" }
     ]);
+    // console.log("DisEvidences: ", evidences);
 
     const handleChange = (index, field, value) => {
         setEvidences(prev =>
@@ -56,6 +57,7 @@ export function EvidenceModal({ onSubmit, onClose }) {
                 <form onSubmit={handleSubmit} className="p-3 !pl-6 !space-y-4 h-full max-h-[70vh] overflow-y-auto">
 
                     {evidences.map((evidence, index) => (
+                        // console.log("Disenvidences: ",evidence),
                         <div
                             key={index}
                             className="border rounded-xl p-3 bg-white"
@@ -82,13 +84,13 @@ export function EvidenceModal({ onSubmit, onClose }) {
                                 </label>
                                 <textarea
                                     required
-                                    value={evidence.Description}
+                                    value={evidence.Description ?? evidence.description}
                                     onChange={(e) =>
                                         handleChange(index, "Description", e.target.value)
                                     }
                                     className="w-full border rounded-xl p-2 bg-white focus:outline-none"
                                     rows={3}
-                                    placeholder="Ví dụ: Hình ảnh sản phẩm bị hư hại..."
+                                    placeholder={`Ví dụ: Hình ảnh sản phẩm bị hư hại...`}
                                 />
                             </div>
 
@@ -100,7 +102,7 @@ export function EvidenceModal({ onSubmit, onClose }) {
                                 <input
                                     type="url"
                                     required
-                                    value={evidence.DisEvidenceLink}
+                                    value={evidence.DisEvidenceLink ?? evidence.disEvidenceLink}
                                     onChange={(e) =>
                                         handleChange(index, "DisEvidenceLink", e.target.value)
                                     }

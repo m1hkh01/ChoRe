@@ -1,16 +1,15 @@
-import { useState } from "react";
-import api from "../../../api";
 import { ActionGroup } from "./ActionGroup";
 import { Toast } from "../../../utils/toast";
-import { useNavigate } from "react-router-dom";
 
 export function TransactionActions({
     status,
+    isRated,
     isBuyer,
     currentPrice,
     setPrice,
     confirmByCurrentUser,
     openReasonModal,
+    openReviewForm,
     openEvidenceModal,
     handleConfirm,
     handleUpdateStatusTransaction,
@@ -78,7 +77,22 @@ export function TransactionActions({
             />
         );
     }
-
+    if (status === "Completed" && isBuyer) {
+        if (!isRated) {
+            return (
+                <ActionGroup
+                    primary="Đánh giá"
+                    onPrimary={openReviewForm}
+                ></ActionGroup>
+            );
+        }
+        return (
+            <ActionGroup
+                primary="Xem đánh giá"
+                onPrimary={openReviewForm}
+            ></ActionGroup>
+        );
+    }
     if (status === "RefundRequested") {
         if (isBuyer) {
             return (
@@ -97,8 +111,10 @@ export function TransactionActions({
             />
         );
     }
+    // if (status === "RefundRejected" && isBuyer) {
+    //     console.log("Dispute Status: ", disputeStatus);
+    // }
     if (status === "RefundRejected" && isBuyer && disputeStatus != "ResolvedReject") {
-        // console.log("DisputeStatus: ");
         return (
             <ActionGroup
                 primary="Yêu cầu hệ thống can thiệp"
@@ -112,7 +128,6 @@ export function TransactionActions({
         return (
             <ActionGroup
                 primary={`${hasEvidence ? "Nộp thêm bằng chứng" : "Nộp bằng chứng"}`}
-                secondary="Bằng chứng đã nộp"
                 onPrimary={() => openEvidenceModal()}
             />
         )

@@ -8,7 +8,8 @@ public class ReviewImage
 
     [Required]
     [StringLength(255)]
-    public string ImageUrl { get; set; }
+    public string FileUrl { get; set; }
+    public string FileType { get; set; }  // image / video
 
     // Foreign key
     [ForeignKey("Review")]

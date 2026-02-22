@@ -25,15 +25,15 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import RequireRole from "./routes/RequireRole";
 
 /* ================= ADMIN COMPONENTS ================= */
-import UserManager from "./pages/AdminComponents/UserManager";
-import SubscriptionPlanManager from "./pages/AdminComponents/SubscriptionPlanManager";
-import UserSubscriptionManager from "./pages/AdminComponents/UserSubscriptionManager";
-import PostManager from "./pages/AdminComponents/PostManager";
-import BrandManager from "./pages/AdminComponents/BrandManager";
-import CategoryManager from "./pages/AdminComponents/CategoryManager";
-import BrandCategoryManager from "./pages/AdminComponents/BrandCategoryManager";
-import SpecificationManager from "./pages/AdminComponents/SpecificationManager";
-import EscrowTransactions from "./pages/AdminComponents/EscrowTransactions";
+import UserManager from "./pages/AdminPages/UserManager";
+import SubscriptionPlanManager from "./pages/AdminPages/SubscriptionPlanManager";
+import UserSubscriptionManager from "./pages/AdminPages/UserSubscriptionManager";
+import PostManager from "./pages/AdminPages/PostManager";
+import BrandManager from "./pages/AdminPages/BrandManager";
+import CategoryManager from "./pages/AdminPages/CategoryManager";
+import BrandCategoryManager from "./pages/AdminPages/BrandCategoryManager";
+import SpecificationManager from "./pages/AdminPages/SpecificationManager";
+import EscrowTransactions from "./pages/AdminPages/EscrowTransactions";
 import Profile from "./pages/Profile";
 import ProfilePage from "./pages/Profile";
 

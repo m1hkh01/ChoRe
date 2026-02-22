@@ -9,6 +9,7 @@ import PendingPaymentCard from "./states/PendingPaymentCard";
 import RefundedCard from "./states/RefundedCard";
 import {useTransactionTimer} from "./useTransactionTimer";
 import RefundRejectedCard from "./states/RefundRejected";
+import { Toast } from "../../../utils/toast";
 
 export function TransactionCard({ transaction, priceType, currentUserId, connectionRef }) {
     const { timeRemaining } = useTransactionTimer(transaction)
@@ -29,8 +30,19 @@ export function TransactionCard({ transaction, priceType, currentUserId, connect
     const canConfirm = updateTransaction.status === "Confirming" && !confirmedByCurrentUser;
 
     const handleConfirm = async () => {
-        console.log("Price: ", updateTransaction.postPrice);
-        console.log("Is Update price: ", isUpdatePrice);
+        if (updateTransaction.postPrice <= 0) {
+            Toast.fire({
+                icon: "error",
+                title: "Giá chốt phải > 0"
+            })
+            return;
+        }
+        // console.log(
+        //     "Id: ", updateTransaction.transactionId,
+        //     "IsBuyer: ", isBuyer,
+        //     "Price: ", Number(updateTransaction.postPrice),
+        //     "IsUpdatePrice: ", isUpdatePrice
+        // );
         await connectionRef.current.invoke(
             "ConfirmEscrow",
             updateTransaction.transactionId,
@@ -40,7 +52,6 @@ export function TransactionCard({ transaction, priceType, currentUserId, connect
         );
     };
     const onChangePrice = (value) => {
-        console.log("value: ", value);
         setUpdateTransaction(prev => ({ ...prev, postPrice: Number(value) }));
         setIsUpdatePrice(true);
     }

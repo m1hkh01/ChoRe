@@ -345,7 +345,7 @@ namespace ChoRe.Migrations
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     OrdStatusId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    PaidAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PaidAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ExpiredAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
@@ -467,7 +467,8 @@ namespace ChoRe.Migrations
                     ExpiredAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     BuyerConfirmed = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     SellerConfirmed = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    TransactionOrderCode = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    TransactionOrderCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsRated = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -764,10 +765,13 @@ namespace ChoRe.Migrations
                     Rating = table.Column<int>(type: "int", nullable: false),
                     Comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ReviewType = table.Column<int>(type: "int", nullable: false),
+                    Tags = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ReviewerId = table.Column<int>(type: "int", nullable: false),
                     SellerId = table.Column<int>(type: "int", nullable: false),
                     ChatRoomId = table.Column<int>(type: "int", nullable: false),
-                    PostId = table.Column<int>(type: "int", nullable: true)
+                    PostId = table.Column<int>(type: "int", nullable: true),
+                    OrderId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -778,6 +782,12 @@ namespace ChoRe.Migrations
                         principalTable: "ChatRooms",
                         principalColumn: "ChatRoomId",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Reviews_EscrowTransations_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "EscrowTransations",
+                        principalColumn: "EscrowTransId",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Reviews_Posts_PostId",
                         column: x => x.PostId,
@@ -881,7 +891,8 @@ namespace ChoRe.Migrations
                 {
                     ReviewImageId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ImageUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    FileUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    FileType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ReviewId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -889,6 +900,26 @@ namespace ChoRe.Migrations
                     table.PrimaryKey("PK_ReviewImages", x => x.ReviewImageId);
                     table.ForeignKey(
                         name: "FK_ReviewImages_Reviews_ReviewId",
+                        column: x => x.ReviewId,
+                        principalTable: "Reviews",
+                        principalColumn: "ReviewId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReviewTags",
+                columns: table => new
+                {
+                    ReviewTagId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ReviewId = table.Column<int>(type: "int", nullable: false),
+                    Tag = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReviewTags", x => x.ReviewTagId);
+                    table.ForeignKey(
+                        name: "FK_ReviewTags_Reviews_ReviewId",
                         column: x => x.ReviewId,
                         principalTable: "Reviews",
                         principalColumn: "ReviewId",
@@ -919,7 +950,7 @@ namespace ChoRe.Migrations
                 columns: new[] { "DisStatusId", "Description", "DisStatusName" },
                 values: new object[,]
                 {
-                    { 1, "Chờ người bán phản hồi", "PendingSellerResponse" },
+                    { 1, "Chờ người bán phản hồi", "Pending" },
                     { 2, "Người bán từ chối", "SellerRejected" },
                     { 3, "Đang xem xét", "UnderReview" },
                     { 4, "Đã hoàn tiền cho người mua", "ResolvedRefund" },
@@ -1096,8 +1127,8 @@ namespace ChoRe.Migrations
 
             migrationBuilder.InsertData(
                 table: "EscrowTransations",
-                columns: new[] { "EscrowTransId", "BuyerConfirmed", "BuyerUserId", "CreateAt", "EscrowTransStatusId", "ExpiredAt", "PlatformFee", "PostId", "PostPrice", "SellerConfirmed", "SellerUserId", "TotalAmount", "TransactionOrderCode" },
-                values: new object[] { 1, true, 2, new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, new DateTime(2025, 1, 4, 0, 0, 0, 0, DateTimeKind.Unspecified), 3m, 1, 10000000m, true, 3, 10300000m, null });
+                columns: new[] { "EscrowTransId", "BuyerConfirmed", "BuyerUserId", "CreateAt", "EscrowTransStatusId", "ExpiredAt", "IsRated", "PlatformFee", "PostId", "PostPrice", "SellerConfirmed", "SellerUserId", "TotalAmount", "TransactionOrderCode" },
+                values: new object[] { 1, true, 2, new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, new DateTime(2025, 1, 4, 0, 0, 0, 0, DateTimeKind.Unspecified), false, 3m, 1, 10000000m, true, 3, 10300000m, null });
 
             migrationBuilder.InsertData(
                 table: "PostCates",
@@ -1404,6 +1435,13 @@ namespace ChoRe.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Reviews_OrderId",
+                table: "Reviews",
+                column: "OrderId",
+                unique: true,
+                filter: "[OrderId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Reviews_PostId",
                 table: "Reviews",
                 column: "PostId");
@@ -1417,6 +1455,11 @@ namespace ChoRe.Migrations
                 name: "IX_Reviews_SellerId",
                 table: "Reviews",
                 column: "SellerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReviewTags_ReviewId",
+                table: "ReviewTags",
+                column: "ReviewId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SavedPosts_PostId",
@@ -1525,6 +1568,9 @@ namespace ChoRe.Migrations
 
             migrationBuilder.DropTable(
                 name: "ReviewImages");
+
+            migrationBuilder.DropTable(
+                name: "ReviewTags");
 
             migrationBuilder.DropTable(
                 name: "SavedPosts");

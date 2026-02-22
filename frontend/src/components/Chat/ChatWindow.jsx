@@ -11,15 +11,22 @@ export function ChatWindow({ conversationId }) {
     const { user } = useAuthStore();
     const connectionRef = useSignalR();
     const [conversation, setConversation] = useState(null);
+    
     useEffect(() => {
         if (!conversationId || !connectionRef?.current) return;
 
         const connection = connectionRef.current;
 
-        if (connection.state !== "Connected") {
-            console.warn("SignalR not connected yet");
-            return;
-        }
+        const joinRoom = async () => {
+            // console.log("JOIN ROOM: ",connection.state);
+            const interval = setInterval(async () => {
+                if (connection.state !== "Connected") return;
+                await connection.invoke("JoinConversation", conversationId.toString());
+                clearInterval(interval);
+            });
+        };
+
+        joinRoom();
 
         // ===== handlers =====
         const loadHandler = (messages) => {
@@ -63,10 +70,6 @@ export function ChatWindow({ conversationId }) {
         connection.on("ReceiveMessage", receiveHandler);
         connection.on("UpdateTransaction", updateTransactionHandler);
         connection.on("Notification", notificationHandler);
-
-        // ===== join =====
-        connection.invoke("JoinConversation", conversationId.toString())
-            .catch(err => console.error("JoinConversation failed:", err));
 
         return () => {
             // ===== cleanup =====

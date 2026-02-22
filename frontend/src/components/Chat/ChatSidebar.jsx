@@ -64,7 +64,7 @@ export function ChatSidebar({userId, onJoinConversation }) {
             const connection = connectionRef.current;
             if (!connection) return;
 
-            console.log("Sidebar SignalR ready ✅");
+            console.log("Sidebar SignalR ready ✅: ",connection.state);
 
             const handler = (msg) => {
                 console.log("đã nhận tin nhắn sidebar:", msg);
@@ -128,8 +128,8 @@ export function ChatSidebar({userId, onJoinConversation }) {
                             className={`flex items-center gap-3 p-3 ${chat.chatRoomId == currentConvertation && "bg-gray-100"} hover:bg-gray-100 cursor-pointer`}
                         >
                             <div className="relative">
-                                <img src={chat.senderAvatar ?? "https://i.pravatar.cc/40"} className="w-12 h-12 rounded-full" />
-                                <img src={chat.postInfo.postImageUrl} className="w-7 h-7 rounded-2 absolute -bottom-1 -right-2" />
+                                <img src={chat.senderAvatar ? `http://localhost:5121/uploads/${chat.senderAvatar}` : "https://i.pravatar.cc/40"} className="w-12 h-12 rounded-full" />
+                                <img src={`http://localhost:5121/uploads/${chat.postInfo.postImageUrl}`} className="w-7 h-7 rounded-2 absolute -bottom-1 -right-2" />
                             </div>
                             <div className="flex-1">
                                 <div className="flex justify-between items-center">

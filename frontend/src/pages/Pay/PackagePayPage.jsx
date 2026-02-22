@@ -14,6 +14,7 @@ export default function PackagePayPage() {
         const fetchPackageData = async () => {
             try {
                 const res = await api.get(`api/package/service-order/${orderId}`)
+                console.log("Package data: ", res.data);
                 setPkg(res.data);
             } catch (err) {
                 console.error("Error: ", err);

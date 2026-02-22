@@ -64,6 +64,7 @@ builder.Services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>();
 builder.Services.AddScoped<IEscrowTransactionService, EscrowTransactionService>(); // Escrow Transaction Service
 builder.Services.AddScoped<IUserSubscriptionService, UserSubscriptionService>(); // User Subscription Service
 builder.Services.AddScoped<IConvertationService, ConvertationService>(); // Conversation Service
+builder.Services.AddScoped<IReviewService, ReviewService>(); // Review Service
 builder.Services.AddScoped<HtmlSanitizer>();
 builder.Services.AddScoped<MailSettings>();
 builder.Services.AddScoped<ISendMailService, SendMailService>();

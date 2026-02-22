@@ -3,17 +3,19 @@ import { STATUS_STYLES } from "../../constants/StatusStyles";
 import { useTransactionTimer } from "../Chat/TransactionCard/useTransactionTimer";
 import { faClock } from "@fortawesome/free-solid-svg-icons";
 import { TransactionActions } from "./EscrowAction/TransactionActions";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "../../store/auth";
 import { ReasonRefundModal } from "./EscrowAction/ReasonRefundModal";
 import { useNavigate } from "react-router-dom";
 import { Toast } from "../../utils/toast";
 import api from "../../api";
 import { EvidenceModal } from "./EscrowAction/EvidenceModal";
+import ReviewForm from "../Review/ReviewForm";
 
 export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}) {
     const [openReasonRefundModal, setOpenReasonRefundModal] = useState(false);
     const [openEvidenceModal, setOpenEvidenceModal] = useState(false);
+    const [openReviewForm, setOpenReviewForm] = useState(false);
     const { user } = useAuthStore();
     const [price, setPrice] = useState(transaction.postPrice);
     const [dispute, setDispute] = useState({
@@ -21,13 +23,23 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
         OpenedByUserId: Number(user.userId),
         DisputeReason: ""
     })
+    const [userEvidences, setUserEvidences] = useState(null);
     const navigate = useNavigate();
+
     const { timeRemaining } = useTransactionTimer(transaction)
+
     const formatMoney = (value) =>
         value.toLocaleString("vi-VN") + " đ";
+
     const confirmByCurrentUser = (!currentUserIsSeler && transaction.buyerConfirmed) ||
         (currentUserIsSeler && transaction.sellerConfirmed);
     // console.log("ConfirmbyCurrentUser: ", !currentUserIsSeler);
+
+    useEffect(() => {
+        setUserEvidences(transaction.disEvidence.filter(d => d.submitByUserId == user.userId));
+    },[openEvidenceModal])
+
+    // console.log("Transaction: ", transaction);
 
     // Handle Action
     const handleUpdateStatusTransaction = async (apiName, successMessage, id = transaction.transactionId) => {
@@ -81,6 +93,7 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
     const handlePayment = () => {
         navigate(`/pay/transaction/${transaction.transactionId}`)
     }
+
     const handleRefundTransaction = async () =>{
         try{
             if (dispute.DisputeReason == '') {
@@ -110,7 +123,7 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
     const handleRequestSystemIntervention = async (evidences) => {
         console.log("Evidences: ", evidences);
         try {
-            if (evidences.length == 0 && evidences.Any(e => e.driveLink == "" && e.description == "")) {
+            if (evidences.length == 0 && evidences.some(e => e.driveLink == "" && e.description == "")) {
                 Toast.fire({
                     icon: "error",
                     title: "Vui lòng gửi ít nhất 1 bằng chứng"
@@ -139,7 +152,7 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
         >
             {/* Image */}
             <img
-                src={transaction.postImage}
+                src={"http://localhost:5121/uploads/"+transaction.postImage}
                 alt=""
                 className="w-15 h-15 object-cover rounded-xl"
             />
@@ -202,17 +215,19 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
 
                     <TransactionActions
                         status={transaction.status}
+                        isRated={transaction.isRated == 1}
                         isBuyer={!currentUserIsSeler}
                         currentPrice={price}
                         setPrice={setPrice}
                         confirmByCurrentUser={confirmByCurrentUser}
                         openReasonModal={() => setOpenReasonRefundModal(true)}
                         openEvidenceModal={() => setOpenEvidenceModal(true)}
+                        openReviewForm={() => setOpenReviewForm(true)}
                         handleConfirm={handleConfirm}
                         handlePayment={handlePayment}
                         handleUpdateStatusTransaction={handleUpdateStatusTransaction}
                         disputeId={transaction.disputeId}
-                        hasEvidence={transaction.disEvidence.length > 0}
+                        hasEvidence={transaction.disEvidence.length > 0 && transaction.disEvidence?.some(d => d.submitByUserId == user.userId)}
                         disputeStatus={transaction.disputeStatus}
                     />
                     {/* {transaction.status === "Confirming" && (
@@ -228,8 +243,33 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
                 </div>
             </div>
             
-            {openReasonRefundModal && (<ReasonRefundModal onClose={()=>setOpenReasonRefundModal(false)} onSubmit={handleRefundTransaction} setDispute={setDispute}></ReasonRefundModal>)}
-            {openEvidenceModal && (<EvidenceModal onClose={()=>setOpenEvidenceModal(false)} onSubmit={handleRequestSystemIntervention} setDispute={setDispute}></EvidenceModal>)}
+            {openReasonRefundModal && (
+                <ReasonRefundModal
+                    onClose={() => setOpenReasonRefundModal(false)}
+                    onSubmit={handleRefundTransaction}
+                    setDispute={setDispute}>    
+                </ReasonRefundModal>)}
+            {openEvidenceModal && (
+                <EvidenceModal
+                    onClose={() => setOpenEvidenceModal(false)}
+                    onSubmit={handleRequestSystemIntervention}
+                    disEvidences={userEvidences}>
+                </EvidenceModal>)}
+            {openReviewForm && (
+                <ReviewForm
+                    review={transaction.review}
+                    transactionId={transaction.transactionId}
+                    sellerName={transaction.sellerName}
+                    postImage={transaction.postImage}
+                    postTitle={transaction.postTitle}
+                    postId={transaction.postId}
+                    chatRoomId={transaction.chatRoomId}
+                    sellerId={transaction.sellerId}
+                    userId={user.userId}
+                    reload={reload}
+                    onClose={() => setOpenReviewForm(false)}
+                    >
+                </ReviewForm>)}
         </div>
     )
 }

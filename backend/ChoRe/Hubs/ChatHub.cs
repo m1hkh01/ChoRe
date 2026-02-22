@@ -147,7 +147,7 @@ public class ChatHub : Hub
         return false;
     }
 
-    public async Task ConfirmEscrow(int transactionId, bool isBuyer , int postPrice, bool updatePrice)
+    public async Task ConfirmEscrow(int transactionId, bool isBuyer , decimal postPrice, bool updatePrice)
     {
         try
         {
@@ -260,10 +260,12 @@ public class ChatHub : Hub
             if (isTransation && transactionDto != null)
             {
 
-
-                var platformFee = transactionDto.PlatformFee > 0
-                    ? transactionDto.PlatformFee
-                    : Math.Round(transactionDto.Amount * 0.05M);
+                // Phí sàn tối thiểu là 20000 và tối đa là 500000
+                var platformFee = Math.Min(
+                                    Math.Max(
+                                        Math.Round(transactionDto.Amount * 0.03M),
+                                    20000),
+                                500000);
 
                 var datePart = DateTime.Now.ToString("yyyyMMdd-HHmmss");
                 var randomPart = Guid.NewGuid().ToString("N")[..4].ToUpper();

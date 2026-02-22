@@ -71,12 +71,13 @@ public class PackageService : IPackageService
         };
         _context.SubscriptionOrders.Add(subPlanOrder);
         await _context.SaveChangesAsync();
+        await _context.Entry(subPlanOrder).Reference(s => s.SubscriptionPlan).LoadAsync();
 
         var query = new ServiceTransactionDto
         {
             OrderId = subPlanOrder.OrderId,
             ServiceName = subPlanOrder.SubscriptionPlan.SubPlanName,
-            ServiceCode = subPlanOrder.OrderCode,
+            ServiceCode = orderCode,
             ServicePrice = subPlanOrder.Amount,
         };
 

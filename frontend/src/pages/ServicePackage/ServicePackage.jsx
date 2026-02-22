@@ -5,7 +5,7 @@ import { faCheck, faX } from "@fortawesome/free-solid-svg-icons";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import api from "@/api";
 import Pay from "../Pay/Pay";
 function ServicePackage() {
@@ -27,16 +27,22 @@ function ServicePackage() {
         console.log("Order Code: ",res.data.orderCode)
         setOrderCode(res.data.orderCode);
     }
-    
     useEffect(() => {
         const fetchData = async () => {
-            const res = await api.get("/api/package");
-            setPackages(res.data.package);
-            console.log(res.data.package);
-            setCurrentUserSubPlan(res.data.currentPackage)
-        }
+            console.log("Fetching package data...");
+            try {
+                const res = await api.get("/api/package");
+                setPackages(res.data.package);
+                console.log(res.data.package);
+                setCurrentUserSubPlan(res.data.currentPackage);
+            } catch (error) {
+                // Nên xử lý lỗi, ví dụ: toast.error hoặc set error state
+                console.error("Fetch package failed:", error);
+            }
+        };
+
         fetchData();
-    },[])
+    }, [selectPackage]);
     return (
 
         <div className="package-container">
@@ -149,7 +155,10 @@ function ServicePackage() {
             ) : <Pay pkg={selectPackage}
                     orderCode={orderCode}
                     paymentType={"Package"}
-                    onClose={() => setIsPay(false)}
+                    onClose={() => {
+                        setSelectPackage(null);
+                        setIsPay(false);
+                    }}
             ></Pay>}
 
         </div>

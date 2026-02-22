@@ -9,5 +9,5 @@ public class ServiceTransactionDto
     public string? StatusDescription { get; set; }
     public int DurationDays { get; set; }
     public DateTime? StartDate { get; set; }
-    public DateTime ExpiredAt { get; set; }
+    public DateTime? ExpiredAt { get; set; }
 }

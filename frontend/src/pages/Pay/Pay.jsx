@@ -13,6 +13,7 @@ import TransferRow from "./PayComponents/TransferRow";
 
 function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
     console.log("Package: ", pkg);
+    console.log("Order Code: ", orderCode);
     const totalAmount =
         paymentType === "Transaction"
             ? transaction.amount
@@ -28,7 +29,12 @@ function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
             if (pkg) {
                 const res = await api.post("/api/package/pay-order", { orderCode });
                 onClose();
-                alert(res.data.message);
+                Toast.fire({
+                    icon: res.data ? "success" : "error",
+                    text: res.data.message
+                        ? "Thanh toán thành công"
+                        : "Thanh toán không thành công",
+                });
             } else {
                 const paySuccess = await api.post("/api/transaction/pay", {
                     OrderCode: orderCode,

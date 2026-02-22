@@ -29,7 +29,6 @@ public class TransactionExpireService : BackgroundService
 
             if (expiredTransactions.Any())
             {
-                Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                 foreach (var transation in expiredTransactions)
                     transation.EscrowTransStatusId = EscrowStatus.Expired;
 
