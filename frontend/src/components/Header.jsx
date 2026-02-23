@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "@/store/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleDown, faSearch, faMobileScreen, faAngleRight, faList, faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
@@ -12,36 +12,58 @@ function Header() {
     const [open, setOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
+    const [searchKeyword, setSearchKeyword] = useState("");
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
+    const location = useLocation();
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const isSearchPage = location.pathname === "/search";
+
+    // Khi vào /search từ trang khác, đồng bộ keyword từ URL vào input
+    useEffect(() => {
+        if (isSearchPage) {
+            setSearchKeyword(searchParams.get("keyword") || "");
+        }
+    }, [isSearchPage]);
+
     const handleCreatePost = () => {
         if (!user) {
-            navigate("/login", {
-                state: { redirectTo: "/post/create" }
-            });
+            navigate("/login", { state: { redirectTo: "/post/create" } });
         } else {
             navigate("/post/create");
         }
     };
 
-    // Close mobile menu and dropdowns when clicking outside
+    const doSearch = () => {
+        const q = searchKeyword.trim();
+        if (isSearchPage) {
+            // Đang ở trang search → chỉ cập nhật URL param, SearchPage tự fetch
+            setSearchParams(q ? { keyword: q } : {});
+        } else {
+            // Trang khác → navigate sang /search
+            navigate(q ? `/search?keyword=${encodeURIComponent(q)}` : "/search");
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter") doSearch();
+    };
+
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
                 setOpen(false);
             }
         };
-
         const handleEsc = (e) => {
             if (e.key === "Escape") {
                 setOpen(false);
                 setMobileMenuOpen(false);
             }
         };
-
         document.addEventListener("mousedown", handleClickOutside);
         document.addEventListener("keydown", handleEsc);
-
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
             document.removeEventListener("keydown", handleEsc);
@@ -56,37 +78,28 @@ function Header() {
 
     const renderDashboardLink = () => {
         if (!user) return null;
-
         if (user.role === "Admin") {
             return (
                 <Link
                     to="/admin/post-manager"
                     className="header-dropdown-item"
-                    onClick={() => {
-                        setProfileOpen(false);
-                        setMobileMenuOpen(false);
-                    }}
+                    onClick={() => { setProfileOpen(false); setMobileMenuOpen(false); }}
                 >
                     Trang quản trị Admin
                 </Link>
             );
         }
-
         if (user.role === "Censor") {
             return (
                 <Link
                     to="/censor/post-censor"
                     className="header-dropdown-item"
-                    onClick={() => {
-                        setProfileOpen(false);
-                        setMobileMenuOpen(false);
-                    }}
+                    onClick={() => { setProfileOpen(false); setMobileMenuOpen(false); }}
                 >
                     Trang kiểm duyệt
                 </Link>
             );
         }
-
         return null;
     };
 
@@ -98,9 +111,9 @@ function Header() {
                     <img src="/logodenrmvbg.png" alt="LogoChoRe" />
                 </Link>
 
-                {/* MOBILE TOP: hamburger, centered logo, heart+bell */}
+                {/* MOBILE TOP */}
                 <div className="mobile-top mobile-only">
-                    <button 
+                    <button
                         className="mobile-menu-btn"
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                         aria-label="Open menu"
@@ -124,10 +137,7 @@ function Header() {
 
                 {/* CATEGORY DROPDOWN - Desktop */}
                 <div className="header-category desktop-only" ref={dropdownRef}>
-                    <button 
-                        className="category-btn"
-                        onClick={() => setOpen(!open)}
-                    >
+                    <button className="category-btn" onClick={() => setOpen(!open)}>
                         <FontAwesomeIcon icon={faList} />
                         <span>Danh mục</span>
                         <FontAwesomeIcon icon={faAngleDown} className={open ? "open" : ""} />
@@ -146,86 +156,80 @@ function Header() {
                     )}
                 </div>
 
-                {/* SEARCH BAR - Desktop */}
+                {/* SEARCH BAR - Desktop (luôn hiện) */}
                 <div className="header-search desktop-only">
-                    <FontAwesomeIcon icon={faSearch} />
+                    <FontAwesomeIcon
+                        icon={faSearch}
+                        style={{ cursor: "pointer" }}
+                        onClick={doSearch}
+                    />
                     <input
                         type="text"
                         placeholder="Tìm kiếm sản phẩm, danh mục hay thương hiệu..."
+                        value={searchKeyword}
+                        onChange={(e) => setSearchKeyword(e.target.value)}
+                        onKeyDown={handleKeyDown}
                     />
+                    {searchKeyword && (
+                        <FontAwesomeIcon
+                            icon={faTimes}
+                            style={{ cursor: "pointer", color: "#bbb", fontSize: "13px" }}
+                            onClick={() => {
+                                setSearchKeyword("");
+                                if (isSearchPage) setSearchParams({});
+                            }}
+                        />
+                    )}
                 </div>
 
                 {/* ACTIONS - Desktop */}
                 <div className="header-actions desktop-only">
-                    {/* Chat */}
                     <Link to="/chat" className="action-icon" title="Nhắn tin">
                         <FontAwesomeIcon icon={faComment} />
                     </Link>
 
-                    {/* Favorites */}
                     <div className="action-icon" title="Tin yêu thích">
                         <FontAwesomeIcon icon={faHeart} />
                     </div>
 
-                    {/* Notifications */}
                     <div className="action-icon" title="Thông báo">
                         <FontAwesomeIcon icon={faBell} />
                     </div>
 
-                    {/* Pro Package */}
                     <Link to="/service-package" className="action-text">
                         Gói <span className="pro-badge">PRO</span>
                     </Link>
 
-                    {/* Create Post Button */}
                     <button onClick={handleCreatePost} className="action-btn-create">
                         <FontAwesomeIcon icon={faPlus} />
                         <span>Đăng tin</span>
                     </button>
 
-                    {/* Auth */}
                     {!user ? (
-                        <Link to="/login" className="action-btn-login">
-                            Đăng nhập
-                        </Link>
+                        <Link to="/login" className="action-btn-login">Đăng nhập</Link>
                     ) : (
                         <div className="profile-dropdown-wrapper">
-                            <button 
+                            <button
                                 className="profile-avatar"
                                 onClick={() => setProfileOpen(!profileOpen)}
                             >
-                                    <img src={`http://localhost:5121/uploads/${user.avatar}`} alt="Profile" />
+                                <img src={`http://localhost:5121/uploads/${user.avatar}`} alt="Profile" />
                             </button>
 
                             {profileOpen && (
                                 <div className="profile-dropdown">
-                                    <Link 
-                                        to="/profile" 
-                                        className="header-dropdown-item"
-                                        onClick={() => setProfileOpen(false)}
-                                    >
+                                    <Link to="/profile" className="header-dropdown-item" onClick={() => setProfileOpen(false)}>
                                         Trang cá nhân
                                     </Link>
-                                    <Link 
-                                        to="/service-package-manager"
-                                        className="header-dropdown-item"
-                                        onClick={() => setProfileOpen(false)}
-                                    >
+                                    <Link to="/service-package-manager" className="header-dropdown-item" onClick={() => setProfileOpen(false)}>
                                         Quản lý Gói
                                     </Link>
-                                    <Link 
-                                        to="/user-transactions"
-                                        className="header-dropdown-item"
-                                        onClick={() => setProfileOpen(false)}
-                                    >
+                                    <Link to="/user-transactions" className="header-dropdown-item" onClick={() => setProfileOpen(false)}>
                                         Quản lý các giao dịch
                                     </Link>
                                     {renderDashboardLink()}
                                     <div className="dropdown-divider"></div>
-                                    <button
-                                        onClick={handleLogout}
-                                        className="header-dropdown-item logout-btn"
-                                    >
+                                    <button onClick={handleLogout} className="header-dropdown-item logout-btn">
                                         Đăng xuất
                                     </button>
                                 </div>
@@ -233,11 +237,9 @@ function Header() {
                         </div>
                     )}
                 </div>
-
-                {/* (mobile menu button moved into mobile-top) */}
             </div>
 
-            {/* MOBILE SEARCH ROW (category integrated) */}
+            {/* MOBILE SEARCH ROW (luôn hiện) */}
             <div className="mobile-search-row mobile-only">
                 <button className="mobile-category-btn" onClick={() => setOpen(!open)}>
                     <FontAwesomeIcon icon={faList} />
@@ -246,12 +248,20 @@ function Header() {
                 </button>
 
                 <div className="mobile-search">
-                    <input type="text" placeholder="Tìm kiếm sản phẩm, danh mục hay thương hiệu..." />
-                    <button className="mobile-search-btn"><FontAwesomeIcon icon={faSearch} /></button>
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm sản phẩm, danh mục hay thương hiệu..."
+                        value={searchKeyword}
+                        onChange={(e) => setSearchKeyword(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                    />
+                    <button className="mobile-search-btn" onClick={doSearch}>
+                        <FontAwesomeIcon icon={faSearch} />
+                    </button>
                 </div>
             </div>
 
-            {/* MOBILE CATEGORY DROPDOWN (floating panel with backdrop) */}
+            {/* MOBILE CATEGORY DROPDOWN */}
             {open && (
                 <>
                     <div className="mobile-backdrop mobile-only" onClick={() => setOpen(false)} />
@@ -270,22 +280,22 @@ function Header() {
             {/* BOTTOM NAV - Mobile */}
             <nav className="mobile-bottom-nav mobile-only" role="navigation" aria-label="Mobile bottom navigation">
                 <Link to="/" className="bottom-nav-item">
-                    <span className="icon">🏠</span>
+                    <span className="icon"></span>
                     <span className="label">Trang chủ</span>
                 </Link>
                 <Link to="/manage-posts" className="bottom-nav-item">
-                    <span className="icon">📑</span>
+                    <span className="icon"></span>
                     <span className="label">Quản lý</span>
                 </Link>
                 <Link to="/post/create" className="bottom-nav-item create-btn">
                     <span className="plus">+</span>
                 </Link>
                 <Link to="/chat" className="bottom-nav-item">
-                    <span className="icon">💬</span>
+                    <span className="icon"></span>
                     <span className="label">Liên hệ</span>
                 </Link>
                 <Link to="/profile" className="bottom-nav-item">
-                    <span className="icon">👤</span>
+                    <span className="icon"></span>
                     <span className="label">Tài khoản</span>
                 </Link>
             </nav>

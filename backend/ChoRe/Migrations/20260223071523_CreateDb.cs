@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ChoRe.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class CreateDb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -766,7 +766,6 @@ namespace ChoRe.Migrations
                     Comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ReviewType = table.Column<int>(type: "int", nullable: false),
-                    Tags = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ReviewerId = table.Column<int>(type: "int", nullable: false),
                     SellerId = table.Column<int>(type: "int", nullable: false),
                     ChatRoomId = table.Column<int>(type: "int", nullable: false),

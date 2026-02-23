@@ -2012,9 +2012,6 @@ namespace ChoRe.Migrations
                     b.Property<int>("SellerId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Tags")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("ReviewId");
 
                     b.HasIndex("ChatRoomId")

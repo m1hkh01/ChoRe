@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChoRe.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260222085334_Init")]
-    partial class Init
+    [Migration("20260223071523_CreateDb")]
+    partial class CreateDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -2014,9 +2014,6 @@ namespace ChoRe.Migrations
 
                     b.Property<int>("SellerId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Tags")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ReviewId");
 

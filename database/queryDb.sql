@@ -29,4 +29,4 @@ select * from PostSpecifications
 
 select * from poststatuses
 
-select * from
+select * from EscrowTransations

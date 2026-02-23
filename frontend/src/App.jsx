@@ -19,6 +19,7 @@ import MainLayout from "./Layout/MainLayout";
 import AdminLayout from "./Layout/AdminLayout";
 import CensorLayout from "./Layout/CensorLayout";
 import ChatLayout from "./Layout/ChatLayout";
+import SearchPage from "@/pages/SearchPage";
 
 /* ================= ROUTE GUARDS ================= */
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -46,13 +47,22 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
+        <Route path="/search" element={<SearchPage />} />
+        
         <Route
           path="/post/create"
           element={
             <ProtectedRoute>
               <CreatePost />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sreach"
+          element={
+            <SearchPage>
+              <SearchPage />
+            </SearchPage>
           }
         />
         <Route path="/profile" element={<ProfilePage />} />
