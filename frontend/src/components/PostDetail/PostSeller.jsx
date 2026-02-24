@@ -5,6 +5,7 @@ import api from "@/api";
 import { useAuthStore } from "@/store/auth";
 import { useNavigate } from "react-router-dom";
 import "@/assets/PostSeller.css";
+import { Link } from "react-router-dom";
 
 function PostSeller({ user, postId }) {
     const [showPhone, setShowPhone] = useState(false);
@@ -50,23 +51,26 @@ function PostSeller({ user, postId }) {
             <div className="seller-divider"></div>
 
             {/* Seller Info */}
-            <div className="seller-info">
-                <div className="seller-avatar">
-                    {user.avatar ? (
-                        <img
-                            src={`http://localhost:5121/uploads/${user.avatar}`}
-                            alt={user.fullName}
-                        />
-                    ) : (
-                        <FontAwesomeIcon icon={faUser} />
-                    )}
-                </div>
-                <div className="seller-details">
-                    <div className="seller-name">{user.fullName}</div>
-                    <div className="seller-status">Người bán</div>
-                </div>
-            </div>
-
+            <Link 
+    to={`/profile/${user.userId}`} 
+    className="seller-info"
+    style={{ textDecoration: "none", color: "inherit" }}
+>
+    <div className="seller-avatar">
+        {user.avatar ? (
+            <img
+                src={`http://localhost:5121/uploads/${user.avatar}`}
+                alt={user.fullName}
+            />
+        ) : (
+            <FontAwesomeIcon icon={faUser} />
+        )}
+    </div>
+    <div className="seller-details">
+        <div className="seller-name">{user.fullName}</div>
+        <div className="seller-status">Người bán</div>
+    </div>
+</Link>
             {/* Actions */}
             <div className="seller-actions">
                 <button className="action-btn action-btn-primary" onClick={CreateChat}>

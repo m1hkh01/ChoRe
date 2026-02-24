@@ -13,8 +13,8 @@ import "@/assets/SearchPage.css";
 const API_BASE = "http://localhost:5121/api";
 
 const SORT_OPTIONS = [
-    { value: "newest", label: "Mới nhất" },
-    { value: "oldest", label: "Cũ nhất" },
+    // { value: "newest", label: "Mới nhất" },
+    // { value: "oldest", label: "Cũ nhất" },
     { value: "price_asc", label: "Giá tăng dần" },
     { value: "price_desc", label: "Giá giảm dần" },
 ];

@@ -3,7 +3,6 @@ using ChoRe.DTOs.Profile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Crypto.Generators;
 using System.Security.Claims;
 using System.Text;
 using System.Security.Cryptography;
@@ -43,7 +42,6 @@ namespace ChoRe.Controllers
                     AvgRating = u.RatingsReceived!.Any()
                                     ? Math.Round(u.RatingsReceived.Average(r => (double)r.Star), 1) : 0,
                     TotalRatings = u.RatingsReceived!.Count(),
-                    // Chỉ trả email/phone nếu chính chủ xem
                     Email = currentUserId == userId ? u.Email : null,
                     PhoneNumber = currentUserId == userId ? u.PhoneNumber : null,
                 })
@@ -62,9 +60,36 @@ namespace ChoRe.Controllers
             var user = await _context.Users.FindAsync(userId);
             if (user == null) return NotFound();
 
-            if (!string.IsNullOrWhiteSpace(dto.FullName)) user.FullName = dto.FullName.Trim();
-            if (dto.PhoneNumber is not null) user.PhoneNumber = dto.PhoneNumber.Trim();
-            if (dto.Address is not null) user.Address = dto.Address.Trim();
+            // UserName — kiểm tra trùng (trừ chính mình)
+            if (!string.IsNullOrWhiteSpace(dto.UserName))
+            {
+                var trimmed = dto.UserName.Trim();
+                var conflict = await _context.Users
+                    .AnyAsync(u => u.UserName == trimmed && u.UserId != userId);
+                if (conflict)
+                    return BadRequest("Tên đăng nhập đã được sử dụng");
+                user.UserName = trimmed;
+            }
+
+            // Email — kiểm tra trùng (trừ chính mình)
+            if (!string.IsNullOrWhiteSpace(dto.Email))
+            {
+                var trimmed = dto.Email.Trim().ToLower();
+                var conflict = await _context.Users
+                    .AnyAsync(u => u.Email == trimmed && u.UserId != userId);
+                if (conflict)
+                    return BadRequest("Email đã được sử dụng");
+                user.Email = trimmed;
+            }
+
+            if (!string.IsNullOrWhiteSpace(dto.FullName))
+                user.FullName = dto.FullName.Trim();
+
+            if (dto.PhoneNumber is not null)
+                user.PhoneNumber = dto.PhoneNumber.Trim();
+
+            if (dto.Address is not null)
+                user.Address = dto.Address.Trim();
 
             await _context.SaveChangesAsync();
             return Ok(new { message = "Cập nhật thành công" });
@@ -108,18 +133,20 @@ namespace ChoRe.Controllers
         [HttpGet("{userId:int}/posts")]
         public async Task<IActionResult> GetPosts(
             int userId,
-            [FromQuery] string? status,
+            [FromQuery] int? statusId,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 12)
         {
             var isOwner = GetCurrentUserId() == userId;
-            var query = _context.Posts.Where(p => p.UserId == userId);
+            var query = _context.Posts
+                .Include(p => p.User)
+                .Include(p => p.PostImages)
+                .Where(p => p.UserId == userId);
 
-            // Visitor chỉ thấy bài APPROVED
             if (!isOwner)
-                query = query.Where(p => p.Status == "APPROVED");
-            else if (!string.IsNullOrEmpty(status))
-                query = query.Where(p => p.Status == status);
+                query = query.Where(p => p.PostStatusId == 2); // APPROVED only
+            else if (statusId.HasValue)
+                query = query.Where(p => p.PostStatusId == statusId.Value);
 
             var total = await query.CountAsync();
             var items = await query
@@ -130,15 +157,24 @@ namespace ChoRe.Controllers
                 {
                     PostId = p.PostId,
                     Title = p.Title,
-                    Description = p.Description,
-                    Price = p.Price,
+                    ShortDescription = p.Description.Length > 120
+        ? p.Description.Substring(0, 120) + "..."
+        : p.Description,
+
                     PriceType = p.PriceType,
+                    Price = p.Price,
                     MinPrice = p.MinPrice,
                     MaxPrice = p.MaxPrice,
+
                     Address = p.Address,
-                    Status = p.Status,
                     PostStatusId = p.PostStatusId,
-                    CreateAt = p.CreatedAt,
+
+                    Thumbnail = p.PostImages
+        .OrderBy(i => i.PostImgId)
+        .Select(i => i.PostImage1)
+        .FirstOrDefault(),
+
+                    UserName = p.User.UserName
                 })
                 .ToListAsync();
 
@@ -148,16 +184,15 @@ namespace ChoRe.Controllers
         // ── GET /api/profile/{userId}/ratings ───────────────────────────────────
         [HttpGet("{userId:int}/ratings")]
         public async Task<IActionResult> GetRatings(
-    int userId,
-    [FromQuery] int page = 1,
-    [FromQuery] int pageSize = 10)
+            int userId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
         {
             var query = _context.Ratings
                 .Where(r => r.ToUserId == userId)
                 .Include(r => r.FromUser);
 
             var total = await query.CountAsync();
-
             var items = await query
                 .OrderByDescending(r => r.CreatedAt)
                 .Skip((page - 1) * pageSize)
@@ -168,7 +203,6 @@ namespace ChoRe.Controllers
                     Stars = r.Star,
                     Comment = r.Comment,
                     CreateAt = r.CreatedAt,
-
                     RaterUserId = r.FromUser.UserId,
                     RaterFullName = r.FromUser.FullName,
                     RaterAvatar = r.FromUser.Avatar,
@@ -178,37 +212,28 @@ namespace ChoRe.Controllers
             return Ok(new PagedDto<RatingDto>(items, total, page, pageSize));
         }
 
-        // ─────────────────────────────────────────────
-        // POST /api/profile/me/change-password (SHA256)
-        // ─────────────────────────────────────────────
+        // ── POST /api/profile/me/change-password ────────────────────────────────
         [HttpPost("me/change-password")]
         [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {
             var userId = GetCurrentUserIdRequired();
             var user = await _context.Users.FindAsync(userId);
-
             if (user == null) return NotFound();
 
-            // Check old password
             var oldHash = HashPassword(dto.OldPassword);
-
             if (user.PasswordHash != oldHash)
                 return BadRequest("Mật khẩu hiện tại không đúng");
 
             if (dto.NewPassword.Length < 6)
                 return BadRequest("Mật khẩu mới phải ít nhất 6 ký tự");
 
-            // Save new password
             user.PasswordHash = HashPassword(dto.NewPassword);
             await _context.SaveChangesAsync();
-
             return Ok(new { message = "Đổi mật khẩu thành công" });
         }
 
-        // ─────────────────────────────────────────────
-        // SHA256 Hash Helper
-        // ─────────────────────────────────────────────
+        // ── Helpers ─────────────────────────────────────────────────────────────
         private string HashPassword(string password)
         {
             using var sha256 = SHA256.Create();
@@ -216,9 +241,6 @@ namespace ChoRe.Controllers
             return Convert.ToBase64String(bytes);
         }
 
-        // ─────────────────────────────────────────────
-        // Helpers: Current User Id
-        // ─────────────────────────────────────────────
         private int? GetCurrentUserId()
         {
             var c = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -226,8 +248,6 @@ namespace ChoRe.Controllers
         }
 
         private int GetCurrentUserIdRequired()
-        {
-            return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        }
+            => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     }
 }

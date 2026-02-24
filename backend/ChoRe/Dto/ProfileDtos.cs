@@ -19,6 +19,8 @@
     public class UpdateProfileDto
     {
         public string? FullName { get; set; }
+        public string? UserName { get; set; }
+        public string? Email { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
     }
@@ -28,23 +30,23 @@
         public string OldPassword { get; set; } = "";
         public string NewPassword { get; set; } = "";
     }
-
     public class PostCardDto
     {
         public int PostId { get; set; }
-        public string Title { get; set; } = "";
+        public string? Title { get; set; }
+        public string? ShortDescription { get; set; }
         public string? Description { get; set; }
         public decimal? Price { get; set; }
         public string? PriceType { get; set; }
         public decimal? MinPrice { get; set; }
         public decimal? MaxPrice { get; set; }
-        public string Address { get; set; } = "";
-        public string Status { get; set; } = "";
-        public int PostStatusId { get; set; }
+        public string? Address { get; set; }
+        public string? Status { get; set; }
+        public int? PostStatusId { get; set; }
         public DateTime CreateAt { get; set; }
-        public string? ShortDescription { get; set; }
+        public string? Thumbnail { get; set; }   // ← thêm
+        public string? UserName { get; set; }   // ← thêm
     }
-
     public class RatingDto
     {
         public int RatingId { get; set; }
