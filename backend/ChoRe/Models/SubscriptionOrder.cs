@@ -25,7 +25,7 @@ namespace ChoRe.Models
         public decimal Amount { get; set; }
 
         [Required(ErrorMessage = "Trạng thái đơn hàng là bắt buộc")]
-        public int OrdStatusId { get; set; } = 1;
+        public int OrdStatusId { get; set; } = EscrowStatus.PendingPayment;
 
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

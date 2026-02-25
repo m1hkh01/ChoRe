@@ -123,6 +123,8 @@ namespace ChoRe.Data
         public DbSet<ReportReview> ReportReviews { get; set; }
         /// <summary> Bảng EmailOtp - Lưu mã OTP gửi qua email </summary>
         public DbSet<EmailOtp> EmailOtps { get; set; }
+        /// <summary> Bảng Notification - Thông báo hệ thống gửi đến user </summary>
+        public DbSet<Notification> Notifications { get; set; }
 
         #endregion
 
@@ -330,6 +332,13 @@ namespace ChoRe.Data
                 .WithMany(r => r.Users)
                 .HasForeignKey(u => u.RoleId)
                 .OnDelete(DeleteBehavior.Restrict); // Không xóa Role nếu còn User
+                
+            // --- USER -> NOTIFICATIONS ---
+            modelBuilder.Entity<User>()
+            .HasMany(u=>u.Notifications)
+            .WithOne(n => n.User)
+            .HasForeignKey(n => n.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
             // --- RATING RELATIONSHIPS ---
             // Rating có 2 user: FromUser (người đánh giá) và ToUser (người được đánh giá)

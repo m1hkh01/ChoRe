@@ -16,7 +16,16 @@ public class ServicePackageController : ControllerBase
         _service = service;
         _context = context;
     }
-
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetPackageById(int id)
+    {
+        var package = await _service.GetSubPlanByUserId(id);
+        if (package is null)
+        {
+            return NotFound("Không tìm thấy gói dịch vụ");
+        }
+        return Ok(package);
+    }
     [HttpGet]
     public async Task<IActionResult> GetAllPackage()
     {

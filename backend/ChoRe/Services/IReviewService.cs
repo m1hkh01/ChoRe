@@ -32,6 +32,7 @@ public class ReviewService : IReviewService
         // CASE 1: REVIEW SAU GIAO DỊCH
         // ==============================
         EscrowTransation? transaction = null;
+        ChatRoom? chatRoom = null;
 
         if (request.TransactionId.HasValue)
         {
@@ -50,7 +51,7 @@ public class ReviewService : IReviewService
             // CASE 2: REVIEW SAU 60 PHÚT CHAT
             // ==============================
 
-            var chatRoom = await _context.ChatRooms
+            chatRoom = await _context.ChatRooms
             .Include(c => c.ChatMessages)
                 .FirstOrDefaultAsync(c => c.ChatRoomId == request.ChatRoomId);
 
@@ -59,19 +60,27 @@ public class ReviewService : IReviewService
 
             var chatDuration = (DateTime.Now - chatRoom.CreateAt).TotalMinutes;
             var chatMessageLength = chatRoom.ChatMessages?.Count;
+            // Điều kiện 2: phải có tin nhắn từ cả 2 bên
+            var distinctUsers = chatRoom?.ChatMessages?
+                .Select(m => m.FromUserId)
+                .Distinct()
+                .Count();
 
-            if (chatDuration < 60 && chatMessageLength <= 20)
-                throw new Exception("Chỉ được đánh giá sau 60 phút trò chuyện va hoặc đã gửi hơn 20 tin nhắn");
+            if (chatDuration < 60 && chatMessageLength <= 20 && distinctUsers < 2)
+                throw new Exception("Chỉ được đánh giá sau 60 phút trò chuyện");
         }
 
         // ==============================
         // CHECK REVIEW TRÙNG
         // ==============================
 
+        var sellerId = request.TransactionId.HasValue ? request.SellerId : chatRoom?.SellerId;
+        var PostId = request.TransactionId.HasValue ? request.PostId : chatRoom?.PostId;
+
         var existed = await _context.Reviews.FirstOrDefaultAsync(r =>
             r.ChatRoomId == request.ChatRoomId &&
             r.ReviewerId == request.ReviewerId &&
-            r.SellerId == request.SellerId);
+            r.SellerId == sellerId);
 
         if (existed != null)
             throw new Exception("Bạn đã đánh giá rồi");
@@ -83,8 +92,8 @@ public class ReviewService : IReviewService
             ReviewType = request.TransactionId.HasValue ? ReviewType.CompletedOrder : ReviewType.ChatOnly,
             OrderId = request.TransactionId,
             ReviewerId = request.ReviewerId,
-            SellerId = request.SellerId,
-            PostId = request.PostId,
+            SellerId = sellerId ?? 0,
+            PostId = PostId ?? 0,
             ChatRoomId = request.ChatRoomId,
             CreatedAt = DateTime.Now,
             ReviewImages = new List<ReviewImage>()

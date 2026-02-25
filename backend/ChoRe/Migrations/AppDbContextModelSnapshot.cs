@@ -1944,6 +1944,44 @@ namespace ChoRe.Migrations
                     b.ToTable("EmailOtps");
                 });
 
+            modelBuilder.Entity("Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RelatedId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("ReportReview", b =>
                 {
                     b.Property<int>("ReportReviewId")
@@ -2533,6 +2571,17 @@ namespace ChoRe.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Notification", b =>
+                {
+                    b.HasOne("ChoRe.Models.User", "User")
+                        .WithMany("Notifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ReportReview", b =>
                 {
                     b.HasOne("ChoRe.Models.User", "Reporter")
@@ -2731,6 +2780,8 @@ namespace ChoRe.Migrations
                     b.Navigation("DisputeEvidences");
 
                     b.Navigation("DisputesOpened");
+
+                    b.Navigation("Notifications");
 
                     b.Navigation("OrdersAsBuyer");
 

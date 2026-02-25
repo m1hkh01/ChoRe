@@ -129,9 +129,9 @@ export default function ReviewForm({ review, transactionId, sellerId, postId, ch
             formData.append("Rating", rating);
             formData.append("Comment", comment.trim());
             formData.append("ReviewerId", userId); // truyền thêm nếu cần
-            formData.append("SellerId", sellerId);
-            formData.append("TransactionId", transactionId);
-            formData.append("PostId", postId);
+            formData.append("SellerId", sellerId ?? 0);
+            formData.append("TransactionId", transactionId ?? "");
+            formData.append("PostId", postId ?? 0);
             formData.append("ChatRoomId", chatRoomId);
 
             selectedTags.forEach(tag => {
@@ -167,7 +167,7 @@ export default function ReviewForm({ review, transactionId, sellerId, postId, ch
             // setComment("");
             // setSelectedTags([]);
             // setImages([]);
-            
+
             reload();
             onClose();
 
@@ -198,9 +198,17 @@ export default function ReviewForm({ review, transactionId, sellerId, postId, ch
                     )}
                 </div>
 
-                <div className="flex text-lg font-semibold mt-3 text-gray-900 border-b pb-1 border-gray-200">
-                    <img src={"http://localhost:5121/uploads/" + postImage} alt={postTitle} className="h-15 w-15 object-cover rounded-lg mr-3" />
-                    <span className="self-center text-base font-medium! truncate">{postTitle}</span>
+                <div className="flex text-lg font-semibold mt-2 text-gray-900 border-b pb-1 border-gray-200">
+                    {postTitle && (<img src={"http://localhost:5121/uploads/" + postImage} alt={postTitle} className="h-15 w-15 object-cover rounded-lg mr-3" />)}
+                    {
+                        postTitle ?
+                            (
+                                <span className="self-center text-base font-medium! truncate">{postTitle}</span>
+                            )
+                            :
+                            (
+                                <span className="self-center text-2xl font-medium! truncate">Đánh giá cuộc trò chuyện</span>
+                            )}
                 </div>
 
                 {/* Form */}
@@ -261,7 +269,7 @@ export default function ReviewForm({ review, transactionId, sellerId, postId, ch
                                             <img
                                                 src={img.isServer ? ("http://localhost:5121/uploads/reviews/" + img.previewUrl) : img.previewUrl}
                                                 alt="preview"
-                                                    className="h-full w-full object-cover rounded-lg"
+                                                className="h-full w-full object-cover rounded-lg"
                                             />
                                         )}
 

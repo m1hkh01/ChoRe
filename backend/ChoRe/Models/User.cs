@@ -73,5 +73,6 @@ namespace ChoRe.Models
         public virtual UserSubscription? UserSubscription { get; set; }
         public virtual UserSubUsage? UserSubUsage { get; set; }
         public virtual ICollection<Review>? Reviews { get; set; }
+        public virtual ICollection<Notification>? Notifications { get; set; }
     }
 }

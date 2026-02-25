@@ -6,6 +6,6 @@
     public decimal SubPlanPrice { get; set; }
     public int DurationDays { get; set; }
     public int MaxPostPerSub { get; set; }
-    public decimal MaxFreePlatformFeePerSub { get; set; }
-    public decimal MaxFreePost { get; set; }
+    public int MaxFreePlatformFeePerSub { get; set; }
+    public int MaxFreePost { get; set; }
 }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 public interface IPackageService
 {
     Task<List<SubscriptionPlan>> GetAllSubPlan();
-    Task<UserSubscription?> GetSubPlanByUserId(int id);
+    Task<UserSubDto?> GetSubPlanByUserId(int id);
     Task<ServiceTransactionDto> CreateSubPlanOrder(int userId, SubscriptionPlan subscription);
     Task PaySubPlanOrder(UserSubUsage userSubUsage, UserSubscription userSubscription, string orderCode);
     Task<ServiceTransactionDto> GetServiceOrder(int id);
@@ -23,12 +23,31 @@ public class PackageService : IPackageService
         return await _context.SubscriptionPlans.ToListAsync();
     }
 
-    public async Task<UserSubscription?> GetSubPlanByUserId(int id)
+    public async Task<UserSubDto?> GetSubPlanByUserId(int id)
     {
         return await _context.UserSubscriptions
                             .Include(usSub => usSub.User)
                             .Include(usSub => usSub.SubscriptionPlan)
-                            .FirstOrDefaultAsync(usSub => usSub.UserId == id);
+                            .Where(usSub => usSub.UserId == id)
+                            .Select(uSub => new UserSubDto
+                            {
+                                StartDate = uSub.StartDate,
+                                ExpiredAt = uSub.EndDate,
+                                RemainingSubPost = uSub.User.UserSubUsage.RemainingSubPost,
+                                RemainingFreePost = uSub.User.UserSubUsage.RemainingFreePost,
+                                RemainingSubFPF = uSub.User.UserSubUsage.RemainingSubFPF,
+                                subscriptionPlanDto = new SubPlanDto
+                                {
+                                    SubPlanId = uSub.SubscriptionPlan.SubPlanId,
+                                    SubPlanName = uSub.SubscriptionPlan.SubPlanName,
+                                    Price = uSub.SubscriptionPlan.SubPlanPrice,
+                                    DurationDays = uSub.SubscriptionPlan.DurationDays,
+                                    MaxFreePost = uSub.SubscriptionPlan.MaxFreePost,
+                                    MaxFreePlatform= uSub.SubscriptionPlan.MaxFreePlatformFeePerSub,
+                                    MaxPost = uSub.SubscriptionPlan.MaxPostPerSub,
+                                    Title = uSub.SubscriptionPlan.SubPlanTitle,
+                                }
+                            }).FirstOrDefaultAsync();
     }
 
     public async Task<ServiceTransactionDto> CreateSubPlanOrder(int userId, SubscriptionPlan subscription)

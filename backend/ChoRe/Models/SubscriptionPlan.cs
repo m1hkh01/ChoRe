@@ -33,10 +33,10 @@ namespace ChoRe.Models
 
         [Range(0, double.MaxValue, ErrorMessage = "Phí giao dịch trung gian tối đa phải lớn hơn hoặc bằng 0")]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal MaxFreePlatformFeePerSub { get; set; }
+        public int MaxFreePlatformFeePerSub { get; set; }
         [Range(0, double.MaxValue, ErrorMessage = "Lượt đăng bài miễn phí tối đa phải lớn hơn hoặc bằng 0")]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal MaxFreePost { get; set; }
+        public int MaxFreePost { get; set; }
 
         // Navigation properties
         public virtual ICollection<UserSubscription>? UserSubscriptions { get; set; }

@@ -55,7 +55,10 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
     options.SerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     options.SerializerOptions.WriteIndented = true;
 });
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+});
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<IPostService, PostService>(); // Post Service
@@ -65,14 +68,21 @@ builder.Services.AddScoped<IEscrowTransactionService, EscrowTransactionService>(
 builder.Services.AddScoped<IUserSubscriptionService, UserSubscriptionService>(); // User Subscription Service
 builder.Services.AddScoped<IConvertationService, ConvertationService>(); // Conversation Service
 builder.Services.AddScoped<IReviewService, ReviewService>(); // Review Service
+builder.Services.AddScoped<INotificationService, NotificationService>(); // Notification Service
 builder.Services.AddScoped<HtmlSanitizer>();
 builder.Services.AddScoped<MailSettings>();
 builder.Services.AddScoped<ISendMailService, SendMailService>();
 builder.Services.AddSingleton<IUserIdProvider, JwtUserIdProvider>();
 
 
-builder.Services.AddHostedService<OrderExpireService>();
-builder.Services.AddHostedService<TransactionExpireService>();
+builder.Services.AddScoped<IReminderStrategy, TransactionExpireStrategy>();
+builder.Services.AddScoped<IReminderStrategy, TransactionNotificationStrategy>();
+builder.Services.AddScoped<IReminderStrategy, SubscriptionExpireStrategy>();
+builder.Services.AddScoped<IReminderStrategy, SubscriptionNotificationStrategy>();
+builder.Services.AddScoped<IReminderStrategy, DisputeNotificationStrategy>();
+builder.Services.AddScoped<IReminderStrategy, ReviewReminderStrategy>();
+
+builder.Services.AddHostedService<ReminderEngineService>();
 
 builder.Services.AddCors(options =>
                         options.AddDefaultPolicy(
