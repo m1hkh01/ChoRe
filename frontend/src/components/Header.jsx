@@ -193,7 +193,7 @@ function Header() {
             // case "PaymentReceived":
             //     navigate(`/user-transactions`);
             //     break;
-
+            case "Confirming":
             case "AwaitingEvidence":
                 navigate(`/user-transactions`);
                 break;

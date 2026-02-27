@@ -25,6 +25,37 @@ public class AccountController : ControllerBase
             return BadRequest(new { Error = ex.Message });
         }
     }
+
+    [HttpPost("/verify-otp")]
+    public async Task<IActionResult> VerifyOtp(SendOtpRequest request)
+    {
+        try
+        {
+            var valid = await _service.ValidateOtpCode(request.Email, request.OtpCode);
+            if (!valid) return BadRequest(new { Error = "Mã OTP không hợp lệ hoặc đã hết hạn." });
+            return Ok(new { message = "Mã OTP hợp lệ" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Error = ex.Message });
+        }
+    }
+
+    [HttpPost("/reset-password")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest dto)
+    {
+        try
+        {
+            await _service.VertifyOtpCode(dto.Email, dto.OtpCode);
+            await _service.ResetPassword(dto.Email, dto.NewPassword);
+            return Ok(new { message = "Đặt lại mật khẩu thành công" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Error = ex.Message });
+        }
+    }
+
     [HttpPost("/register")]
     public async Task<IActionResult> Register(RegisterDto dto)
     {

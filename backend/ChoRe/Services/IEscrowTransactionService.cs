@@ -166,6 +166,7 @@ public class EscrowTransactionService : IEscrowTransactionService
                 .ThenInclude(d => d.DisputeEvidences)
             .Include(x => x.Disputes)
                 .ThenInclude(d => d.DisputeStatus)
+            .Where(x=>x.BuyerUserId == id || x.SellerUserId == id)
             .AsQueryable();
         if (!string.IsNullOrEmpty(req.Keyword))
         {

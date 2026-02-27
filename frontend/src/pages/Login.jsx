@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "@/api";
 import { useAuthStore } from "@/store/auth";
 import "@/assets/Auth.css";
+import { Toast } from "../utils/toast";
 
 export function Login() {
     const { login } = useAuthStore();
@@ -18,12 +19,18 @@ export function Login() {
                 PasswordHash: password
             });
 
-            alert(res.data.message);
+            Toast.fire({
+                icon: 'success',
+                title: 'Đăng nhập thành công'
+            });
             login(res.data.userDto, res.data.token);
             navigate("/");
         } catch (err) {
             if (err.response?.status === 400) {
-                alert(err.response.data.error);
+                Toast.fire({
+                    icon: 'error',
+                    title: err.response?.data?.error || "Đăng nhập thất bại"
+                });
             }
             console.log("Lỗi login:", err);
         }
@@ -62,9 +69,12 @@ export function Login() {
                         />
                     </div>
 
-                    <div className="mb-3 text-end">
+                    <div className="mb-3 d-flex justify-content-between">
                         <Link to="/register" className="auth-link">
                             Chưa có tài khoản?
+                        </Link>
+                        <Link to="/forgot-password" className="auth-link">
+                            Quên mật khẩu?
                         </Link>
                     </div>
 

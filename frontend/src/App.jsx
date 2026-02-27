@@ -5,6 +5,7 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import { Login } from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
 import CreatePost from "./pages/CreatePost";
 import PostDetail from "./pages/PostDetail";
 import ServicePackage from "./pages/ServicePackage/ServicePackage";
@@ -51,6 +52,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
           <Route
             path="/post/create"

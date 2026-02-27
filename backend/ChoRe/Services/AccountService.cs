@@ -42,6 +42,32 @@ public class AccountService
         _context.EmailOtps.Remove(emailOtp);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<bool> ValidateOtpCode(string email, string otpCode)
+    {
+        var emailOtp = await _context.EmailOtps
+            .Where(e => e.Email == email
+                        && e.OtpCode == otpCode
+                        && !e.IsUsed
+                        && e.ExpiredAt > DateTime.Now)
+            .FirstOrDefaultAsync();
+
+        return emailOtp != null;
+    }
+
+    public async Task ResetPassword(string email, string newPassword)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (user == null)
+        {
+            throw new Exception("Người dùng không tồn tại");
+        }
+        var hasher = new PasswordHasher<User>();
+        user.PasswordHash = hasher.HashPassword(user, newPassword);
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<string> SendOtpCode(string email)
     {
         var otpCode = _mailService.GenerateOtp();
@@ -68,7 +94,7 @@ public class AccountService
         {
             throw new EmailAlreadyExistsException(dto.Email);
         }
-        await VertifyOtpCode(dto.Email, dto.OtpCode!);
+        await VertifyOtpCode(dto.Email, dto.OtpCode);
         // await _mailService.SendEmailAsync("nhatnctb00456@fpt.edu.vn", "Chào mừng đến với ChoRe", "<h1>Đăng ký tài khoản thành công!</h1><p>Cảm ơn bạn đã đăng ký tài khoản tại ChoRe.</p>");
         var hasher = new PasswordHasher<User>();
         var user = new User
@@ -139,6 +165,6 @@ public class AccountService
     }
     public async Task<User?> CheckMail(string email)
     {
-        return await _context.Users.Include(u=>u.Role).FirstOrDefaultAsync(u => u.Email == email);
+        return await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Email == email);
     }
 }
