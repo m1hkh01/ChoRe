@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComments, faPaperPlane, faUser } from "@fortawesome/free-solid-svg-icons";
 import api from "@/api";
+import { useAuthStore } from "@/store/auth";
 import "@/assets/PostComments.css";
 
 function PostComments({ postId }) {
@@ -9,7 +10,8 @@ function PostComments({ postId }) {
     const [content, setContent] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const isLogin = !!localStorage.getItem("token");
+    const { token } = useAuthStore();
+    const isLogin = !!token;
 
     const loadComments = () => {
         api.get(`/api/comments/post/${postId}`)
@@ -68,9 +70,9 @@ function PostComments({ postId }) {
                         onChange={e => setContent(e.target.value)}
                         onKeyPress={handleKeyPress}
                     />
-                        <span className="comment-hint">
-                            Nhấn Enter để gửi, Shift + Enter để xuống dòng
-                        </span>
+                    <span className="comment-hint">
+                        Nhấn Enter để gửi, Shift + Enter để xuống dòng
+                    </span>
                     <div className="comment-form-footer">
                         <button
                             className="comment-submit-btn"

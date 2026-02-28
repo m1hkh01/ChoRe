@@ -125,6 +125,8 @@ namespace ChoRe.Data
         public DbSet<EmailOtp> EmailOtps { get; set; }
         /// <summary> Bảng Notification - Thông báo hệ thống gửi đến user </summary>
         public DbSet<Notification> Notifications { get; set; }
+        /// <summary> Bảng RefreshTokens - Lưu refresh token dùng cho cấp mới access token </summary>
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         #endregion
 
@@ -175,6 +177,21 @@ namespace ChoRe.Data
                 .HasIndex(u => u.Email)
                 .IsUnique()
                 .HasDatabaseName("IX_Users_Email");
+
+            // each refresh token string must be unique (helps find quickly)
+            modelBuilder.Entity<RefreshToken>()
+                .HasIndex(rt => rt.Token)
+                .IsUnique();
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasKey(rt => rt.Id);
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasOne(rt => rt.User)
+                .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(rt => rt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
 
             // UserName cũng cần index để tìm kiếm user
             modelBuilder.Entity<User>()
@@ -332,10 +349,10 @@ namespace ChoRe.Data
                 .WithMany(r => r.Users)
                 .HasForeignKey(u => u.RoleId)
                 .OnDelete(DeleteBehavior.Restrict); // Không xóa Role nếu còn User
-                
+
             // --- USER -> NOTIFICATIONS ---
             modelBuilder.Entity<User>()
-            .HasMany(u=>u.Notifications)
+            .HasMany(u => u.Notifications)
             .WithOne(n => n.User)
             .HasForeignKey(n => n.UserId)
             .OnDelete(DeleteBehavior.Cascade);
@@ -678,7 +695,7 @@ namespace ChoRe.Data
             modelBuilder.Entity<ChatRoom>()
                 .HasOne(c => c.CurrentEscrow)
                 .WithOne()
-                .HasForeignKey<ChatRoom>(c=>c.CurrentEscrowTransId)
+                .HasForeignKey<ChatRoom>(c => c.CurrentEscrowTransId)
                 .OnDelete(DeleteBehavior.Restrict);
             // --- CHATMESSAGE -> CHATROOM ---
             // CASCADE: Xóa ChatRoom -> xóa tất cả messages
@@ -698,7 +715,7 @@ namespace ChoRe.Data
             // --- CHATMESSAGE -> ESCROWTRANSATION ---
             modelBuilder.Entity<ChatMessage>()
             .HasOne(cm => cm.EscrowTransation)
-            .WithOne(e=>e.ChatMessage)
+            .WithOne(e => e.ChatMessage)
             .HasForeignKey<ChatMessage>(cm => cm.TransationId)
             .OnDelete(DeleteBehavior.Restrict);
 

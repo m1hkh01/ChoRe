@@ -1398,6 +1398,37 @@ namespace ChoRe.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChoRe.Models.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Expires")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("ChoRe.Models.Role", b =>
                 {
                     b.Property<int>("RoleId")
@@ -2473,6 +2504,17 @@ namespace ChoRe.Migrations
                     b.Navigation("ToUser");
                 });
 
+            modelBuilder.Entity("ChoRe.Models.RefreshToken", b =>
+                {
+                    b.HasOne("ChoRe.Models.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ChoRe.Models.SavedPost", b =>
                 {
                     b.HasOne("ChoRe.Models.Post", "Post")
@@ -2792,6 +2834,8 @@ namespace ChoRe.Migrations
                     b.Navigation("RatingsGiven");
 
                     b.Navigation("RatingsReceived");
+
+                    b.Navigation("RefreshTokens");
 
                     b.Navigation("ReportedPost");
 

@@ -134,7 +134,14 @@ function Header() {
         };
     }, []);
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        try {
+            // Call revoke endpoint to invalidate refresh token on server
+            await api.post("/account/revoke-token");
+        } catch (err) {
+            console.log("Error revoking token:", err);
+        }
+        // Clear user session locally
         logout();
         setMobileMenuOpen(false);
         navigate("/login");
@@ -169,7 +176,7 @@ function Header() {
 
     // Hàm xử lý hành động khi click vào thông báo
     const handleNotificationClick = async (notification) => {
-        
+
         // mark as read (optional)
         await api.put(`/api/notifications/${notification.id}/read`);
         setNotificationOpen(false);
@@ -184,7 +191,7 @@ function Header() {
             case "PendingPaymentPackage":
                 navigate(`/pay/package/${notification.relatedId}`);
                 break;
-            
+
             case "PostApproved":
             case "PostRejected":
                 navigate(`/profile`);
@@ -201,7 +208,7 @@ function Header() {
             case "ReviewReminder":
                 setReviewChatRoomId(notification.relatedId);
                 break;
-            
+
             default:
                 navigate("/");
                 break;
@@ -393,8 +400,8 @@ function Header() {
                                             key={type}
                                             onClick={() => setFilterType(type)}
                                             className={`flex-1 py-2 transition ${filterType === type
-                                                    ? "bg-white font-semibold text-green-600 border-b-2 border-green-500"
-                                                    : "text-gray-500 hover:text-gray-700"
+                                                ? "bg-white font-semibold text-green-600 border-b-2 border-green-500"
+                                                : "text-gray-500 hover:text-gray-700"
                                                 }`}
                                         >
                                             {type === "All" && "Tất cả"}
@@ -416,8 +423,8 @@ function Header() {
                                                 key={item.id}
                                                 onClick={() => handleNotificationClick(item)}
                                                 className={`p-3 cursor-pointer transition hover:bg-gray-50 ${!item.isRead
-                                                        ? "bg-green-100 font-medium"
-                                                        : "text-gray-600"
+                                                    ? "bg-green-100 font-medium"
+                                                    : "text-gray-600"
                                                     }`}
                                             >
                                                 <div className="text-sm flex justify-between">
@@ -546,7 +553,7 @@ function Header() {
                     chatRoomId={reviewChatRoomId}
                     userId={user.userId}
                     onClose={() => setReviewChatRoomId(null)}
-                    reload={()=> navigate(0)}
+                    reload={() => navigate(0)}
                 ></ReviewForm>
             )}
         </header>

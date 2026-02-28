@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using ChoRe.Models;
+using ChoRe.Dto;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -99,7 +100,7 @@ public class AccountController : ControllerBase
         {
             return BadRequest(new { Error = "Mật khẩu không đúng, Vui lòng thử lại" });
         }
-        var token = await _service.Login(user);
+        var auth = await _service.Login(user);
         var userDto = new UserResponseDto
         {
             UserId = user.UserId,
@@ -107,8 +108,77 @@ public class AccountController : ControllerBase
             FullName = user.FullName,
             Avatar = user.Avatar,
             Email = user.Email,
-            Role = user.Role.RoleName
+            Role = user.Role?.RoleName ?? "User"
         };
-        return Ok(new { message = "Đăng nhập thành công", token, userDto });
+
+        // Set refresh token as HttpOnly cookie
+        Response.Cookies.Append("refreshToken", auth.RefreshToken, new Microsoft.AspNetCore.Http.CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddDays(7)
+        });
+
+        return Ok(new { message = "Đăng nhập thành công", token = auth.Token, userDto });
+    }
+
+    [HttpPost("/refresh-token")]
+    public async Task<IActionResult> RefreshToken()
+    {
+        try
+        {
+            var refreshTokenFromCookie = Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(refreshTokenFromCookie))
+            {
+                return Unauthorized(new { message = "Refresh token không tồn tại" });
+            }
+
+            var auth = await _service.RefreshToken(refreshTokenFromCookie);
+            if (auth == null)
+            {
+                return Unauthorized(new { message = "Refresh token không hợp lệ hoặc đã hết hạn" });
+            }
+
+            // Set new refresh token as HttpOnly cookie
+            Response.Cookies.Append("refreshToken", auth.RefreshToken, new Microsoft.AspNetCore.Http.CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            });
+
+            return Ok(new { token = auth.Token });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Error = ex.Message });
+        }
+    }
+
+    [HttpPost("/revoke-token")]
+    public async Task<IActionResult> RevokeToken()
+    {
+        try
+        {
+            var refreshTokenFromCookie = Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(refreshTokenFromCookie))
+            {
+                return NotFound(new { message = "Refresh token không tồn tại" });
+            }
+
+            var revoked = await _service.RevokeRefreshToken(refreshTokenFromCookie, HttpContext.Connection.RemoteIpAddress?.ToString());
+            if (!revoked) return NotFound(new { message = "Token không tồn tại hoặc đã bị thu hồi" });
+
+            // Clear the refresh token cookie
+            Response.Cookies.Delete("refreshToken");
+
+            return Ok(new { message = "Refresh token đã được thu hồi" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Error = ex.Message });
+        }
     }
 }

@@ -74,5 +74,8 @@ namespace ChoRe.Models
         public virtual UserSubUsage? UserSubUsage { get; set; }
         public virtual ICollection<Review>? Reviews { get; set; }
         public virtual ICollection<Notification>? Notifications { get; set; }
+
+        // stored refresh tokens for rotating refresh flow
+        public virtual ICollection<RefreshToken>? RefreshTokens { get; set; }
     }
 }

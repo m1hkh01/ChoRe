@@ -1,9 +1,11 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using ChoRe.Data;
 using ChoRe.Models;
+using ChoRe.Dto;
 using Ganss.Xss;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -127,7 +129,8 @@ public class AccountService
         await _context.SaveChangesAsync();
         return user;
     }
-    public async Task<string> Login(User user)
+    // internal helper used by both login and refresh routines
+    private string GenerateJwtToken(User user)
     {
         var claims = new[]
           {
@@ -150,7 +153,35 @@ public class AccountService
             signingCredentials: signIn
         );
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
 
+    private RefreshToken GenerateRefreshToken()
+    {
+        using var rng = RandomNumberGenerator.Create();
+        var randomBytes = new byte[64];
+        rng.GetBytes(randomBytes);
+        var token = Convert.ToBase64String(randomBytes);
+
+        return new RefreshToken
+        {
+            Token = token,
+            Expires = DateTime.UtcNow.AddDays(7),
+            IsRevoked = false
+        };
+    }
+
+    public async Task<AuthResponse> Login(User user)
+    {
+        // generate access token
+        var jwt = GenerateJwtToken(user);
+
+        // create and persist refresh token
+        var refreshToken = GenerateRefreshToken();
+        refreshToken.UserId = user.UserId;
+        _context.RefreshTokens.Add(refreshToken);
+        await _context.SaveChangesAsync();
+
+        return new AuthResponse { Token = jwt, RefreshToken = refreshToken.Token };
     }
     public bool CheckPassword(User user, string password)
     {
@@ -166,5 +197,46 @@ public class AccountService
     public async Task<User?> CheckMail(string email)
     {
         return await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Email == email);
+    }
+
+    /// <summary>
+    /// Validate an incoming refresh token, rotate it and return a fresh pair of tokens.
+    /// </summary>
+    public async Task<AuthResponse?> RefreshToken(string token)
+    {
+        var existing = await _context.RefreshTokens
+            .Include(rt => rt.User)
+            .SingleOrDefaultAsync(rt => rt.Token == token);
+
+        if (existing == null || existing.IsRevoked || DateTime.UtcNow >= existing.Expires)
+            return null;
+
+        // revoke the old token
+        existing.IsRevoked = true;
+        await _context.SaveChangesAsync();
+
+        // issue new refresh token
+        var newToken = GenerateRefreshToken();
+        newToken.UserId = existing.UserId;
+
+        _context.RefreshTokens.Add(newToken);
+        await _context.SaveChangesAsync();
+
+        var jwt = GenerateJwtToken(existing.User!);
+        return new AuthResponse { Token = jwt, RefreshToken = newToken.Token };
+    }
+
+    /// <summary>
+    /// Explicitly revoke a refresh token (logout).
+    /// </summary>
+    public async Task<bool> RevokeRefreshToken(string token, string? ipAddress)
+    {
+        var existing = await _context.RefreshTokens.SingleOrDefaultAsync(rt => rt.Token == token);
+        if (existing == null || existing.IsRevoked)
+            return false;
+
+        existing.IsRevoked = true;
+        await _context.SaveChangesAsync();
+        return true;
     }
 }
