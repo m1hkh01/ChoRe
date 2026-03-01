@@ -14,6 +14,16 @@ import TransactionPayPage from "./pages/Pay/TransactionPayPage";
 import PackagePayPage from "./pages/Pay/PackagePayPage";
 import ChatPage from "./pages/ChatPage";
 import TransactionManagementPage from "./pages/TransactionManagementPage";
+import HelpLayout from "./Layout/HelpLayout";
+
+import About from "./pages/Help/About";
+import Privacy from "./pages/Help/Privacy";
+import Terms from "./pages/Help/Terms";
+import Contact from "./pages/Help/Contact";
+import Shipping from "./pages/Help/Helpcenter";
+import Payment from "./pages/Help/Payment";
+import ReturnPolicy from "./pages/Help/ReturnPolicy";
+import Warranty from "./pages/Help/Ds";
 
 /* ================= LAYOUTS ================= */
 import MainLayout from "./Layout/MainLayout";
@@ -21,6 +31,7 @@ import AdminLayout from "./Layout/AdminLayout";
 import CensorLayout from "./Layout/CensorLayout";
 import ChatLayout from "./Layout/ChatLayout";
 import SearchPage from "@/pages/SearchPage";
+import Favorites from "@/pages/Favorites";
 
 /* ================= ROUTE GUARDS ================= */
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -53,6 +64,26 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route element={<HelpLayout />}>
+
+                    <Route path="/about" element={<About />} />
+
+                    <Route path="/privacy" element={<Privacy />} />
+
+                    <Route path="/terms" element={<Terms />} />
+
+                    <Route path="/contact" element={<Contact />} />
+
+                    <Route path="/helpcenter" element={<Shipping />} />
+
+                    <Route path="/payment" element={<Payment />} />
+
+                    <Route path="/return" element={<ReturnPolicy />} />
+
+                    <Route path="/ds" element={<Warranty />} />
+
+                </Route>
 
           <Route
             path="/post/create"

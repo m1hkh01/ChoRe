@@ -366,9 +366,10 @@ function Header() {
                         <FontAwesomeIcon icon={faComment} />
                     </Link>
 
-                    <div className="action-icon" title="Tin yêu thích">
+                    <Link to="/favorites" className="action-icon" title="Tin yêu thích">
+                    
                         <FontAwesomeIcon icon={faHeart} />
-                    </div>
+                    </Link>
 
                     {/* Thông báo */}
                     <div className="relative action-icon" ref={notificationRef}>
@@ -489,24 +490,41 @@ function Header() {
 
             {/* MOBILE SEARCH ROW (luôn hiện) */}
             <div className="mobile-search-row mobile-only">
-                <button className="mobile-category-btn" onClick={() => setOpen(!open)}>
-                    <FontAwesomeIcon icon={faList} />
-                    <span>Danh mục</span>
-                    <FontAwesomeIcon icon={faAngleDown} className={open ? "open" : ""} />
-                </button>
 
-                <div className="mobile-search">
-                    <input
-                        type="text"
-                        placeholder="Tìm kiếm sản phẩm, danh mục hay thương hiệu..."
-                        value={searchKeyword}
-                        onChange={(e) => setSearchKeyword(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                    />
-                    <button className="mobile-search-btn" onClick={doSearch}>
-                        <FontAwesomeIcon icon={faSearch} />
+                <div className="mobile-search-box">
+
+                    {/* Danh mục */}
+                    <button
+                        className="mobile-category-btn"
+                        onClick={() => setOpen(!open)}
+                    >
+                        <FontAwesomeIcon icon={faList} />
+                        <span>Danh mục</span>
                     </button>
+
+                    {/* Divider */}
+                    <div className="mobile-divider"></div>
+
+                    {/* Search input */}
+                    <div className="mobile-search-input-wrapper">
+
+                        <button onClick={doSearch}>
+                            <FontAwesomeIcon icon={faSearch} />
+                        </button>
+
+                        <input
+                            type="text"
+                            placeholder="Tìm kiếm sản phẩm..."
+                            value={searchKeyword}
+                            onChange={(e) => setSearchKeyword(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                        />
+
+
+                    </div>
+
                 </div>
+
             </div>
 
             {/* MOBILE CATEGORY DROPDOWN */}
@@ -533,7 +551,7 @@ function Header() {
                 </Link>
                 <Link to="/manage-posts" className="bottom-nav-item">
                     <span className="icon"></span>
-                    <span className="label">Quản lý</span>
+                    <span className="label">Quản lý tin</span>
                 </Link>
                 <Link to="/post/create" className="bottom-nav-item create-btn">
                     <span className="plus">+</span>

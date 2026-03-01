@@ -33,13 +33,13 @@ function Footer() {
                         <h3 style={styles.title}>Hỗ trợ khách hàng</h3>
                         <ul style={styles.list}>
                             <li style={styles.listItem}>
-                                <Link to="/help" style={styles.link}>Trung tâm trợ giúp</Link>
+                                <Link to="/about" style={styles.link}>Giới thiệu</Link>
                             </li>
                             <li style={styles.listItem}>
                                 <Link to="/contact" style={styles.link}>Liên hệ</Link>
                             </li>
-                            <li style={styles.listItem}>
-                                <Link to="/shipping" style={styles.link}>Hướng dẫn mua hàng</Link>
+                                                        <li style={styles.listItem}>
+                                <Link to="/helpcenter" style={styles.link}>Trung tâm trợ giúp</Link>
                             </li>
                             <li style={styles.listItem}>
                                 <Link to="/payment" style={styles.link}>Phương thức thanh toán</Link>
@@ -61,7 +61,7 @@ function Footer() {
                                 <Link to="/return" style={styles.link}>Chính sách đổi trả</Link>
                             </li>
                             <li style={styles.listItem}>
-                                <Link to="/warranty" style={styles.link}>Chính sách bảo hành</Link>
+                                <Link to="/ds" style={styles.link}>Giải quyết tranh chấp</Link>
                             </li>
                         </ul>
                     </div>
