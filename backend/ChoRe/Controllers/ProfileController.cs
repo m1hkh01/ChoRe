@@ -1,11 +1,14 @@
 ﻿using ChoRe.Data;
-using ChoRe.DTOs.Profile;
+using ChoRe.DTO.Profile;
+using ChoRe.Helpers;
+using ChoRe.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using System.Text;
 using System.Security.Cryptography;
+using System.Text;
+using ChoRe.Dto;
 
 namespace ChoRe.Controllers
 {
@@ -132,10 +135,10 @@ namespace ChoRe.Controllers
         // ── GET /api/profile/{userId}/posts ─────────────────────────────────────
         [HttpGet("{userId:int}/posts")]
         public async Task<IActionResult> GetPosts(
-            int userId,
-            [FromQuery] int? statusId,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 12)
+    int userId,
+    [FromQuery] int? statusId,
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 12)
         {
             var isOwner = GetCurrentUserId() == userId;
             var query = _context.Posts
@@ -169,10 +172,12 @@ namespace ChoRe.Controllers
                     Address = p.Address,
                     PostStatusId = p.PostStatusId,
 
+                    CreatedAt = p.CreatedAt,
+
                     Thumbnail = p.PostImages
-        .OrderBy(i => i.PostImgId)
-        .Select(i => i.PostImage1)
-        .FirstOrDefault(),
+                        .OrderBy(i => i.PostImgId)
+                        .Select(i => i.PostImage1)
+                        .FirstOrDefault(),
 
                     UserName = p.User.UserName
                 })
@@ -180,6 +185,151 @@ namespace ChoRe.Controllers
 
             return Ok(new PagedDto<PostCardDto>(items, total, page, pageSize));
         }
+
+        [HttpPut("{postId:int}/mark-sold")]
+        public async Task<IActionResult> MarkAsSold(int postId)
+        {
+            var userId = GetCurrentUserId();
+
+            var post = await _context.Posts
+                .FirstOrDefaultAsync(p => p.PostId == postId);
+
+            if (post == null)
+                return NotFound();
+
+            if (post.UserId != userId)
+                return Forbid();
+
+            post.PostStatusId = PostStatusHelper.Sold;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Đã đánh dấu là đã bán" });
+        }
+        [HttpPut("{postId:int}/hide")]
+        public async Task<IActionResult> HidePost(int postId)
+        {
+            var userId = GetCurrentUserId();
+
+            var post = await _context.Posts.FindAsync(postId);
+
+            if (post == null)
+                return NotFound("Không tìm thấy bài đăng");
+
+            if (post.UserId != userId)
+                return Forbid();
+
+            if (post.PostStatusId == PostStatusHelper.Hidden)
+                return BadRequest("Tin đã bị ẩn");
+
+            post.PostStatusId = PostStatusHelper.Hidden;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Đã ẩn tin"
+            });
+        }
+        [HttpPut("{postId:int}/unhide")]
+        public async Task<IActionResult> UnhidePost(int postId)
+        {
+            var userId = GetCurrentUserId();
+
+            var post = await _context.Posts.FindAsync(postId);
+
+            if (post == null)
+                return NotFound("Không tìm thấy bài đăng");
+
+            if (post.UserId != userId)
+                return Forbid();
+
+            if (post.PostStatusId != PostStatusHelper.Hidden)
+                return BadRequest("Tin không ở trạng thái ẩn");
+
+            post.PostStatusId = PostStatusHelper.Approved;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Tin đã được hiển thị lại"
+            });
+        }
+        [HttpDelete("{postId:int}")]
+        public async Task<IActionResult> DeletePost(int postId)
+        {
+            var userId = GetCurrentUserId();
+
+            // lấy post + images
+            var post = await _context.Posts
+                .Include(p => p.PostImages)
+                .FirstOrDefaultAsync(p => p.PostId == postId);
+
+            if (post == null)
+                return NotFound(new { message = "Không tìm thấy bài đăng" });
+
+            // chỉ chủ bài đăng mới được xóa
+            if (post.UserId != userId)
+                return Forbid();
+
+            // XÓA FILE ẢNH TRÊN Ổ CỨNG (nếu có)
+            if (post.PostImages != null)
+            {
+                foreach (var img in post.PostImages)
+                {
+                    var filePath = Path.Combine(
+                        Directory.GetCurrentDirectory(),
+                        "wwwroot/uploads",
+                        img.PostImage1
+                    );
+
+                    if (System.IO.File.Exists(filePath))
+                        System.IO.File.Delete(filePath);
+                }
+
+                // xóa record ảnh trong DB
+                _context.PostImages.RemoveRange(post.PostImages);
+            }
+
+            // XÓA POST
+            _context.Posts.Remove(post);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Đã xóa vĩnh viễn bài đăng"
+            });
+        }
+        [HttpPut("{postId:int}")]
+        public async Task<IActionResult> UpdatePost(int postId, UpdatePostDTO dto)
+        {
+            var userId = GetCurrentUserId();
+
+            var post = await _context.Posts.FindAsync(postId);
+
+            if (post == null)
+                return NotFound();
+
+            if (post.UserId != userId)
+                return Forbid();
+
+            post.Title = dto.Title;
+            post.Description = dto.Description;
+            post.Price = dto.Price;
+            post.PriceType = dto.PriceType;
+            post.MinPrice = dto.MinPrice;
+            post.MaxPrice = dto.MaxPrice;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Cập nhật thành công"
+            });
+        }
+
 
         // ── GET /api/profile/{userId}/ratings ───────────────────────────────────
         [HttpGet("{userId:int}/ratings")]

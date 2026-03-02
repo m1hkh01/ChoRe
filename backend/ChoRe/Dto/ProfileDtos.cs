@@ -1,4 +1,4 @@
-﻿namespace ChoRe.DTOs.Profile
+﻿namespace ChoRe.DTO.Profile
 {
     public class ProfileDto
     {
@@ -43,7 +43,7 @@
         public string? Address { get; set; }
         public string? Status { get; set; }
         public int? PostStatusId { get; set; }
-        public DateTime CreateAt { get; set; }
+        public DateTime CreatedAt { get; set; }
         public string? Thumbnail { get; set; }   // ← thêm
         public string? UserName { get; set; }   // ← thêm
     }

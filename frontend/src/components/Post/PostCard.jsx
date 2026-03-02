@@ -7,11 +7,10 @@ import "./PostCard.css";
 
 const STATUS_LABEL = {
     1: "Chờ duyệt",
-    2: "Đang hiển thị",
+    2: "Đang bán",
     3: "Từ chối",
-    4: "Đang bán",
-    5: "Đã bán",
-    6: "Đã ẩn",
+    4: "Đã bán",
+    5: "Đã ẩn",
 };
 
 function PostCard({ post }) {

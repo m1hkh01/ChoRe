@@ -6,24 +6,27 @@ import ProfileHeader from "@/components/Profile/ProfileHeader";
 import ProfilePosts from "@/components/Profile/ProfilePosts";
 import ProfileRatings from "@/components/Profile/ProfileRatings";
 import EditProfileModal from "@/components/Profile/EditProfileModal";
+import ProfileManagePosts from "@/components/Profile/ProfileManagePosts";
 import "@/assets/Profile.css";
+import { icon } from "@fortawesome/fontawesome-svg-core";
 
 const TABS = [
-    { key: "posts",   label: "Bài đăng",  icon: ""  },
-    { key: "ratings", label: "Đánh giá",  icon: ""   },
+    { key: "posts", label: "Bài đăng", icon: "" },
+    { key: "ratings", label: "Đánh giá", icon: "" },
+    { key: "manage", label: "Quản lý tin đăng", icon: "" },
 ];
 
 export default function ProfilePage() {
-    const { userId }      = useParams();
-    const { user: me }    = useAuthStore();
-    const navigate        = useNavigate();
+    const { userId } = useParams();
+    const { user: me } = useAuthStore();
+    const navigate = useNavigate();
 
     const targetId = userId ? parseInt(userId) : me?.userId;
-    const isOwner  = !userId || parseInt(userId) === me?.userId;
+    const isOwner = !userId || parseInt(userId) === me?.userId;
 
-    const [profile,       setProfile]       = useState(null);
-    const [activeTab,     setActiveTab]     = useState("posts");
-    const [loading,       setLoading]       = useState(true);
+    const [profile, setProfile] = useState(null);
+    const [activeTab, setActiveTab] = useState("posts");
+    const [loading, setLoading] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
 
     const loadProfile = async () => {
@@ -100,8 +103,11 @@ export default function ProfilePage() {
 
             {/* ── Tab Content ────────────────────────────────────── */}
             <div className="pf-content">
-                {activeTab === "posts"   && <ProfilePosts   userId={targetId} isOwner={isOwner} />}
+                {activeTab === "posts" && <ProfilePosts userId={targetId} isOwner={isOwner} />}
                 {activeTab === "ratings" && <ProfileRatings userId={targetId} />}
+                {activeTab === "manage" && isOwner && (
+                    <ProfileManagePosts userId={targetId} />
+                )}
             </div>
 
             {/* ── Edit Modal ─────────────────────────────────────── */}

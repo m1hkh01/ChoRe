@@ -14,7 +14,8 @@
     public string PriceDisplay { get; set; }
 
     public string Address { get; set; }
-    public DateTime CreatedAt { get; set; }
+
     public string UserName { get; set; }
     public string Thumbnail { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

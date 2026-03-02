@@ -13,6 +13,7 @@ import ServicePackageManager from "./pages/ServicePackage/ServicePackageManager"
 import TransactionPayPage from "./pages/Pay/TransactionPayPage";
 import PackagePayPage from "./pages/Pay/PackagePayPage";
 import ChatPage from "./pages/ChatPage";
+
 import TransactionManagementPage from "./pages/TransactionManagementPage";
 import HelpLayout from "./Layout/HelpLayout";
 
@@ -67,23 +68,23 @@ function App() {
           <Route path="/favorites" element={<Favorites />} />
           <Route element={<HelpLayout />}>
 
-                    <Route path="/about" element={<About />} />
+            <Route path="/about" element={<About />} />
 
-                    <Route path="/privacy" element={<Privacy />} />
+            <Route path="/privacy" element={<Privacy />} />
 
-                    <Route path="/terms" element={<Terms />} />
+            <Route path="/terms" element={<Terms />} />
 
-                    <Route path="/contact" element={<Contact />} />
+            <Route path="/contact" element={<Contact />} />
 
-                    <Route path="/helpcenter" element={<Shipping />} />
+            <Route path="/helpcenter" element={<Shipping />} />
 
-                    <Route path="/payment" element={<Payment />} />
+            <Route path="/payment" element={<Payment />} />
 
-                    <Route path="/return" element={<ReturnPolicy />} />
+            <Route path="/return" element={<ReturnPolicy />} />
 
-                    <Route path="/ds" element={<Warranty />} />
+            <Route path="/ds" element={<Warranty />} />
 
-                </Route>
+          </Route>
 
           <Route
             path="/post/create"

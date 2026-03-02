@@ -6,12 +6,11 @@ import PostCard from "@/components/Post/PostCard";
 /* ===== STATUS FILTER TABS ===== */
 const STATUS_TABS = [
     { key: null, label: "Tất cả"         },
-    { key: 2,    label: "Đang hiển thị"  },
+    { key: 2,    label: "Đang bán"  },
     { key: 1,    label: "Chờ duyệt"      },
     { key: 3,    label: "Từ chối"        },
-    { key: 4,    label: "Đang bán"       },
-    { key: 5,    label: "Đã bán"         },
-    { key: 6,    label: "Đã ẩn"          },
+    { key: 4,    label: "Đã bán"         },
+    { key: 5,    label: "Đã ẩn"          },
 ];
 
 export default function ProfilePosts({ userId, isOwner }) {

@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using ChoRe.DTOs;
+using ChoRe.DTO;
 using ChoRe.Models;
 using ChoRe.Data;
 
