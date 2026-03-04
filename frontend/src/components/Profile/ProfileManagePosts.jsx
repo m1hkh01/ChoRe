@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import api from "@/api";
 // import PostCard from "@/components/Post/PostCard";
 import "@/assets/ProfileManagePosts.css";
-import EditPostModal from "@/components/Post/EditPostModal";
+// import EditPostModal from "@/components/Post/EditPostModal";
 import { useNavigate } from "react-router-dom";
 
 const STATUS = {
@@ -127,9 +127,9 @@ export default function ProfileManagePosts({ userId }) {
 
     // ĐÃ BÁN
     const markAsSold = async (postId) => {
-
+        
         try {
-
+            console.log(`Marking post ${postId} as sold...`);
             await api.put(`/api/profile/${postId}/mark-sold`);
 
             setPosts(prev =>

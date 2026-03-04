@@ -7,6 +7,7 @@ export const useAuthStore = create(set => ({
 
     login: (user, token) => {
         localStorage.setItem("user", JSON.stringify(user));
+        console.log("Token: ", token);
         set({ user, token })
     },
 

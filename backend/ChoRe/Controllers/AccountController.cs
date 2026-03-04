@@ -123,7 +123,7 @@ public class AccountController : ControllerBase
         return Ok(new { message = "Đăng nhập thành công", token = auth.Token, userDto });
     }
 
-    [HttpPost("/refresh-token")]
+    [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken()
     {
         try

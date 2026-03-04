@@ -12,6 +12,7 @@ using ChoRe.Dto;
 
 namespace ChoRe.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/profile")]
     public class ProfileController : ControllerBase
@@ -135,55 +136,65 @@ namespace ChoRe.Controllers
         // ── GET /api/profile/{userId}/posts ─────────────────────────────────────
         [HttpGet("{userId:int}/posts")]
         public async Task<IActionResult> GetPosts(
-    int userId,
-    [FromQuery] int? statusId,
-    [FromQuery] int page = 1,
-    [FromQuery] int pageSize = 12)
+        int userId,
+        [FromQuery] int? statusId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 12)
         {
-            var isOwner = GetCurrentUserId() == userId;
-            var query = _context.Posts
-                .Include(p => p.User)
-                .Include(p => p.PostImages)
-                .Where(p => p.UserId == userId);
+            try
+            {
+                var isOwner = GetCurrentUserId() == userId;
+                var query = _context.Posts
+                    .Include(p => p.User)
+                    .Include(p => p.PostImages)
+                    .Where(p => p.UserId == userId);
 
-            if (!isOwner)
-                query = query.Where(p => p.PostStatusId == 2); // APPROVED only
-            else if (statusId.HasValue)
-                query = query.Where(p => p.PostStatusId == statusId.Value);
+                if (!isOwner)
+                    query = query.Where(p => p.PostStatusId == 2); // APPROVED only
+                else if (statusId.HasValue)
+                    query = query.Where(p => p.PostStatusId == statusId.Value);
 
-            var total = await query.CountAsync();
-            var items = await query
-                .OrderByDescending(p => p.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(p => new PostCardDto
-                {
-                    PostId = p.PostId,
-                    Title = p.Title,
-                    ShortDescription = p.Description.Length > 120
-        ? p.Description.Substring(0, 120) + "..."
-        : p.Description,
+                Console.WriteLine($"Fetching posts for user {isOwner} {userId} with statusId={statusId}, page={page}, pageSize={pageSize}");
 
-                    PriceType = p.PriceType,
-                    Price = p.Price,
-                    MinPrice = p.MinPrice,
-                    MaxPrice = p.MaxPrice,
+                var total = await query.CountAsync();
+                var items = await query
+                    .OrderByDescending(p => p.CreatedAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new PostCardDto
+                    {
+                        PostId = p.PostId,
+                        Title = p.Title,
+                        ShortDescription = p.Description.Length > 120
+            ? p.Description.Substring(0, 120) + "..."
+            : p.Description,
 
-                    Address = p.Address,
-                    PostStatusId = p.PostStatusId,
+                        PriceType = p.PriceType,
+                        Price = p.Price,
+                        MinPrice = p.MinPrice,
+                        MaxPrice = p.MaxPrice,
 
-                    CreatedAt = p.CreatedAt,
+                        Address = p.Address,
+                        PostStatusId = p.PostStatusId,
 
-                    Thumbnail = p.PostImages
-                        .OrderBy(i => i.PostImgId)
-                        .Select(i => i.PostImage1)
-                        .FirstOrDefault(),
+                        CreatedAt = p.CreatedAt,
 
-                    UserName = p.User.UserName
-                })
-                .ToListAsync();
+                        Thumbnail = p.PostImages
+                            .OrderBy(i => i.PostImgId)
+                            .Select(i => i.PostImage1)
+                            .FirstOrDefault(),
 
-            return Ok(new PagedDto<PostCardDto>(items, total, page, pageSize));
+                        UserName = p.User.UserName
+                    })
+                    .ToListAsync();
+
+                return Ok(new PagedDto<PostCardDto>(items, total, page, pageSize));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching posts for user {userId}: {ex}");
+                return StatusCode(401, "Đã có lỗi xảy ra");
+            }
         }
 
         [HttpPut("{postId:int}/mark-sold")]
@@ -198,7 +209,10 @@ namespace ChoRe.Controllers
                 return NotFound();
 
             if (post.UserId != userId)
+            {
+                Console.WriteLine($"User {userId} attempted to mark post {postId} as sold but is not the owner.");
                 return Forbid();
+            }
 
             post.PostStatusId = PostStatusHelper.Sold;
 
@@ -393,7 +407,8 @@ namespace ChoRe.Controllers
 
         private int? GetCurrentUserId()
         {
-            var c = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var c = User.FindFirstValue("UserId");
+            Console.WriteLine($"Current user ID from claims: {c}");
             return c != null ? int.Parse(c) : null;
         }
 
