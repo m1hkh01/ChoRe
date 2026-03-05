@@ -133,3 +133,42 @@
 .heart-btn:hover {
     transform: scale(1.15);
 }
+/* ========================= */
+/* INACTIVE POST STYLE */
+/* ========================= */
+
+.favorite-item.inactive {
+    opacity: 0.5;
+    filter: grayscale(40%);
+    transition: 0.3s;
+}
+
+/* STATUS BADGE */
+.favorite-status {
+    margin-top: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 4px 10px;
+    border-radius: 20px;
+
+    width: fit-content;      /* QUAN TRỌNG */
+    display: inline-flex;    /* QUAN TRỌNG */
+    align-items: center;
+}
+
+.favorite-status.sold {
+    background-color: #ffe5e5;
+    color: #d32f2f;
+}
+
+.favorite-status.hidden {
+    background-color: #e0e0e0;
+    color: #424242;
+    font-weight: 700;
+}
+
+/* làm mờ toàn bộ item khi inactive */
+.favorite-item.inactive {
+    opacity: 0.6;
+    cursor: default;
+}

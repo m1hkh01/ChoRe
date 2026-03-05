@@ -1,17 +1,42 @@
 import { useEffect, useState } from "react";
 import FavoriteItem from "@/components/Favorite/FavoriteItem";
+import { useAuthStore } from "@/store/auth";
+import api from "@/api";
 
 function Favorites() {
 
+    const { user } = useAuthStore();
+    if (!user) {
+        return <div className="container mt-4">Vui lòng đăng nhập để xem yêu thích</div>;
+    }
     const [favorites, setFavorites] = useState([]);
 
-    const loadFavorites = () => {
+    const loadFavorites = async () => {
 
-        const data =
-            JSON.parse(localStorage.getItem("favorites")) || [];
+        const rawIds =
+            JSON.parse(localStorage.getItem(`favorites_${user.userId}`)) || [];
 
-        setFavorites(data);
+        console.log("RAW IDS:", rawIds);
 
+        if (rawIds.length === 0) {
+            setFavorites([]);
+            return;
+        }
+
+        const ids = rawIds
+            .map(id => Number(id))
+            .filter(id => !isNaN(id));
+
+        console.log("IDS GỬI LÊN:", ids);
+
+        try {
+            const res = await api.post("/api/posts/by-ids", ids);
+            console.log("RESPONSE:", res);
+
+            setFavorites(res.data);
+        } catch (err) {
+            console.error("API ERROR:", err.response || err);
+        }
     };
 
     useEffect(() => {
@@ -33,22 +58,23 @@ function Favorites() {
 
     const removeFavorite = (postId) => {
 
-        const updated =
-            favorites.filter(
-                post => post.postId !== postId
-            );
+        const updatedIds =
+            favorites
+                .filter(post => post.postId !== postId)
+                .map(post => post.postId);   // ✅ chỉ lưu ID
 
         localStorage.setItem(
-            "favorites",
-            JSON.stringify(updated)
+            `favorites_${user.userId}`,
+            JSON.stringify(updatedIds)
         );
 
-        setFavorites(updated);
+        setFavorites(
+            favorites.filter(post => post.postId !== postId)
+        );
 
         window.dispatchEvent(
             new Event("favoritesUpdated")
         );
-
     };
 
     return (

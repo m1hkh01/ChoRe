@@ -422,6 +422,42 @@ namespace ChoRe.Controllers
             return Ok(posts);
         }
 
+        [AllowAnonymous]
+        [HttpPost("by-ids")]
+        public async Task<IActionResult> GetPostsByIds([FromBody] List<int> ids)
+        {
+            if (ids == null || !ids.Any())
+                return Ok(new List<object>());
+
+            var posts = await _context.Posts
+                .Where(p => ids.Contains(p.PostId))
+                .Select(p => new
+                {
+                    p.PostId,
+                    p.Title,
+                    p.PriceType,
+                    p.Price,
+                    p.MinPrice,
+                    p.MaxPrice,
+                    p.Address,
+                    p.PostStatusId,
+                    p.Status,
+                    p.CreatedAt,
+                    p.UserId,
+                    p.ViewCount,
+                    p.SavedCount,
+
+                    // 🔥 THÊM ĐOẠN NÀY
+                    thumbnail = _context.PostImages
+                        .Where(img => img.PostId == p.PostId)
+                        .Select(img => img.PostImage1)
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            return Ok(posts);
+        }
+
         //[AllowAnonymous]
         //[HttpGet("approved")]
         //public async Task<IActionResult> GetApprovedPosts()

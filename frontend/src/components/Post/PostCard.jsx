@@ -2,18 +2,22 @@ import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMapMarkerAlt, faUser, faHeart } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
+import { useAuthStore } from "@/store/auth";
 import { useState, useEffect } from "react";
 import "./PostCard.css";
 
 const STATUS_LABEL = {
     1: "Chờ duyệt",
-    2: "Đang bán",
-    3: "Từ chối",
-    4: "Đã bán",
-    5: "Đã ẩn",
+    2: "Đã duyệt",
+    3: "Bị từ chối",
+    4: "Đang bán",
+    5: "Đã bán",
+    6: "Đã ẩn"
 };
 
 function PostCard({ post }) {
+
+    const { user } = useAuthStore();
 
     const postId = post.postId;
 
@@ -22,14 +26,19 @@ function PostCard({ post }) {
     // ✅ Load trạng thái favorite khi component mount
     useEffect(() => {
 
-        const favorites =
-            JSON.parse(localStorage.getItem("favorites")) || [];
+        if (!user) {
+            setIsFavorite(false);
+            return;
+        }
 
-        const exists = favorites.some(p => p.postId === postId);
+        const favorites =
+            JSON.parse(localStorage.getItem(`favorites_${user.userId}`)) || [];
+
+        const exists = favorites.includes(postId);
 
         setIsFavorite(exists);
 
-    }, [postId]);
+    }, [postId, user]);
 
 
     const renderPrice = () => {
@@ -65,39 +74,33 @@ function PostCard({ post }) {
 
     // ❤️ CLICK FAVORITE
     const handleFavoriteClick = (e) => {
+        if (!user) {
+            alert("Vui lòng đăng nhập để thêm yêu thích");
+            return;
+        }
 
         e.preventDefault();
         e.stopPropagation();
 
         let favorites =
-            JSON.parse(localStorage.getItem("favorites")) || [];
+            JSON.parse(localStorage.getItem(`favorites_${user.userId}`)) || [];
 
-        const exists = favorites.find(p => p.postId === postId);
+        const exists = favorites.includes(postId);
 
         if (exists) {
-
-            // remove
-            favorites = favorites.filter(p => p.postId !== postId);
-
+            favorites = favorites.filter(id => id !== postId);
             setIsFavorite(false);
-
         } else {
-
-            // add
-            favorites.unshift(post);
-
+            favorites.unshift(postId);
             setIsFavorite(true);
-
         }
 
         localStorage.setItem(
-            "favorites",
+            `favorites_${user.userId}`,
             JSON.stringify(favorites)
         );
 
-        // optional: emit event để sync trang khác
         window.dispatchEvent(new Event("favoritesUpdated"));
-
     };
 
 

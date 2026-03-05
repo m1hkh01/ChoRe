@@ -6,6 +6,11 @@ import "./FavoriteItem.css";
 
 function FavoriteItem({ post, onRemove }) {
 
+    const isInactive =
+        post.postStatusId === 5 ||   // Đã bán
+        post.postStatusId === 6;
+
+
     const handleRemove = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -29,15 +34,21 @@ function FavoriteItem({ post, onRemove }) {
 
     // format trạng thái
     const renderStatus = () => {
+        if (post.postStatusId === 5) {
+            return (
+                <div className="favorite-status sold">
+                    Sản phẩm đã được bán
+                </div>
+            );
+        }
 
-        if (post.postStatusId === 6)
-            return <div className="favorite-status">Tin đã ẩn</div>;
-
-        if (post.postStatusId === 5)
-            return <div className="favorite-status">Tin đã bán</div>;
-
-        if (post.deleted)
-            return <div className="favorite-status">Tin đã xóa</div>;
+        if (post.postStatusId === 6) {
+            return (
+                <div className="favorite-status hidden">
+                    Tin đăng đã bị ẩn
+                </div>
+            );
+        }
 
         return null;
     };
@@ -73,8 +84,11 @@ function FavoriteItem({ post, onRemove }) {
     return (
 
         <Link
-            to={`/posts/${post.postId}`}
-            className="favorite-item"
+            to={isInactive ? "#" : `/posts/${post.postId}`}
+            onClick={(e) => {
+                if (isInactive) e.preventDefault();
+            }}
+            className={`favorite-item ${isInactive ? "inactive" : ""}`}
         >
 
             {/* IMAGE */}
@@ -96,35 +110,38 @@ function FavoriteItem({ post, onRemove }) {
                 </div>
 
                 {/* PRICE */}
-                <div className="favorite-price">
-                    {renderPrice()}
-                </div>
+                {!isInactive && (
+                    <>
+                        <div className="favorite-price">
+                            {renderPrice()}
+                        </div>
 
-                {/* USER + DATE + LOCATION giống Chợ Tốt */}
-                <div className="favorite-meta">
+                        <div className="favorite-meta">
 
-                    {post.userName && (
-                        <span>{post.userName}</span>
-                    )}
+                            {post.userName && (
+                                <span>{post.userName}</span>
+                            )}
 
-                    {post.createdAt && (
-                        <>
-                            {post.userName && " • "}
-                            <span>{formatDate(post.createdAt)}</span>
-                        </>
-                    )}
+                            {post.createdAt && (
+                                <>
+                                    {post.userName && " • "}
+                                    <span>{formatDate(post.createdAt)}</span>
+                                </>
+                            )}
 
-                    {post.address && (
-                        <>
-                            {(post.userName || post.createdAt) && " • "}
-                            <span>{post.address}</span>
-                        </>
-                    )}
+                            {post.address && (
+                                <>
+                                    {(post.userName || post.createdAt) && " • "}
+                                    <span>{post.address}</span>
+                                </>
+                            )}
 
-                </div>
+                        </div>
+                    </>
+                )}
 
                 {/* STATUS */}
-                {renderStatus()}
+                {isInactive && renderStatus()}
 
             </div>
 
