@@ -14,4 +14,5 @@
     public string UserName { get; set; }
     public string? Thumbnail { get; set; }
     public string ShortDescription { get; set; }
+    public bool? IsSaved { get; set; }
 }

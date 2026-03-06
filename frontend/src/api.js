@@ -52,11 +52,11 @@ api.interceptors.response.use(
         const auth = useAuthStore.getState();
         auth.logout();
 
-        // if (navigateHandler) {
-        //   navigateHandler("/login");
-        // } else {
-        //   window.location.href = "/login";
-        // }
+        if (navigateHandler) {
+        navigateHandler("/login");
+        } else {
+         window.location.href = "/login";
+       }
       }
     }
 

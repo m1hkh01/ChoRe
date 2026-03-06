@@ -4,6 +4,7 @@ using ChoRe.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace ChoRe.Controllers
 {
@@ -87,6 +88,7 @@ namespace ChoRe.Controllers
         public async Task<IActionResult> GetPostsForHome(
         string? keyword,
         int? brandId,
+        int? userId,
         int? categoryId,
         decimal? minPrice,
         decimal? maxPrice,
@@ -98,6 +100,7 @@ namespace ChoRe.Controllers
                 .Include(p => p.User)
                 .Include(p => p.PostImages)
                 .Include(p => p.Brand)
+                .Include(p => p.SavedPosts)
                 .Include(p => p.PostCates)
                     .ThenInclude(pc => pc.Category)
                 .Where(p => p.PostStatusId == 2);
@@ -168,7 +171,8 @@ namespace ChoRe.Controllers
                     UserName = p.User.UserName,
                     Thumbnail = p.PostImages
                         .Select(i => i.PostImage1)
-                        .FirstOrDefault()
+                        .FirstOrDefault(),
+                    IsSaved = p.SavedPosts.Any(sp => sp.UserId == userId && sp.PostId == p.PostId)
                 })
                 .ToListAsync();
 
@@ -376,12 +380,13 @@ namespace ChoRe.Controllers
         }
         [AllowAnonymous]
         [HttpGet("all")]
-        public async Task<IActionResult> GetAllPosts([FromQuery] int[]? statusIds)
+        public async Task<IActionResult> GetAllPosts([FromQuery] int[]? statusIds, [FromQuery] int? userId)
         {
             var query = _context.Posts
                 .AsNoTracking()
                 .Include(p => p.User)
                 .Include(p => p.PostImages)
+                .Include(p=>p.SavedPosts)
                 .Where(p => p.PostStatusId == 2); // ✅ chỉ approved
 
             // 🔍 Optional filter theo statusIds (nếu cần)
@@ -415,7 +420,9 @@ namespace ChoRe.Controllers
 
                     ShortDescription = p.Description.Length > 120
                         ? p.Description.Substring(0, 120)
-                        : p.Description
+                        : p.Description,
+                    IsSaved = p.SavedPosts.Any(sp => sp.UserId == userId && sp.PostId == p.PostId)
+                    //IsSaved = p.SavedPosts.Any(sp => sp.PostId == p.PostId && sp.UserId == userId)
                 })
                 .ToListAsync();
 

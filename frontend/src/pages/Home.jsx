@@ -111,6 +111,7 @@ function Home() {
     api.get("/api/posts/home", {
       params: {
         keyword: filters.keyword || null,
+        userId: user ? user.userId : null,
         brandId: filters.brandId ? Number(filters.brandId) : null,
         categoryId: filters.categoryId ? Number(filters.categoryId) : null,
         minPrice: filters.priceRange[0],
@@ -156,7 +157,7 @@ function Home() {
     api.get("api/postcates").then(res => setPostCates(res.data));
 
     // ✅ CHỈ LẤY POSTS ĐÃ APPROVED (statusIds=2)
-    api.get("/api/posts/all", { params: { statusIds: [2] } })
+    api.get("/api/posts/all", { params: { statusIds: [2], userId: user ? user.userId : null } })
       .then(res => {
         setAllPosts(res.data);
         setPosts(res.data);

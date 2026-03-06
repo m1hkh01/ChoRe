@@ -5,6 +5,10 @@ import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
 import { useAuthStore } from "@/store/auth";
 import { useState, useEffect } from "react";
 import "./PostCard.css";
+import api from "../../api";
+import { Toast } from "../../utils/toast";
+import { icon } from "@fortawesome/fontawesome-svg-core";
+
 
 const STATUS_LABEL = {
     1: "Chờ duyệt",
@@ -31,11 +35,11 @@ function PostCard({ post }) {
             return;
         }
 
-        const favorites =
-            JSON.parse(localStorage.getItem(`favorites_${user.userId}`)) || [];
+        //const favorites =
+           // JSON.parse(localStorage.getItem(`favorites_${user.userId}`)) || [];
 
-        const exists = favorites.includes(postId);
-
+        const exists = post.isSaved || false;
+        console.log(`Post ${postId} isSaved:`, post);
         setIsFavorite(exists);
 
     }, [postId, user]);
@@ -86,11 +90,21 @@ function PostCard({ post }) {
             JSON.parse(localStorage.getItem(`favorites_${user.userId}`)) || [];
 
         const exists = favorites.includes(postId);
-
-        if (exists) {
+        if (isFavorite) {
             favorites = favorites.filter(id => id !== postId);
+            const res = api.delete(`api/save-posts/${postId}`, { PostId: postId });
+            Toast.fire({
+                icon: "success",
+                title: res.data?.message || "Đã xóa khỏi yêu thích!"
+            })
             setIsFavorite(false);
         } else {
+            const res = api.post("api/save-posts", { PostId: postId });
+            Toast.fire({
+                icon: "success",
+                title: res.data?.message || "Đã thêm vào yêu thích!"
+            })
+            //console.log("SAVE POST RESPONSE:", res);
             favorites.unshift(postId);
             setIsFavorite(true);
         }
