@@ -185,7 +185,7 @@ export default function ProfileManagePosts({ userId }) {
                             className="pf-btn pf-btn-edit"
                             onClick={() => editPost(post.postId)}
                         >
-                            ✏️ Sửa tin
+                            Sửa tin
                         </button>
 
                         <button
@@ -218,14 +218,14 @@ export default function ProfileManagePosts({ userId }) {
                             className="pf-btn pf-btn-sold"
                             onClick={() => markAsSold(post.postId)}
                         >
-                            📦 Đã bán
+                            Đã bán
                         </button>
 
                         <button
                             className="pf-btn pf-btn-hide"
                             onClick={() => hidePost(post.postId)}
                         >
-                            🚫 Ẩn tin
+                            Ẩn tin
                         </button>
 
                         <button

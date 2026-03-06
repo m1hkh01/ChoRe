@@ -42,6 +42,7 @@ namespace ChoRe.Controllers
             {
                 post.PostId,
                 post.Title,
+                post.PostStatusId,            // ⚠️ thêm vào để frontend biết trạng thái
 
                 // ✅ THÊM THÔNG TIN GIÁ
                 post.PriceType,

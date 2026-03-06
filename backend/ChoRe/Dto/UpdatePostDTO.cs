@@ -13,5 +13,7 @@
         public decimal? MinPrice { get; set; }
 
         public decimal? MaxPrice { get; set; }
+
+        public List<string> Images { get; set; } // Thêm trường hình ảnh
     }
 }

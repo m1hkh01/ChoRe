@@ -5,6 +5,7 @@ using ChoRe.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -321,7 +322,9 @@ namespace ChoRe.Controllers
         {
             var userId = GetCurrentUserId();
 
-            var post = await _context.Posts.FindAsync(postId);
+            var post = await _context.Posts
+                .Include(p => p.PostImages)
+                .FirstOrDefaultAsync(p => p.PostId == postId);
 
             if (post == null)
                 return NotFound();
@@ -329,12 +332,47 @@ namespace ChoRe.Controllers
             if (post.UserId != userId)
                 return Forbid();
 
+            // only allow editing before the post is approved
+            if (post.PostStatusId != PostStatusHelper.Pending && post.PostStatusId != PostStatusHelper.Rejected)
+            {
+                return BadRequest("Không thể chỉnh sửa bài đăng đã được duyệt hoặc đã đóng");
+            }
+
+            // Cập nhật thông tin cơ bản
             post.Title = dto.Title;
             post.Description = dto.Description;
             post.Price = dto.Price;
             post.PriceType = dto.PriceType;
             post.MinPrice = dto.MinPrice;
             post.MaxPrice = dto.MaxPrice;
+
+            // Xử lý hình ảnh nếu có
+            if (dto.Images != null)
+            {
+                // Xóa tất cả hình ảnh hiện tại
+                foreach (var postImage in post.PostImages.ToList())
+                {
+                    // Xóa file vật lý
+                    var filePath = Path.Combine(_env.WebRootPath, "uploads", postImage.PostImage1);
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                }
+                _context.PostImages.RemoveRange(post.PostImages);
+
+                // Thêm lại tất cả hình ảnh mới
+                foreach (var image in dto.Images)
+                {
+                    _context.PostImages.Add(new PostImage
+                    {
+                        PostId = post.PostId, // Explicitly set PostId
+                        PostImage1 = image
+                    });
+                }
+
+                Console.WriteLine($"Updated images for post {postId}: {string.Join(", ", dto.Images)}");
+            }
 
             await _context.SaveChangesAsync();
 

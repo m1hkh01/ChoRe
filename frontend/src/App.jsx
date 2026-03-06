@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import CreatePost from "./pages/CreatePost";
 import PostDetail from "./pages/PostDetail";
+import EditPost from "./pages/EditPost";
 import ServicePackage from "./pages/ServicePackage/ServicePackage";
 import ServicePackageManager from "./pages/ServicePackage/ServicePackageManager";
 import TransactionPayPage from "./pages/Pay/TransactionPayPage";
@@ -91,6 +92,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <CreatePost />
+              </ProtectedRoute>
+            }
+          />
+          {/* edit post – only available to logged in users and typically used by the profile page */}
+          <Route
+            path="/profile/edit/:postId"
+            element={
+              <ProtectedRoute>
+                <EditPost />
               </ProtectedRoute>
             }
           />
