@@ -58,6 +58,28 @@
         public string? RaterAvatar { get; set; }
     }
 
+    public class CommentDto
+    {
+        public int CmtId { get; set; }
+        public string Content { get; set; } = "";
+        public DateTime CreateAt { get; set; }
+        public PostInfoDto Post { get; set; } = new();
+        public UserInfoDto User { get; set; } = new();
+    }
+
+    public class PostInfoDto
+    {
+        public int PostId { get; set; }
+        public string Title { get; set; } = "";
+    }
+
+    public class UserInfoDto
+    {
+        public int UserId { get; set; }
+        public string FullName { get; set; } = "";
+        public string? Avatar { get; set; }
+    }
+
     public class PagedDto<T>
     {
         public PagedDto(List<T> items, int total, int page, int pageSize)

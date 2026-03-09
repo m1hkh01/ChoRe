@@ -192,7 +192,7 @@ export default function ProfileManagePosts({ userId }) {
                             className="pf-btn pf-btn-delete"
                             onClick={() => deletePost(post.postId)}
                         >
-                            🗑 Xóa tin
+                            Xóa tin
                         </button>
                     </>
                 );
@@ -204,7 +204,7 @@ export default function ProfileManagePosts({ userId }) {
                             className="pf-btn pf-btn-delete"
                             onClick={() => deletePost(post.postId)}
                         >
-                            🗑 Xóa tin
+                             Xóa tin
                         </button>
                     </>
                 );
@@ -232,7 +232,7 @@ export default function ProfileManagePosts({ userId }) {
                             className="pf-btn pf-btn-delete"
                             onClick={() => deletePost(post.postId)}
                         >
-                            🗑 Xóa tin
+                             Xóa tin
                         </button>
                     </>
                 );
@@ -253,7 +253,7 @@ export default function ProfileManagePosts({ userId }) {
                             className="pf-btn pf-btn-delete"
                             onClick={() => deletePost(post.postId)}
                         >
-                            🗑 Xóa tin
+                             Xóa tin
                         </button>
                     </>
                 );
@@ -267,7 +267,7 @@ export default function ProfileManagePosts({ userId }) {
                             className="pf-btn pf-btn-delete"
                             onClick={() => deletePost(post.postId)}
                         >
-                            🗑 Xóa tin
+                             Xóa tin
                         </button>
                     </>
                 );

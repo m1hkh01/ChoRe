@@ -28,7 +28,7 @@ namespace ChoRe.Controllers
         }
 
         // ── GET /api/profile/{userId}  — public ─────────────────────────────────
-        [HttpGet("{userId:int}")]
+        [HttpGet("{userId:int}", Order = 2)]
         public async Task<IActionResult> GetProfile(int userId)
         {
             var currentUserId = GetCurrentUserId();
@@ -135,7 +135,7 @@ namespace ChoRe.Controllers
         }
 
         // ── GET /api/profile/{userId}/posts ─────────────────────────────────────
-        [HttpGet("{userId:int}/posts")]
+        [HttpGet("{userId:int}/posts", Order = 1)]
         public async Task<IActionResult> GetPosts(
         int userId,
         [FromQuery] int? statusId,
@@ -384,7 +384,7 @@ namespace ChoRe.Controllers
 
 
         // ── GET /api/profile/{userId}/ratings ───────────────────────────────────
-        [HttpGet("{userId:int}/ratings")]
+        [HttpGet("{userId:int}/ratings", Order = 1)]
         public async Task<IActionResult> GetRatings(
             int userId,
             [FromQuery] int page = 1,
@@ -412,6 +412,68 @@ namespace ChoRe.Controllers
                 .ToListAsync();
 
             return Ok(new PagedDto<RatingDto>(items, total, page, pageSize));
+        }
+
+        // ── GET /api/profile/{userId}/comments ────────────────────────────────────
+        [HttpGet("{userId:int}/comments", Order = 1)]
+        public async Task<IActionResult> GetComments(
+            int userId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var query = _context.Comments
+                    .Where(c => c.UserId == userId)
+                    .Include(c => c.Post)
+                    .Include(c => c.User);
+
+                var total = await query.CountAsync();
+                Console.WriteLine($"Total comments for user {userId}: {total}");
+
+                var items = await query
+                    .OrderByDescending(c => c.CreateAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(c => new CommentDto
+                    {
+                        CmtId = c.CmtId,
+                        Content = c.Content,
+                        CreateAt = c.CreateAt,
+                        Post = new PostInfoDto
+                        {
+                            PostId = c.Post.PostId,
+                            Title = c.Post.Title
+                        },
+                        User = new UserInfoDto
+                        {
+                            UserId = c.User.UserId,
+                            FullName = c.User.FullName,
+                            Avatar = c.User.Avatar
+                        }
+                    })
+                    .ToListAsync();
+
+                Console.WriteLine($"Fetched {items.Count} comments for page {page}");
+                
+                return Ok(new PagedDto<CommentDto>(items, total, page, pageSize));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching comments for user {userId}: {ex.Message}");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+        [HttpDelete("/api/comments/{id}")]
+        public async Task<IActionResult> DeleteComment(int id)
+        {
+            var comment = await _context.Comments.FindAsync(id);
+            if (comment == null) return NotFound();
+
+            _context.Comments.Remove(comment);
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
 
         // ── POST /api/profile/me/change-password ────────────────────────────────

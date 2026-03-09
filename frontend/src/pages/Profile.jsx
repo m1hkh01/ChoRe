@@ -5,6 +5,7 @@ import api from "@/api";
 import ProfileHeader from "@/components/Profile/ProfileHeader";
 import ProfilePosts from "@/components/Profile/ProfilePosts";
 import ProfileRatings from "@/components/Profile/ProfileRatings";
+import ProfileComments from "@/components/Profile/ProfileComments";
 import EditProfileModal from "@/components/Profile/EditProfileModal";
 import ProfileManagePosts from "@/components/Profile/ProfileManagePosts";
 import "@/assets/Profile.css";
@@ -13,6 +14,7 @@ import { icon } from "@fortawesome/fontawesome-svg-core";
 const TABS = [
     { key: "posts", label: "Bài đăng", icon: "" },
     { key: "ratings", label: "Đánh giá", icon: "" },
+    { key: "comments", label: "Lịch sử bình luận", icon: "" },
     { key: "manage", label: "Quản lý tin đăng", icon: "" },
 ];
 
@@ -105,6 +107,7 @@ export default function ProfilePage() {
             <div className="pf-content">
                 {activeTab === "posts" && <ProfilePosts userId={targetId} isOwner={isOwner} />}
                 {activeTab === "ratings" && <ProfileRatings userId={targetId} />}
+                {activeTab === "comments" && <ProfileComments userId={targetId} />}
                 {activeTab === "manage" && isOwner && (
                     <ProfileManagePosts userId={targetId} />
                 )}

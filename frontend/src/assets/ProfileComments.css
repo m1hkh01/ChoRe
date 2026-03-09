@@ -1,0 +1,110 @@
+.pf-comments {
+    max-width: 900px;
+    margin: auto;
+}
+
+.pf-count {
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.pf-comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.pf-comment-item {
+    display: flex;
+    align-items: center;
+    gap: 16px; 
+    background: #f5f5f5;
+    padding: 18px 24px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #e5e5e5;
+    background-color: #FFFFFF;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.pf-comment-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1; 
+}
+
+.pf-commenter-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #ddd;
+}
+
+.pf-comment-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.pf-comment-text {
+    font-size: 15px;
+    color: #333;
+}
+
+.pf-comment-date {
+    font-size: 13px;
+    color: #777;
+    margin-top: 4px;
+}
+
+.pf-comment-view {
+    background: #16a34a;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.pf-comment-view:hover {
+    background: #15803d;
+}
+.pf-comment-content {
+    font-size: 14px;
+    color: #555;
+    margin-top: 4px;
+
+    white-space: nowrap;        /* chỉ 1 dòng */
+    overflow: hidden;           /* ẩn phần dư */
+    text-overflow: ellipsis;    /* hiện ... */
+    max-width: 600px;           /* giới hạn chiều rộng */
+}
+.pf-comment-actions{
+    display:flex;
+    gap:10px;
+    flex-shrink:0;  
+}
+
+.pf-comment-delete{
+    background:#ef4444;
+    color:white;
+    border:none;
+    padding:6px 14px;
+    border-radius:4px;
+    cursor:pointer;
+}
+
+.pf-comment-delete:hover{
+    background:#dc2626;
+}
+
+.pf-delete-selected{
+    margin-bottom:10px;
+    background:#ef4444;
+    color:white;
+    border:none;
+    padding:8px 14px;
+    border-radius:6px;
+    cursor:pointer;
+}

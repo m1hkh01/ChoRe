@@ -4,6 +4,11 @@
     flex-direction: column;
     gap: 16px;
 }
+.pf-filter-bar{
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
 
 .pf-row-card
 {
@@ -58,6 +63,7 @@
 {
     display: flex;
     gap: 8px;
+
 }
 
 .pf-btn
