@@ -26,6 +26,7 @@ function Header() {
     const { data, loading, error } = useFetch(`/api/notifications/${user?.userId || 0}`);
     const [notificationsData, setNotificationData] = useState([]);
     const notificationRef = useRef(null);
+    const profileRef = useRef(null);
     const [filterType, setFilterType] = useState("All");
     const [reviewChatRoomId, setReviewChatRoomId] = useState(null);
 
@@ -102,7 +103,7 @@ function Header() {
 
     useEffect(() => {
         const handleClickOutside = (e) => {
-            // console.log("Clicked outside?", e.target);
+
             if (
                 dropdownRef.current && !dropdownRef.current.contains(e.target)
             ) {
@@ -114,6 +115,13 @@ function Header() {
                 !notificationRef.current.contains(e.target)
             ) {
                 setNotificationOpen(false);
+            }
+
+            if (
+                profileRef.current &&
+                !profileRef.current.contains(e.target)
+            ) {
+                setProfileOpen(false);
             }
         };
 
@@ -367,7 +375,7 @@ function Header() {
                     </Link>
 
                     <Link to="/favorites" className="action-icon" title="Tin yêu thích">
-                    
+
                         <FontAwesomeIcon icon={faHeart} />
                     </Link>
 
@@ -457,10 +465,13 @@ function Header() {
                     {!user ? (
                         <Link to="/login" className="action-btn-login">Đăng nhập</Link>
                     ) : (
-                        <div className="profile-dropdown-wrapper">
+                        <div className="profile-dropdown-wrapper" ref={profileRef}>
                             <button
                                 className="profile-avatar"
-                                onClick={() => setProfileOpen(!profileOpen)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setProfileOpen(!profileOpen);
+                                }}
                             >
                                 <img src={`https://api.chore123.cloud/uploads/${user.avatar}`} alt="Profile" />
                             </button>

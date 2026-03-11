@@ -29,6 +29,7 @@ export default function ProfilePage() {
     const [profile, setProfile] = useState(null);
     const [activeTab, setActiveTab] = useState("posts");
     const [loading, setLoading] = useState(true);
+    const [postsTotal, setPostsTotal] = useState(0);
     const [showEditModal, setShowEditModal] = useState(false);
 
     const loadProfile = async () => {
@@ -42,10 +43,22 @@ export default function ProfilePage() {
             setLoading(false);
         }
     };
+    const loadPostsTotal = async () => {
+        try {
+            const res = await api.get(`/api/profile/${targetId}/posts`, {
+                params: { page: 1, pageSize: 1 }
+            });
+
+            setPostsTotal(res.data.total);
+        } catch (err) {
+            console.error("Load posts total error:", err);
+        }
+    };
 
     useEffect(() => {
         if (!targetId) { navigate("/login"); return; }
         loadProfile();
+        loadPostsTotal();
     }, [targetId]);
 
     if (loading) return (
@@ -70,7 +83,7 @@ export default function ProfilePage() {
             {/* ── Stats Bar ──────────────────────────────────────── */}
             <div className="pf-stats">
                 <div className="pf-stat">
-                    <span className="pf-stat-val">{profile.totalPosts}</span>
+                    <span className="pf-stat-val">{postsTotal}</span>
                     <span className="pf-stat-lbl">Bài đăng</span>
                 </div>
                 <div className="pf-stat-sep" />

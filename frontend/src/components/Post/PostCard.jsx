@@ -130,7 +130,7 @@ function PostCard({ post }) {
                     <img
                         src={
                             post.thumbnail
-                                ? `https://api.chore123.cloud/uploads/${post.thumbnail}`
+                                ? `http://localhost:5121/uploads/${post.thumbnail}`
                                 : "/no-image.png"
                         }
                         alt={post.title}
