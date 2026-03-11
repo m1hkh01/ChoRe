@@ -59,7 +59,7 @@ function PostSeller({ user, postId }) {
     <div className="seller-avatar">
         {user.avatar ? (
             <img
-                src={`http://localhost:5121/uploads/${user.avatar}`}
+                src={`https://api.chore123.cloud/uploads/${user.avatar}`}
                 alt={user.fullName}
             />
         ) : (

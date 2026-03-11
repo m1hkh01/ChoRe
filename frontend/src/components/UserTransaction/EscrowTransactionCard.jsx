@@ -152,7 +152,7 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
         >
             {/* Image */}
             <img
-                src={"http://localhost:5121/uploads/"+transaction.postImage}
+                src={"https://api.chore123.cloud/uploads/"+transaction.postImage}
                 alt=""
                 className="w-15 h-15 object-cover rounded-xl"
             />

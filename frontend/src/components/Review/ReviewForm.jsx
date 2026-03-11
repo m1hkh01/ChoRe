@@ -199,7 +199,7 @@ export default function ReviewForm({ review, transactionId, sellerId, postId, ch
                 </div>
 
                 <div className="flex text-lg font-semibold mt-2 text-gray-900 border-b pb-1 border-gray-200">
-                    {postTitle && (<img src={"http://localhost:5121/uploads/" + postImage} alt={postTitle} className="h-15 w-15 object-cover rounded-lg mr-3" />)}
+                    {postTitle && (<img src={"https://api.chore123.cloud/uploads/" + postImage} alt={postTitle} className="h-15 w-15 object-cover rounded-lg mr-3" />)}
                     {
                         postTitle ?
                             (
@@ -258,7 +258,7 @@ export default function ReviewForm({ review, transactionId, sellerId, postId, ch
                                         {img.type?.startsWith("video") ? (
                                             <div className="relative h-full w-full">
                                                 <video
-                                                    src={img.isServer ? ("http://localhost:5121/uploads/reviews/" + img.previewUrl) : img.previewUrl}
+                                                    src={img.isServer ? ("https://api.chore123.cloud/uploads/reviews/" + img.previewUrl) : img.previewUrl}
                                                     className="h-full w-full object-cover"
                                                 />
                                                 <div className="absolute inset-0 flex items-center justify-center bg-black/30">
@@ -267,7 +267,7 @@ export default function ReviewForm({ review, transactionId, sellerId, postId, ch
                                             </div>
                                         ) : (
                                             <img
-                                                src={img.isServer ? ("http://localhost:5121/uploads/reviews/" + img.previewUrl) : img.previewUrl}
+                                                src={img.isServer ? ("https://api.chore123.cloud/uploads/reviews/" + img.previewUrl) : img.previewUrl}
                                                 alt="preview"
                                                 className="h-full w-full object-cover rounded-lg"
                                             />

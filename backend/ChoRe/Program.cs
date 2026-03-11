@@ -85,8 +85,8 @@ builder.Services.AddScoped<IReminderStrategy, ReviewReminderStrategy>();
 builder.Services.AddHostedService<ReminderEngineService>();
 
 builder.Services.AddCors(options =>
-                        options.AddDefaultPolicy(
-                            p => p.WithOrigins("http://localhost:5173")
+                        options.AddPolicy("AllowFrontend",
+                            p => p.WithOrigins("https://chore123.cloud", "http://localhost:5173")
                                   .AllowAnyMethod()
                                   .AllowAnyHeader()
                                   .AllowCredentials()));
@@ -158,7 +158,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
-app.UseCors();
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 // app.MapControllerRoute(

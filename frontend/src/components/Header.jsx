@@ -462,7 +462,7 @@ function Header() {
                                 className="profile-avatar"
                                 onClick={() => setProfileOpen(!profileOpen)}
                             >
-                                <img src={`http://localhost:5121/uploads/${user.avatar}`} alt="Profile" />
+                                <img src={`https://api.chore123.cloud/uploads/${user.avatar}`} alt="Profile" />
                             </button>
 
                             {profileOpen && (

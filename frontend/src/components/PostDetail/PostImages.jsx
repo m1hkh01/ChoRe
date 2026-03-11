@@ -31,7 +31,7 @@ function PostImages({ images }) {
                 {/* Main Image */}
                 <div className="main-image-container">
                     <img
-                        src={`http://localhost:5121/uploads/${images[currentIndex]}`}
+                        src={`https://api.chore123.cloud/uploads/${images[currentIndex]}`}
                         alt={`Image ${currentIndex + 1}`}
                         className="main-image"
                     />
@@ -72,7 +72,7 @@ function PostImages({ images }) {
                                 onClick={() => setCurrentIndex(i)}
                             >
                                 <img
-                                    src={`http://localhost:5121/uploads/${img}`}
+                                    src={`https://api.chore123.cloud/uploads/${img}`}
                                     alt={`Thumbnail ${i + 1}`}
                                 />
                             </div>
@@ -85,7 +85,7 @@ function PostImages({ images }) {
             {isFullscreen && (
                 <div className="fullscreen-modal" onClick={() => setIsFullscreen(false)}>
                     <img
-                        src={`http://localhost:5121/uploads/${images[currentIndex]}`}
+                        src={`https://api.chore123.cloud/uploads/${images[currentIndex]}`}
                         alt={`Fullscreen ${currentIndex + 1}`}
                         onClick={(e) => e.stopPropagation()}
                     />

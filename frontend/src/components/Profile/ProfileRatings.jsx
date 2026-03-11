@@ -51,7 +51,7 @@ export default function ProfileRatings({ userId }) {
                     <div key={r.ratingId} className="pf-rating-item">
                         <img
                             src={r.raterAvatar
-                                ? `http://localhost:5121/uploads/${r.raterAvatar}`
+                                ? `https://api.chore123.cloud/uploads/${r.raterAvatar}`
                                 : "/default-avatar.png"}
                             alt={r.raterFullName}
                             className="pf-rater-avatar"

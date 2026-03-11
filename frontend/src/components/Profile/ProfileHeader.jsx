@@ -30,7 +30,7 @@ export default function ProfileHeader({ profile, isOwner, onEditClick, onAvatarU
     };
 
     const avatarSrc = profile.avatar
-        ? `http://localhost:5121/uploads/${profile.avatar}`
+        ? `https://api.chore123.cloud/uploads/${profile.avatar}`
         : "/default-avatar.png";
 
     const joinDate = new Date(profile.createAt).toLocaleDateString("vi-VN", {

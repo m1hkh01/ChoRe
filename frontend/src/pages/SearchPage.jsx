@@ -10,7 +10,7 @@ import provinceData from "@/data/sauSapNhap/province.json";
 import wardData from "@/data/sauSapNhap/ward.json";
 import "@/assets/SearchPage.css";
 
-const API_BASE = "http://localhost:5121/api";
+const API_BASE = "https://api.chore123.cloud/api";
 
 const SORT_OPTIONS = [
     // { value: "newest", label: "Mới nhất" },

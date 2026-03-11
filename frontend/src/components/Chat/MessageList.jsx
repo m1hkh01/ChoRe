@@ -47,7 +47,7 @@ export function MessageList({ userId, messages, priceType, connectionRef }) {
                             {(msg.imageUrls || msg.ImageUrls || (msg.messageImages && msg.messageImages.map)) && (
                                 <div className="flex gap-1 flex-wrap">
                                     {(msg.imageUrls || msg.ImageUrls || (msg.messageImages && msg.messageImages.map(mi => mi.imageUrl)) || []).map((img, idx) => (
-                                        <img key={idx} src={`http://localhost:5121/images/chat-Image/${img}`} className="w-24 h-24 object-cover rounded shadow-sm mb-1 border" />
+                                        <img key={idx} src={`https://api.chore123.cloud/images/chat-Image/${img}`} className="w-24 h-24 object-cover rounded shadow-sm mb-1 border" />
                                     ))}
                                 </div>
                             )}

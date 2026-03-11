@@ -392,7 +392,7 @@ export default function ProfileManagePosts({ userId }) {
                         <img
                             src={
                                 post.thumbnail
-                                    ? `http://localhost:5121/uploads/${post.thumbnail}`
+                                    ? `https://api.chore123.cloud/uploads/${post.thumbnail}`
                                     : "/no-image.png"
                             }
                             className="pf-row-image"

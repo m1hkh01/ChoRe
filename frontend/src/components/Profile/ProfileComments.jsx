@@ -93,7 +93,7 @@ export default function ProfileComments({ userId }) {
                         <div className="pf-comment-left">
                             <img
                                 src={c.user?.avatar
-                                    ? `http://localhost:5121/uploads/${c.user.avatar}`
+                                    ? `https://api.chore123.cloud/uploads/${c.user.avatar}`
                                     : "/default-avatar.png"}
                                 alt={c.user?.fullName}
                                 className="pf-commenter-avatar"

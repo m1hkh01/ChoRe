@@ -352,7 +352,7 @@ function EditPost() {
                                     {existingImages.map((image, i) => (
                                         <div key={`existing-${i}`} className="relative aspect-square">
                                             <img
-                                                src={`http://localhost:5121/uploads/${image}`}
+                                                src={`https://api.chore123.cloud/uploads/${image}`}
                                                 className="w-full h-full object-cover rounded-lg border-2 border-gray-200"
                                                 alt={`Existing ${i + 1}`}
                                             />
@@ -554,7 +554,7 @@ function EditPost() {
                                             />
                                         ) : (
                                             <img
-                                                src={`http://localhost:5121/uploads/${previewData.thumbnail}`}
+                                                src={`https://api.chore123.cloud/uploads/${previewData.thumbnail}`}
                                                 alt="Preview"
                                                 className="w-full h-full object-cover"
                                             />

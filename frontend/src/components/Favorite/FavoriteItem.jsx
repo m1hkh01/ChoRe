@@ -95,7 +95,7 @@ function FavoriteItem({ post, onRemove }) {
             <img
                 src={
                     post.thumbnail
-                        ? `http://localhost:5121/uploads/${post.thumbnail}`
+                        ? `https://api.chore123.cloud/uploads/${post.thumbnail}`
                         : "/no-image.png"
                 }
                 className="favorite-image"

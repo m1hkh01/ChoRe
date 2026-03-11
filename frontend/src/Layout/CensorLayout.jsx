@@ -10,7 +10,7 @@ function CensorLayout() {
 
                 <div className="admin-info">
                     {/* <img
-                        src="http://localhost:5121/uploads/default-avatar.png"
+                        src="https://api.chore123.cloud/uploads/default-avatar.png"
                         className="admin-avatar"
                         alt="Censor Avatar"
                     /> */}
