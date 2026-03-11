@@ -38,6 +38,9 @@ namespace ChoRe.Controllers
             if (post == null)
                 return NotFound();
 
+            post.ViewCount += 1;
+            await _context.SaveChangesAsync();
+
             return Ok(new
             {
                 post.PostId,
@@ -53,6 +56,7 @@ namespace ChoRe.Controllers
                 post.Description,
                 post.Address,
                 post.CreatedAt,
+                post.ViewCount,
 
                 brand = post.Brand == null ? null : new
                 {
@@ -157,6 +161,9 @@ namespace ChoRe.Controllers
                 {
                     PostId = p.PostId,
                     Title = p.Title,
+
+                    ViewCount = p.ViewCount,
+
                     ShortDescription = p.Description.Length > 120
                         ? p.Description.Substring(0, 120) + "..."
                         : p.Description,
@@ -405,6 +412,8 @@ namespace ChoRe.Controllers
                     Title = p.Title,
                     Address = p.Address,
                     CreatedAt = p.CreatedAt,
+
+                    ViewCount = p.ViewCount,
 
                     // ✅ GIÁ (an toàn null)
                     PriceType = p.PriceType,

@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import "./PostCard.css";
 import api from "../../api";
 import { Toast } from "../../utils/toast";
-import { icon } from "@fortawesome/fontawesome-svg-core";
+import { faEye } from "@fortawesome/free-solid-svg-icons";
 
 
 const STATUS_LABEL = {
@@ -36,7 +36,7 @@ function PostCard({ post }) {
         }
 
         //const favorites =
-           // JSON.parse(localStorage.getItem(`favorites_${user.userId}`)) || [];
+        // JSON.parse(localStorage.getItem(`favorites_${user.userId}`)) || [];
 
         const exists = post.isSaved || false;
         console.log(`Post ${postId} isSaved:`, post);
@@ -188,22 +188,27 @@ function PostCard({ post }) {
                     <div className="post-footer">
 
                         {post.address && (
-
                             <div className="post-info">
                                 <FontAwesomeIcon icon={faMapMarkerAlt} />
                                 <span>{post.address}</span>
                             </div>
-
                         )}
 
-                        {post.userName && (
+                        <div className="post-bottom">
+
+                            {post.userName && (
+                                <div className="post-info">
+                                    <FontAwesomeIcon icon={faUser} />
+                                    <span>{post.userName}</span>
+                                </div>
+                            )}
 
                             <div className="post-info">
-                                <FontAwesomeIcon icon={faUser} />
-                                <span>{post.userName}</span>
+                                <FontAwesomeIcon icon={faEye} />
+                                <span>{post.viewCount || 0}</span>
                             </div>
 
-                        )}
+                        </div>
 
                     </div>
 

@@ -197,3 +197,23 @@
         font-size: 12px;
     }
 }
+.post-title-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.favorite-btn-detail{
+  border:none;
+  background:none;
+  font-size:22px;
+  cursor:pointer;
+}
+
+.favorite-btn-detail svg{
+  color:#999;
+}
+
+.favorite-btn-detail .favorite-active{
+  color:#ff4d4f;
+}

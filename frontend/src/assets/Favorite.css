@@ -1,0 +1,10 @@
+/* wrapper trang favorites */
+.favorite-page {
+    min-height: calc(100vh - 300px);
+    display: flex;
+    flex-direction: column;
+}
+
+.favorite-content {
+    flex: 1;
+}
