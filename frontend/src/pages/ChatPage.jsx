@@ -7,6 +7,7 @@ export default function ChatPage() {
     const [conversationId, setConversationId] = useState(null);
     const { user, token} = useAuthStore();
     const handleJoinConversation = (id) => {
+        console.log("Joining conversation: ", id);
         setConversationId(id);
     }
     return (

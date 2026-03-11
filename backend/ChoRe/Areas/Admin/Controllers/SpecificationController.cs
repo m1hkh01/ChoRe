@@ -3,10 +3,12 @@ using ChoRe.Dto;
 using ChoRe.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ChoRe.Controllers.Admin
 {
     [ApiController]
+    [Authorize(Roles = "Admin")]
     [Route("api/admin/specifications")]
     public class SpecificationController : ControllerBase
     {

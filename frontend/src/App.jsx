@@ -53,11 +53,13 @@ import Profile from "./pages/Profile";
 import ProfilePage from "./pages/Profile";
 import { useAuthStore } from "./store/auth";
 import { SignalRProvider } from "./signalr/SignalRContext";
+import { useEffect } from "react";
+import api from "./api";
 
 function App() {
-  const { token } = useAuthStore();
+  // const { token } = useAuthStore();
   return (
-    <SignalRProvider token={token}>
+    <SignalRProvider>
       <Routes>
         {/* ================= USER ================= */}
         <Route element={<MainLayout />}>

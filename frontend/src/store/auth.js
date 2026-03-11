@@ -17,6 +17,7 @@ export const useAuthStore = create(set => ({
     },
 
     setToken: (token) => {
+        console.log("token changed:", token);
         set({ token })
     }
 }))

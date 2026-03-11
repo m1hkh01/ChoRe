@@ -116,7 +116,7 @@ public class AccountController : ControllerBase
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict,
+            SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None,
             Expires = DateTime.UtcNow.AddDays(7)
         });
 

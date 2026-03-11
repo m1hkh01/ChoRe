@@ -207,6 +207,7 @@ public class AccountService
     {
         var existing = await _context.RefreshTokens
             .Include(rt => rt.User)
+            .ThenInclude(u => u.Role)
             .SingleOrDefaultAsync(rt => rt.Token == token);
 
         if (existing == null || existing.IsRevoked || DateTime.UtcNow >= existing.Expires)

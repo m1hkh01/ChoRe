@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 [Area("Admin")]
 [ApiController]
+[Authorize(Roles = "Admin")]
 [Route("api/admin/transactions")]
 public class EscrowTransactionController : ControllerBase
 {

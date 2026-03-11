@@ -45,10 +45,10 @@ export function ChatSidebar({userId, onJoinConversation }) {
                 const res = await api.get(`/api/chat/${userId}`);
                 setChats(res.data);
                 console.log("Data: ", res.data);
-                if (res.data.length > 0) {
-                    onJoinConversation(res.data[0].chatRoomId);
-                    setCurrentConvertation(res.data[0].chatRoomId);
-                }
+                // if (res.data.length > 0) {
+                //     onJoinConversation(res.data[0].chatRoomId);
+                //     setCurrentConvertation(res.data[0].chatRoomId);
+                // }
             } catch (err) {
                 console.error(err);
             }

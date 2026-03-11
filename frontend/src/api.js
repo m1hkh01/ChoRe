@@ -2,6 +2,7 @@ import axios from "axios";
 import { useAuthStore } from "./store/auth";
 
 export const API_BASE_URL = "https://api.chore123.cloud";
+// export const API_BASE_URL = "http://localhost:5121";
 
 let navigateHandler = null;
 
@@ -29,7 +30,10 @@ api.interceptors.response.use(
   response => response,
   async error => {
     const originalConfig = error.config;
-
+    // ❗ BỎ QUA refresh-token
+    if (originalConfig.url.includes("/account/refresh-token")) {
+      return Promise.reject(error);
+    }
     // If 401 and hasn't been retried yet
     if (error.response?.status === 401 && !originalConfig._retry) {
       originalConfig._retry = true;

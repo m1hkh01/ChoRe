@@ -3,9 +3,11 @@ using ChoRe.Dto;
 using ChoRe.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ChoRe.Controllers.Admin
 {
+    [Authorize(Roles = "Admin")]
     [ApiController]
     [Route("api/admin/brand-categories")]
     public class BrandCategoryController : ControllerBase
