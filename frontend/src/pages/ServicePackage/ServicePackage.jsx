@@ -32,9 +32,16 @@ function ServicePackage() {
             console.log("Fetching package data...");
             try {
                 const res = await api.get("/api/package");
-                setPackages(res.data.package);
+
+                let packages = res.data.package;
+                const currentPlan = res.data.currentPackage;
+                // nếu current plan = 1 thì bỏ package id = 1
+                if (currentPlan !== 1) {
+                    packages = packages.filter(p => p.subPlanId !== 1);
+                }
+                setPackages(packages);
                 console.log(res.data.package);
-                setCurrentUserSubPlan(res.data.currentPackage);
+                setCurrentUserSubPlan(currentPlan);
             } catch (error) {
                 // Nên xử lý lỗi, ví dụ: toast.error hoặc set error state
                 console.error("Fetch package failed:", error);
@@ -81,7 +88,7 @@ function ServicePackage() {
                         className="service-swiper"
                     >
                         {
-                            displayPackages.length > 0 ? displayPackages.map((pkg,index) => {
+                            displayPackages.length > 0 ? displayPackages.map((pkg, index) => {
                                 return (
                                     <SwiperSlide className={pkg.subPlanId == currentUserSubPlan ? "swiper-slide active" : "swiper-slide"} key={index}>
                                         <div className="package-card-header">
