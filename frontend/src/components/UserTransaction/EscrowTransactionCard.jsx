@@ -49,7 +49,7 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload 
     // Handle Action
     const handleUpdateStatusTransaction = async (apiName, successMessage, id = transaction.transactionId) => {
         try {
-            await api.put(`api/transaction/${apiName}/${Number(id)}`);
+            await api.post(`api/transaction/${apiName}/${Number(id)}`);
             Toast.fire({
                 icon: "success",
                 title: `${successMessage}`

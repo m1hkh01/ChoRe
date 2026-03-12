@@ -75,9 +75,9 @@ public class PackageService : IPackageService
             };
         }
 
-        var datePart = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+        var datePart = DateTime.Now.ToString("yyyyMMddHHmmss");
         var randomPart = Guid.NewGuid().ToString("N")[..4].ToUpper();
-        var orderCode = $"SUB-{userId}-{datePart}-{randomPart}";
+        var orderCode = $"SUB{userId}S{datePart}{randomPart}";
         var subPlanOrder = new SubscriptionOrder
         {
             OrderCode = orderCode,

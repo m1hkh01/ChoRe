@@ -102,7 +102,7 @@ public class TransactionController : ControllerBase
         }
         return Ok(new { Message = "Xác nhận giao dịch thành công" });
     }
-    [HttpPut("reject/{id:int}")]
+    [HttpPost("reject/{id:int}")]
     public async Task<IActionResult> RejectTransaction(int id)
     {
         await _transactionService.RejectTransaction(id);
@@ -114,19 +114,19 @@ public class TransactionController : ControllerBase
         await _transactionService.RefundRequest(id, req);
         return Ok();
     }
-    [HttpPut("complete/{id:int}")]
+    [HttpPost("complete/{id:int}")]
     public async Task<IActionResult> CompleteTransaction(int id)
     {
         await _transactionService.CompleteTransaction(id);
         return Ok();
     }
-    [HttpPut("refund-confirm/{id:int}")]
+    [HttpPost("refund-confirm/{id:int}")]
     public async Task<IActionResult> RefundConfirmTransaction(int id)
     {
         await _transactionService.RefundConfirmTransaction(id);
         return Ok();
     }
-    [HttpPut("refund-reject/{id:int}")]
+    [HttpPost("refund-reject/{id:int}")]
     public async Task<IActionResult> RefundRejectTransaction(int id)
     {
         await _transactionService.RefundRejectTransaction(id);

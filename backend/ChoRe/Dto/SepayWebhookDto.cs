@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 public class SepayWebhookDto{
     public long Id { get; set;}
     public string? Gateway { get; set; }
-    public DateTime TransactionDate { get; set; }
+    public string? TransactionDate { get; set; }
     public string? AccountNumber { get; set; }
     public string? Code { get; set; }
     public string? Content { get; set; }

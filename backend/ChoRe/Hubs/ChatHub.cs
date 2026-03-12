@@ -269,7 +269,7 @@ public class ChatHub : Hub
 
                 var datePart = DateTime.Now.ToString("yyyyMMdd-HHmmss");
                 var randomPart = Guid.NewGuid().ToString("N")[..4].ToUpper();
-                var orderCode = $"TRANS-{transactionDto.BuyerId + "_" + transactionDto.SellerId}-{datePart}-{randomPart}";
+                var orderCode = $"TRANS{transactionDto.BuyerId + "T" + transactionDto.SellerId}E{datePart}{randomPart}";
 
                 var escrowTrans = new EscrowTransation
                 {
