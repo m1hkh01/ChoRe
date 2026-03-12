@@ -1,32 +1,37 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { STATUS_STYLES } from "../../constants/StatusStyles";
 import { useTransactionTimer } from "../Chat/TransactionCard/useTransactionTimer";
-import { faClock } from "@fortawesome/free-solid-svg-icons";
+// import { faClock } from "@fortawesome/free-solid-svg-icons";
 import { TransactionActions } from "./EscrowAction/TransactionActions";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "../../store/auth";
 import { ReasonRefundModal } from "./EscrowAction/ReasonRefundModal";
+import { BankDetailsModal } from "./EscrowAction/BankDetailsModal";
 import { useNavigate } from "react-router-dom";
 import { Toast } from "../../utils/toast";
 import api from "../../api";
 import { EvidenceModal } from "./EscrowAction/EvidenceModal";
 import ReviewForm from "../Review/ReviewForm";
 
-export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}) {
+export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload }) {
     const [openReasonRefundModal, setOpenReasonRefundModal] = useState(false);
     const [openEvidenceModal, setOpenEvidenceModal] = useState(false);
     const [openReviewForm, setOpenReviewForm] = useState(false);
+    const [openBankDetailsModal, setOpenBankDetailsModal] = useState({ open: false, user: "seller" });
     const { user } = useAuthStore();
     const [price, setPrice] = useState(transaction.postPrice);
     const [dispute, setDispute] = useState({
         EscrowTransId: Number(transaction.transactionId),
         OpenedByUserId: Number(user.userId),
-        DisputeReason: ""
+        DisputeReason: "",
+        BankCode: "",
+        BankName: transaction.bankName || "",
+        BankNumber: transaction.bankNumber || ""
     })
     const [userEvidences, setUserEvidences] = useState(null);
     const navigate = useNavigate();
 
-    const { timeRemaining } = useTransactionTimer(transaction)
+    // const { timeRemaining } = useTransactionTimer(transaction)
 
     const formatMoney = (value) =>
         value.toLocaleString("vi-VN") + " đ";
@@ -37,7 +42,7 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
 
     useEffect(() => {
         setUserEvidences(transaction.disEvidence.filter(d => d.submitByUserId == user.userId));
-    },[openEvidenceModal])
+    }, [openEvidenceModal])
 
     // console.log("Transaction: ", transaction);
 
@@ -94,15 +99,24 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
         navigate(`/pay/transaction/${transaction.transactionId}`)
     }
 
-    const handleRefundTransaction = async () =>{
-        try{
-            if (dispute.DisputeReason == '') {
-            Toast.fire({
-                icon: "error",
-                title:"Vui lòng chọn lý do hoàn tiền"
-            })
-            return; 
-        }
+    const handleRefundTransaction = async () => {
+        try {
+            if (!dispute.DisputeReason) {
+                Toast.fire({
+                    icon: "error",
+                    title: "Vui lòng chọn lý do hoàn tiền"
+                })
+                return;
+            }
+            if (!dispute.BankCode || !dispute.BankNumber) {
+                Toast.fire({
+                    icon: "error",
+                    title: "Vui lòng nhập thông tin ngân hàng để hoàn tiền"
+                })
+                return;
+            }
+            console.log(dispute);
+        
             await api.post(`api/transaction/refund/${Number(transaction.transactionId)}`, dispute);
             Toast.fire({
                 icon: "success",
@@ -115,10 +129,31 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
             console.log("co loi xay ra: ", e);
             Toast.fire({
                 icon: "error",
-                title: "Có lỗi xảy ra vui lòng thử lại sau"
+                title: e.response?.data?.message || "Có lỗi xảy ra vui lòng thử lại sau"
+            })
+        }
+    }
+    const handleBankDetailsSubmit = async (bankDetails) => {
+        try {
+            // Update local dispute state with bank info
+            setDispute(prev => ({
+                ...prev,
+                BankName: bankDetails.bankName,
+                BankNumber: bankDetails.accountNumber
+            }));
+
+            Toast.fire({
+                icon: "success",
+                title: "Đã lưu thông tin ngân hàng"
+            });
+            reload();
+        } catch (error) {
+            console.error("Error saving bank details:", error);
+            Toast.fire({
+                icon: "error",
+                title: "Có lỗi xảy ra khi lưu thông tin ngân hàng"
             });
         }
-        
     }
     const handleRequestSystemIntervention = async (evidences) => {
         console.log("Evidences: ", evidences);
@@ -130,7 +165,7 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
                 })
                 return;
             }
-            await api.post(`api/transaction/refund-system/${Number(transaction.disputeId)}`,evidences);
+            await api.post(`api/transaction/refund-system/${Number(transaction.disputeId)}`, evidences);
             Toast.fire({
                 icon: "success",
                 title: "Đã gửi yêu cầu hệ thống can thiệp"
@@ -152,7 +187,7 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
         >
             {/* Image */}
             <img
-                src={"https://api.chore123.cloud/uploads/"+transaction.postImage}
+                src={"https://api.chore123.cloud/uploads/" + transaction.postImage}
                 alt=""
                 className="w-15 h-15 object-cover rounded-xl"
             />
@@ -200,14 +235,6 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
                     <div className="flex items-center gap-3 text-red-500 text-sm">
                         {/* <Clock size={16} /> */}
                         {/* {console.log("transaction Status: ",transaction)} */}
-                        {
-                            (transaction.status == "Confirming" || transaction.status == "PendingPayment") && (
-                                <span className="flex gap-1 items-center">
-                                    <FontAwesomeIcon icon={faClock}></FontAwesomeIcon>
-                                    {timeRemaining}
-                                </span>
-                            )
-                        }
                         <span className="text-gray-400 ml-2">
                             #{transaction.transactionOrderCode}
                         </span>
@@ -229,6 +256,8 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
                         disputeId={transaction.disputeId}
                         hasEvidence={transaction.disEvidence.length > 0 && transaction.disEvidence?.some(d => d.submitByUserId == user.userId)}
                         disputeStatus={transaction.disputeStatus}
+                        openBankDetailsModal={(u) => setOpenBankDetailsModal({ open: true, user: u })}
+                        hasBankDetails={!!(transaction.bankName && transaction.bankNumber)}
                     />
                     {/* {transaction.status === "Confirming" && (
                         <div className="flex gap-3">
@@ -242,13 +271,24 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
                     )} */}
                 </div>
             </div>
-            
+
             {openReasonRefundModal && (
                 <ReasonRefundModal
                     onClose={() => setOpenReasonRefundModal(false)}
                     onSubmit={handleRefundTransaction}
-                    setDispute={setDispute}>    
+                    setDispute={setDispute}
+                    dispute={dispute}>
                 </ReasonRefundModal>)}
+            {openBankDetailsModal.open && (
+                <BankDetailsModal
+                    isBuyer={openBankDetailsModal.user == "buyer"}
+                    onClose={() => setOpenBankDetailsModal(false)}
+                    onSubmit={handleBankDetailsSubmit}
+                    transactionId={openBankDetailsModal.user == "buyer" ? transaction.disputeId : transaction.transactionId}
+                    currentBankName={openBankDetailsModal.user == "buyer" ? transaction.disBankName : transaction.bankName}
+                    currentBankNumber={openBankDetailsModal.user == "buyer" ? transaction.disBankNumber : transaction.bankNumber}>
+                </BankDetailsModal>)
+            }
             {openEvidenceModal && (
                 <EvidenceModal
                     onClose={() => setOpenEvidenceModal(false)}
@@ -268,7 +308,7 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload}
                     userId={user.userId}
                     reload={reload}
                     onClose={() => setOpenReviewForm(false)}
-                    >
+                >
                 </ReviewForm>)}
         </div>
     )

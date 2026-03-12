@@ -29,7 +29,7 @@ public class TransactionController : ControllerBase
     }
 
     [HttpPost("escrow/{id:int}")]
-    public async Task<IActionResult> GetEscrows(int id,[FromBody] EscrowTransactionFilterRequest req)
+    public async Task<IActionResult> GetEscrows(int id, [FromBody] EscrowTransactionFilterRequest req)
     {
         var transaction = await _transactionService.GetEscrowsByIdAsync(id, req);
         if (transaction == null) return NotFound();
@@ -44,8 +44,8 @@ public class TransactionController : ControllerBase
 
         return Ok(transaction);
     }
-    
-    
+
+
     [HttpGet("escrow-pay/{id:int}")]
     public async Task<IActionResult> GetEscrowById(int id)
     {
@@ -63,7 +63,11 @@ public class TransactionController : ControllerBase
         try
         {
             var transaction = await _transactionService.PayTransaction(rq);
-            if (transaction != null)
+            if (transaction is null)
+            {
+                return NotFound("Không tìm thấy giao dịch");
+            }
+            if (transaction.EscrowTransStatusId != EscrowStatus.Paid)
             {
                 await _hubContext.Clients.Group(rq.ChatRoomId!).SendAsync(
                     "UpdateTransaction",
@@ -78,8 +82,10 @@ public class TransactionController : ControllerBase
                         }
                     }
                 );
+                return Ok(new { Success = transaction.PaymentMessage ?? "Thanh toán thành công" });
             }
-            return Ok();
+            return Ok(new { Error = transaction.PaymentMessage ??
+                     "Giao dịch chưa được thanh toán vui lòng kiểm tra lại số tiền và nội dung chuyển khoản" });
         }
         catch (Exception ex)
         {
@@ -103,7 +109,7 @@ public class TransactionController : ControllerBase
         return Ok();
     }
     [HttpPost("refund/{id:int}")]
-    public async Task<IActionResult> RefundRequest(int id,[FromBody] RefundRequestDto req)
+    public async Task<IActionResult> RefundRequest(int id, [FromBody] RefundRequestDto req)
     {
         await _transactionService.RefundRequest(id, req);
         return Ok();
@@ -132,5 +138,23 @@ public class TransactionController : ControllerBase
         var userId = int.Parse(User.FindFirst("UserId").Value);
         await _transactionService.RefundSystemTransaction(id, evidence, userId);
         return Ok();
+    }
+
+    [HttpPost("verify-bank/{id:int}")]
+    public async Task<IActionResult> VerifyBankDetails(int id, [FromBody] VerifyBankRequestDto req)
+    {
+        try
+        {
+            var result = await _transactionService.VerifyAndSaveBankDetails(id, req);
+            if (result.Success)
+            {
+                return Ok(new { success = true, message = result.Message, bankName = result.BankName, accountHolder = result.AccountHolder });
+            }
+            return BadRequest(new { success = false, message = result.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { success = false, message = "Lỗi khi xác minh: " + ex.Message });
+        }
     }
 }

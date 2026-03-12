@@ -26,5 +26,7 @@ public enum NotificationType
     // PaymentReceived,
     AwaitingEvidence,
     Confirming,
-    ReviewReminder
+    ReviewReminder,
+    Error,
+    Success
 }

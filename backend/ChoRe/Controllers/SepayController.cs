@@ -7,9 +7,11 @@ using Microsoft.EntityFrameworkCore;
 public class SepayController : ControllerBase
 {
     private readonly AppDbContext _context;
-    public SepayController(AppDbContext context)
+    private readonly PackageService _service;
+    public SepayController(AppDbContext context, PackageService service)
     {
         _context = context;
+        _service = service;
     }
 
     [HttpPost("webhook")]
@@ -17,13 +19,13 @@ public class SepayController : ControllerBase
     {
         if (webhookData == null || string.IsNullOrEmpty(webhookData.Content))
         {
-            return BadRequest("Dữ liệu không hợp lệ");
+            return BadRequest();
         }
 
         var transaction = webhookData.Content.Split("-");
         if (transaction.Length == 0)
         {
-            return BadRequest("Content không hợp lệ");
+            return BadRequest();
         }
         if (transaction[0] == "SUB")
         {
@@ -31,17 +33,28 @@ public class SepayController : ControllerBase
             var order = await _context.SubscriptionOrders.FirstOrDefaultAsync(o => o.OrderCode == orderCode);
             if (order == null)
             {
-                return NotFound("Không tìm thấy đơn hàng");
+                return BadRequest();
             }
-            if (order.OrdStatusId == EscrowStatus.Paid)
+            else if (order.OrdStatusId == EscrowStatus.Paid)
             {
-                return BadRequest("Đơn hàng đã được thanh toán");
+                order.PaymentMessage = "Đơn hàng đã được thanh toán";
             }
-            if (order.Amount != webhookData.TransferAmount)
+            else if (order.Amount != webhookData.TransferAmount)
             {
-                return BadRequest("Số tiền không khớp");
+                order.PaymentMessage = "Số tiền không khớp";
             }
-            order.OrdStatusId = EscrowStatus.Paid;
+            else
+            {
+                var user = await _context.Users
+                                    .Include(u => u.UserSubscription)
+                                    .Include(u => u.UserSubUsage)
+                                    .FirstOrDefaultAsync(u => u.UserId == order.UserId);
+                if (user is null)
+                {
+                    return NotFound(new { Error = "Không tìm thấy người dùng" });
+                }
+                await _service.PaySubPlanOrder(user.UserSubUsage, user.UserSubscription, order.OrderCode);
+            }
             _context.SubscriptionOrders.Update(order);
             await _context.SaveChangesAsync();
         }
@@ -51,21 +64,24 @@ public class SepayController : ControllerBase
             var escrow = await _context.EscrowTransations.FirstOrDefaultAsync(t => t.TransactionOrderCode == orderCode);
             if (escrow == null)
             {
-                return NotFound("Không tìm thấy đơn giao dịch");
+                return BadRequest();
             }
             if (escrow.EscrowTransStatusId == EscrowStatus.Paid)
             {
-                return BadRequest("Đơn hàng đã được thanh toán");
+                escrow.PaymentMessage = "Đơn hàng đã được thanh toán";
             }
             if (escrow.TotalAmount != webhookData.TransferAmount)
             {
-                return BadRequest("Số tiền không khớp");
+                escrow.PaymentMessage = "Số tiền không khớp";
             }
-            escrow.EscrowTransStatusId = EscrowStatus.Paid;
+            else
+            {
+                escrow.EscrowTransStatusId = EscrowStatus.Paid;
+                escrow.PaymentMessage = "Thanh toán thành công";
+            }
             _context.EscrowTransations.Update(escrow);
             await _context.SaveChangesAsync();
         }
-
-        return Ok("Thanh toán thành công");
+        return Ok();
     }
 }

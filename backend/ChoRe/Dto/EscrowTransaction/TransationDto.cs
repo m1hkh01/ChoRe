@@ -33,7 +33,13 @@ public class TransactionDto
     public int DisputeId{ get; set; }
     public string? DisputeReason { get; set; }
     public string? DisputeStatus { get; set; }
+    public string? DisBankName { get; set; }
+    public string? DisBankNumber { get; set; }
     public IEnumerable<DisEvidenceGroupDto>? DisEvidence { get; set; }
     // Review
     public ReviewDto? Review { get; set; }
+    // Ngân hàng
+    public string? BankName { get; set; }
+    public string? BankNumber { get; set; }
+    
 }

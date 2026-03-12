@@ -5,9 +5,11 @@ import { faCheck, faX } from "@fortawesome/free-solid-svg-icons";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "@/api";
 import Pay from "../Pay/Pay";
+import { useSignalR } from "../../signalr/SignalRContext";
+import { Toast } from "../../utils/toast";
 function ServicePackage() {
     const swiperRef = useRef(null);
     const [isPay, setIsPay] = useState(false);
@@ -15,6 +17,7 @@ function ServicePackage() {
     const [selectPackage, setSelectPackage] = useState(null);
     const [orderCode, setOrderCode] = useState("");
     const [currentUserSubPlan, setCurrentUserSubPlan] = useState("");
+
     const displayPackages =
         packages.length < 6 && packages.length > 0
             ? [...packages, ...packages]

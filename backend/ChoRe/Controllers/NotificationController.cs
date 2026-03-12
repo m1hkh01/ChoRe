@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("/api/notifications")]
+[Route("api/notifications")]
 public class NotificationController : ControllerBase
 {
     private readonly INotificationService _notificationService;
@@ -17,7 +17,7 @@ public class NotificationController : ControllerBase
         var notifications = await _notificationService.GetNotificationsByUserIdAsync(id);
         return Ok(notifications);
     }
-    [HttpPut("{id:int}/read")]
+    [HttpPost("{id:int}/read")]
     public async Task<IActionResult> MarkAsRead(int id)
     {
         await _notificationService.MarkAsReadAsync(id);

@@ -59,17 +59,19 @@ public class ServicePackageController : ControllerBase
     {
         try
         {
-            var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
-            var user = await _context.Users
-                                    .Include(u => u.UserSubscription)
-                                    .Include(u => u.UserSubUsage)
-                                    .FirstOrDefaultAsync(u => u.UserId == userId);
-            if(user is null)
+            var order = await _context.SubscriptionOrders.FirstOrDefaultAsync(o => o.OrderCode == rq.OrderCode);
+            if (order is null)
             {
-                return NotFound(new { Error = "Không tìm thấy người dùng" });
+                return NotFound(new { Error = "Không tìm thấy giao dịch" });
             }
-            await _service.PaySubPlanOrder(user.UserSubUsage, user.UserSubscription, rq.OrderCode);
-            return Ok(new {Message = "Thanh toán thành công"});
+            else if (order.OrdStatusId != EscrowStatus.Paid)
+            {
+                return Ok( new { Error = order.PaymentMessage ?? "Giao dịch chưa được thanh toán vui lòng kiểm tra lại số tiền và nội dung chuyển khoản" });
+            }
+            else
+            {
+                return Ok(new { Success = order.PaymentMessage });
+            }
 
         }
         catch (KeyNotFoundException err)

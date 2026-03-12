@@ -1,11 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function EvidenceModal({ onSubmit, onClose, disEvidences }) {
     const [evidences, setEvidences] = useState( disEvidences.length > 0 ? disEvidences.map(d=>d.evidences) : [
         { Description: "", DisEvidenceLink: "" }
     ]);
     // console.log("DisEvidences: ", evidences);
+    useEffect(() => {
+        // Khóa scroll khi mở modal
+        document.body.style.overflow = 'hidden';
 
+        return () => {
+            // Mở lại scroll khi đóng modal
+            document.body.style.overflow = 'auto';
+        };
+    }, []);
     const handleChange = (index, field, value) => {
         setEvidences(prev =>
             prev.map((item, i) =>

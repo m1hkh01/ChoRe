@@ -185,8 +185,9 @@ function Header() {
     // Hàm xử lý hành động khi click vào thông báo
     const handleNotificationClick = async (notification) => {
 
+        console.log("Click");
         // mark as read (optional)
-        await api.put(`/api/notifications/${notification.id}/read`);
+        await api.post(`/api/notifications/${notification.id}/read`);
         setNotificationOpen(false);
         setNotificationData(prev => prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n));
 

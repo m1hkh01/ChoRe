@@ -424,6 +424,14 @@ namespace ChoRe.Migrations
                     b.Property<int?>("AssignedByAdminUserId")
                         .HasColumnType("int");
 
+                    b.Property<string>("BankName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("BankNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<DateTime>("CreateAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -675,6 +683,12 @@ namespace ChoRe.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EscrowTransId"));
 
+                    b.Property<string>("BankName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BankNumber")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("BuyerConfirmed")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -696,6 +710,9 @@ namespace ChoRe.Migrations
 
                     b.Property<bool>("IsRated")
                         .HasColumnType("bit");
+
+                    b.Property<string>("PaymentMessage")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("PlatformFee")
                         .HasColumnType("decimal(18,2)");
@@ -1607,6 +1624,9 @@ namespace ChoRe.Migrations
 
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentMessage")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("SubPlanId")
                         .HasColumnType("int");

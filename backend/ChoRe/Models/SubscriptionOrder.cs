@@ -33,6 +33,7 @@ namespace ChoRe.Models
         public DateTime? PaidAt { get; set; }
 
         public DateTime? ExpiredAt { get; set; }
+        public string? PaymentMessage { get; set; }
 
         // ======================
         // Navigation properties

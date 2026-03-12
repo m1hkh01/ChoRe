@@ -33,6 +33,12 @@ namespace ChoRe.Models
         [StringLength(1000)]
         public string DecisionNote { get; set; } = "";
 
+        // bank info (copied from escrow when buyer requests refund)
+        [StringLength(100)]
+        public string? BankName { get; set; }
+        [StringLength(50)]
+        public string? BankNumber { get; set; }
+
         public DateTime CreateAt { get; set; } = DateTime.Now;
 
         // Navigation properties

@@ -41,7 +41,9 @@ namespace ChoRe.Models
         public bool SellerConfirmed { get; set; } = false;
         public string? TransactionOrderCode { get; set; }
         public bool IsRated { get; set; } = false;
-
+        public string? BankNumber { get; set; }
+        public string? BankName { get; set; }
+        public string? PaymentMessage { get; set; }
 
         // Navigation properties
         public virtual User BuyerUser { get; set; }

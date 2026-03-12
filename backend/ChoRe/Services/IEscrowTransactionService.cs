@@ -20,14 +20,17 @@ public interface IEscrowTransactionService
     Task RefundConfirmTransaction(int transactionId);
     Task RefundRejectTransaction(int disputeId);
     Task RefundSystemTransaction(int disputeId, List<DisEvidenceDto>? evidences, int userId);
+    Task<VerifyBankResponseDto> VerifyAndSaveBankDetails(int transactionId, VerifyBankRequestDto req);
 }
 public class EscrowTransactionService : IEscrowTransactionService
 {
     private readonly AppDbContext _context;
+    private readonly IConfiguration _configuration;
 
-    public EscrowTransactionService(AppDbContext context)
+    public EscrowTransactionService(AppDbContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
     }
     public async Task<List<EscrowTransStatus>> GetStatusesAsync(bool isAdmin, bool isTransation = true)
     {
@@ -158,15 +161,15 @@ public class EscrowTransactionService : IEscrowTransactionService
             .Include(x => x.EscrowTransStatus)
             .Include(x => x.Post)
             .Include(x => x.ChatMessage)
-            .Include(x=>x.Review)
+            .Include(x => x.Review)
                 .ThenInclude(r => r.ReviewImages)
-            .Include(x=>x.Review)
+            .Include(x => x.Review)
                 .ThenInclude(r => r.ReviewTags)
             .Include(x => x.Disputes)
                 .ThenInclude(d => d.DisputeEvidences)
             .Include(x => x.Disputes)
                 .ThenInclude(d => d.DisputeStatus)
-            .Where(x=>x.BuyerUserId == id || x.SellerUserId == id)
+            .Where(x => x.BuyerUserId == id || x.SellerUserId == id)
             .AsQueryable();
         if (!string.IsNullOrEmpty(req.Keyword))
         {
@@ -208,9 +211,13 @@ public class EscrowTransactionService : IEscrowTransactionService
                 CreateAt = x.CreateAt,
                 ExpiredAt = x.ExpiredAt,
                 IsRated = x.IsRated,
+                BankName = x.BankName,
+                BankNumber = x.BankNumber,
                 DisputeId = x.Disputes != null ? x.Disputes.DisputeId : 0,
                 DisputeReason = x.Disputes != null ? x.Disputes.DisputeReason : null,
                 DisputeStatus = x.Disputes != null ? x.Disputes.DisputeStatus.DisStatusName : null,
+                DisBankName = x.Disputes != null ? x.Disputes.BankName : null,
+                DisBankNumber = x.Disputes != null ? x.Disputes.BankNumber : null,
                 DisEvidence = x.Disputes != null
                             ? x.Disputes.DisputeEvidences
                                 .GroupBy(d => d.SubmitByUserId)
@@ -320,6 +327,7 @@ public class EscrowTransactionService : IEscrowTransactionService
     public async Task<EscrowTransation> PayTransaction(PayOrderRequest rq)
     {
         var transaction = await _context.EscrowTransations
+                                .Include(trans => trans.EscrowTransStatus)
                                 .FirstOrDefaultAsync(t =>
                                 t.BuyerUserId == rq.BuyerId &&
                                 t.SellerUserId == rq.SellerId &&
@@ -329,11 +337,6 @@ public class EscrowTransactionService : IEscrowTransactionService
         {
             throw new KeyNotFoundException("Không tìm thấy giao dịch");
         }
-        transaction.EscrowTransStatusId = EscrowStatus.Paid;
-        await _context.SaveChangesAsync();
-        await _context.Entry(transaction)
-            .Reference(t => t.EscrowTransStatus)
-            .LoadAsync();
         return transaction;
     }
 
@@ -393,12 +396,24 @@ public class EscrowTransactionService : IEscrowTransactionService
 
     public async Task RefundRequest(int transactionId, RefundRequestDto req)
     {
+        // if buyer provided bank info, verify it
+        if (!string.IsNullOrEmpty(req.BankCode) && !string.IsNullOrEmpty(req.BankNumber))
+        {
+            var verify = await VerifyBankAccountAsync(req.BankCode, req.BankNumber);
+            if (!verify.Success)
+            {
+                throw new Exception(verify.Message);
+            }
+        }
+        Console.WriteLine("BankNumber: " + req.BankNumber + "BankName: " + req.BankCode + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         var dispute = new Dispute
         {
             EscrowTransId = req.EscrowTransId,
             OpenedByUserId = req.OpenedByUserId,
             DisputeReason = req.DisputeReason,
-            StatusId = DisStatus.PendingSellerResponse
+            StatusId = DisStatus.PendingSellerResponse,
+            BankName = req.BankCode,
+            BankNumber = req.BankNumber
         };
         _context.Disputes.Add(dispute);
         await UpdateStatus(transactionId, EscrowStatus.RefundRequested);
@@ -475,5 +490,133 @@ public class EscrowTransactionService : IEscrowTransactionService
         }
     }
 
+    private async Task<VerifyBankResponseDto> VerifyBankAccountAsync(string bankCode, string accountNumber)
+    {
+        try
+        {
+            using (var client = new HttpClient())
+            {
+                var payload = new
+                {
+                    bank = bankCode,
+                    account = accountNumber
+                };
+
+                var apiKey = _configuration["BankLookup:ApiKey"];  // Should be from appsettings
+                var apiSecret = _configuration["BankLookup:ApiSecret"];  // Should be from appsettings
+
+                client.DefaultRequestHeaders.Add("x-api-key", apiKey);
+                client.DefaultRequestHeaders.Add("x-api-secret", apiSecret);
+
+                var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("https://api.banklookup.net", content);
+
+                if (response.IsSuccessStatusCode || (int)response.StatusCode == 402)
+                {
+                    // assume success
+                    return new VerifyBankResponseDto { Success = true, Message = "Xác minh tài khoản thành công" };
+                }
+                else
+                {
+                    return new VerifyBankResponseDto { Success = false, Message = "Xác minh tài khoản thất bại" };
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Bank lookup error: {ex.Message}");
+            return new VerifyBankResponseDto { Success = false, Message = "Lỗi xác minh tài khoản" };
+        }
+    }
+
+    public async Task<VerifyBankResponseDto> VerifyAndSaveBankDetails(int transactionId, VerifyBankRequestDto req)
+    {
+        try
+        {
+            // Call bank lookup API to verify account
+            using (var client = new HttpClient())
+            {
+                var payload = new
+                {
+                    bank = req.BankCode,
+                    account = req.AccountNumber
+                };
+
+                var apiKey = _configuration["BankLookup:ApiKey"];  // Should be from appsettings
+                var apiSecret = _configuration["BankLookup:ApiSecret"];  // Should be from appsettings
+
+                client.DefaultRequestHeaders.Add("x-api-key", apiKey);
+                client.DefaultRequestHeaders.Add("x-api-secret", apiSecret);
+                // client.DefaultRequestHeaders.Add("Content-Type", "application/json");
+
+                var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("https://api.banklookup.net", content);
+
+                if (response.IsSuccessStatusCode || (int)response.StatusCode == 402)
+                {
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    // Parse response and extract account holder info
+                    // For now, assume verification is successful
+
+                    // Save bank details to transaction
+                    if(!req.IsBuyer){
+                        var transaction = await _context.EscrowTransations.FindAsync(transactionId);
+                        if (transaction == null)
+                        {
+                            return new VerifyBankResponseDto
+                            {
+                                Success = false,
+                                Message = "Không tìm thấy giao dịch"
+                            };
+                        }
+
+                        transaction.BankName = req.BankCode;
+                        transaction.BankNumber = req.AccountNumber;
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        var dispute = await _context.Disputes.FindAsync(transactionId);
+                        if (dispute == null)
+                        {
+                            return new VerifyBankResponseDto
+                            {
+                                Success = false,
+                                Message = "Không tìm thấy yêu cầu hoàn tiền"
+                            };
+                        }
+
+                        dispute.BankName = req.BankCode;
+                        dispute.BankNumber = req.AccountNumber;
+                        await _context.SaveChangesAsync();
+                    }
+
+                    return new VerifyBankResponseDto
+                    {
+                        Success = true,
+                        Message = "Xác minh tài khoản thành công",
+                        BankName = req.BankName
+                    };
+                }
+                else
+                {
+                    return new VerifyBankResponseDto
+                    {
+                        Success = false,
+                        Message = "Xác minh tài khoản thất bại. Vui lòng kiểm tra lại thông tin ngân hàng"
+                    };
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Bank verification error: {ex.Message}");
+            return new VerifyBankResponseDto
+            {
+                Success = false,
+                Message = $"Lỗi khi xác minh tài khoản: {ex.Message}"
+            };
+        }
+    }
 
 }

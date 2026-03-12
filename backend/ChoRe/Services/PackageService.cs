@@ -114,6 +114,8 @@ public class PackageService : IPackageService
 
         var now = DateTime.UtcNow;
         subOrder.PaidAt = now;
+        subOrder.PaymentMessage = "Thanh toán thành công";
+
 
         userSubscription.SubPlanId = subOrder.SubPlanId;
         userSubscription.StartDate = now;

@@ -1,15 +1,13 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-    faQrcode,
-    faTriangleExclamation,
-} from "@fortawesome/free-solid-svg-icons";
+import {faTriangleExclamation,} from "@fortawesome/free-solid-svg-icons";
 import api from "@/api";
 import { Toast } from "@/utils/toast";
 import PayRow from "./PayComponents/PayRow";
 import ConfirmPay from "./PayComponents/ConfirmPay";
 import SwitchItem from "./PayComponents/SwitchItem";
 import TransferRow from "./PayComponents/TransferRow";
+// import { icon, text } from "@fortawesome/fontawesome-svg-core";
 
 function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
     console.log("Package: ", pkg);
@@ -28,33 +26,41 @@ function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
 
             if (pkg) {
                 const res = await api.post("/api/package/pay-order", { orderCode });
-                onClose();
                 Toast.fire({
-                    icon: res.data ? "success" : "error",
-                    text: res.data.message
-                        ? "Thanh toán thành công"
-                        : "Thanh toán không thành công",
+                    icon: res.data.success ? "success" : "error",
+                    text: res.data.success
+                        ? res.data.success
+                        : res.data.error
                 });
+                if (res.data.error) {
+                    return;
+                }
             } else {
-                const paySuccess = await api.post("/api/transaction/pay", {
+                const res = await api.post("/api/transaction/pay", {
                     OrderCode: orderCode,
                     SellerId: transaction.sellerId,
                     BuyerId: transaction.buyerId,
                     PostId: transaction.postId,
                     ChatRoomId: transaction.chatRoomId?.toString()
                 });
-
                 Toast.fire({
-                    icon: paySuccess ? "success" : "error",
-                    text: paySuccess
-                        ? "Thanh toán thành công"
-                        : "Thanh toán không thành công",
+                    icon: res.data.success ? "success" : "error",
+                    text: res.data.success
+                        ? res.data.success
+                        : res.data.error
                 });
+                if (res.data.error) {
+                    return;
+                }
             }
             onClose();
         }
         catch (err) {
             console.log("Loi khi giao dich: ", err);
+            Toast.fire({
+                icon: "error",
+                text: "Đã có lỗi xảy ra"
+            })
         }
     };
 
