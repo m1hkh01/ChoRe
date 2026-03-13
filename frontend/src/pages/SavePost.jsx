@@ -9,8 +9,8 @@ function SavePost({ postId }) {
 
     // check đã lưu hay chưa
     useEffect(() => {
-        api.get(`/api/saved-posts/check/${postId}`)
-            .then(res => setSaved(res.data.saved))
+        api.get(`/api/save-posts/check/${postId}`)
+            .then(res => setSaved(res.data.isSaved))
             .catch(() => {});
     }, [postId]);
 
@@ -20,10 +20,10 @@ function SavePost({ postId }) {
 
         try {
             if (saved) {
-                await api.delete(`/api/saved-posts/${postId}`);
+                await api.delete(`/api/save-posts/${postId}`);
                 setSaved(false);
             } else {
-                await api.post(`/api/saved-posts/${postId}`);
+                await api.post(`/api/save-posts`, { PostId: postId });
                 setSaved(true);
             }
         } finally {

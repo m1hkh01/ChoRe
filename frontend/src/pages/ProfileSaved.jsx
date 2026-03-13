@@ -13,12 +13,10 @@ export function ProfileSaved() {
     const load = async (p = 1, reset = false) => {
         setLoading(true);
         try {
-            const res = await api.get("/api/profile/me/saved-posts", {
-                params: { page: p, pageSize: 12 },
-            });
-            setPosts(prev => reset ? res.data.items : [...prev, ...res.data.items]);
-            setHasNext(res.data.hasNext);
-            setTotal(res.data.total);
+            const res = await api.get("/api/save-posts");
+            setPosts(res.data);
+            setHasNext(false);
+            setTotal(res.data.length);
             setPage(p);
         } finally {
             setLoading(false);

@@ -77,7 +77,7 @@ function PostCard({ post }) {
 
 
     // ❤️ CLICK FAVORITE
-    const handleFavoriteClick = (e) => {
+    const handleFavoriteClick = async (e) => {
         if (!user) {
             alert("Vui lòng đăng nhập để thêm yêu thích");
             return;
@@ -91,22 +91,39 @@ function PostCard({ post }) {
 
         const exists = favorites.includes(postId);
         if (isFavorite) {
-            favorites = favorites.filter(id => id !== postId);
-            const res = api.delete(`api/save-posts/${postId}`, { PostId: postId });
-            Toast.fire({
-                icon: "success",
-                title: res.data?.message || "Đã xóa khỏi yêu thích!"
-            })
-            setIsFavorite(false);
+            try {
+                const res = await api.delete(`api/save-posts/${postId}`);
+                Toast.fire({
+                    icon: "success",
+                    title: res.data?.message || "Đã xóa khỏi yêu thích!"
+                });
+                setIsFavorite(false);
+                favorites = favorites.filter(id => id !== postId);
+            } catch (error) {
+                console.error("Error removing favorite:", error);
+                Toast.fire({
+                    icon: "error",
+                    title: "Lỗi khi xóa khỏi yêu thích!"
+                });
+                return;
+            }
         } else {
-            const res = api.post("api/save-posts", { PostId: postId });
-            Toast.fire({
-                icon: "success",
-                title: res.data?.message || "Đã thêm vào yêu thích!"
-            })
-            //console.log("SAVE POST RESPONSE:", res);
-            favorites.unshift(postId);
-            setIsFavorite(true);
+            try {
+                const res = await api.post("api/save-posts", { PostId: postId });
+                Toast.fire({
+                    icon: "success",
+                    title: res.data?.message || "Đã thêm vào yêu thích!"
+                });
+                favorites.unshift(postId);
+                setIsFavorite(true);
+            } catch (error) {
+                console.error("Error adding favorite:", error);
+                Toast.fire({
+                    icon: "error",
+                    title: "Lỗi khi thêm vào yêu thích!"
+                });
+                return;
+            }
         }
 
         localStorage.setItem(
