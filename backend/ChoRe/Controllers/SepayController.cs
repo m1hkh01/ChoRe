@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using ChoRe.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,14 +25,14 @@ public class SepayController : ControllerBase
             {
                 return BadRequest();
             }
-            var transaction = webhookData.Content.Split("-");
+            var transaction = webhookData.Content.Split(" ")[0];
             if (transaction.Length == 0)
             {
                 return BadRequest();
             }
-            if (webhookData.Content.StartsWith("SUB"))
+            if (transaction.Contains("SUB"))
             {
-                var orderCode = webhookData.Content.Split(" ")[0];
+                var orderCode = Regex.Match(webhookData.Content, @"SUB[A-Za-z0-9]+").Value;
                 var order = await _context.SubscriptionOrders.FirstOrDefaultAsync(o => o.OrderCode == orderCode);
                 if (order == null)
                 {
@@ -62,7 +63,7 @@ public class SepayController : ControllerBase
             }
             else if (webhookData.Content.StartsWith("TRANS"))
             {
-                var orderCode = webhookData.Content.Split(" ")[0];
+                var orderCode = Regex.Match(webhookData.Content, @"TRANS[A-Za-z0-9]+").Value;
                 var escrow = await _context.EscrowTransations.FirstOrDefaultAsync(t => t.TransactionOrderCode == orderCode);
                 if (escrow == null)
                 {
