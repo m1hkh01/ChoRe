@@ -4,11 +4,11 @@ import api from "@/api";
 import PostCard from "@/components/Post/PostCard";
 
 export function ProfileSaved() {
-    const [posts, setPosts]     = useState([]);
+    const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [page, setPage]       = useState(1);
+    const [page, setPage] = useState(1);
     const [hasNext, setHasNext] = useState(false);
-    const [total, setTotal]     = useState(0);
+    const [total, setTotal] = useState(0);
 
     const load = async (p = 1, reset = false) => {
         setLoading(true);
@@ -24,6 +24,18 @@ export function ProfileSaved() {
     };
 
     useEffect(() => { load(1, true); }, []);
+
+    useEffect(() => {
+        const handleFavoritesUpdate = () => {
+            load(1, true);
+        };
+
+        window.addEventListener("favoritesUpdated", handleFavoritesUpdate);
+
+        return () => {
+            window.removeEventListener("favoritesUpdated", handleFavoritesUpdate);
+        };
+    }, []);
 
     return (
         <div className="profile-posts">

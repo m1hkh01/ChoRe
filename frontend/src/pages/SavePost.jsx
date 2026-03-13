@@ -11,7 +11,7 @@ function SavePost({ postId }) {
     useEffect(() => {
         api.get(`/api/save-posts/check/${postId}`)
             .then(res => setSaved(res.data.isSaved))
-            .catch(() => {});
+            .catch(() => { });
     }, [postId]);
 
     const handleToggleSave = async () => {

@@ -57,10 +57,10 @@ api.interceptors.response.use(
         auth.logout();
 
         if (navigateHandler) {
-        navigateHandler("/login");
+          navigateHandler("/login");
         } else {
-         window.location.href = "/login";
-       }
+          window.location.href = "/login";
+        }
       }
     }
 

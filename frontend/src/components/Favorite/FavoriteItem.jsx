@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart } from "@fortawesome/free-solid-svg-icons";
+import api from "../../api";
+import { Toast } from "../../utils/toast";
 
 import "./FavoriteItem.css";
 
@@ -11,10 +13,25 @@ function FavoriteItem({ post, onRemove }) {
         post.postStatusId === 6;
 
 
-    const handleRemove = (e) => {
+    const handleRemove = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        onRemove(post.postId);
+
+        try {
+            const res = await api.delete(`api/save-posts/${post.postId}`);
+            Toast.fire({
+                icon: "success",
+                title: res.data?.message || "Đã xóa khỏi yêu thích!"
+            });
+            onRemove(post.postId); // Remove from UI after successful DB delete
+            window.dispatchEvent(new Event("favoritesUpdated"));
+        } catch (error) {
+            console.error("Error removing favorite:", error);
+            Toast.fire({
+                icon: "error",
+                title: "Lỗi khi xóa khỏi yêu thích!"
+            });
+        }
     };
 
     // format giá

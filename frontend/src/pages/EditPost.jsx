@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "@/api";
+import "@/assets/edit.css";
 import {
     AlertCircle,
     FileText,
@@ -334,79 +335,89 @@ function EditPost() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* FORM COLUMN */}
-                    <div className="space-y-6 lg:col-span-2">
+                    <div className="space-y-6 lg:col-span-2" style={{ margin: 15 }}>
                         <form onSubmit={handleSubmit} className="space-y-6">
 
                             {/* SECTION 1: IMAGES */}
-                            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <Upload className="text-blue-600" size={20} />
+                            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200" style={{ padding: 15, margin: 15 }}>
+                                <div className="mb-4">
                                     <div>
                                         <h2 className="text-lg font-semibold text-gray-800">Hình ảnh sản phẩm</h2>
                                         <p className="text-sm text-gray-500">Tối đa 5 ảnh</p>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-5 gap-3">
+                                <div className="image-grid">
+
                                     {/* Existing Images */}
                                     {existingImages.map((image, i) => (
-                                        <div key={`existing-${i}`} className="relative aspect-square">
+                                        <div key={`existing-${i}`} className="image-box">
+
                                             <img
                                                 src={`https://api.chore123.cloud/uploads/${image}`}
-                                                className="w-full h-full object-cover rounded-lg border-2 border-gray-200"
+                                                className="image-existing"
                                                 alt={`Existing ${i + 1}`}
                                             />
+
                                             <button
                                                 type="button"
                                                 onClick={() => removeExistingImage(image)}
-                                                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600"
+                                                className="image-remove-btn"
                                             >
                                                 <X size={14} />
                                             </button>
+
                                         </div>
                                     ))}
 
                                     {/* New Images */}
                                     {imagePreviews.map((preview, i) => (
-                                        <div key={`new-${i}`} className="relative aspect-square">
+                                        <div key={`new-${i}`} className="image-box">
+
                                             <img
                                                 src={preview}
-                                                className="w-full h-full object-cover rounded-lg border-2 border-green-200"
+                                                className="image-new"
                                                 alt={`New ${i + 1}`}
                                             />
+
                                             <button
                                                 type="button"
                                                 onClick={() => removeNewImage(i)}
-                                                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600"
+                                                className="image-remove-btn"
                                             >
                                                 <X size={14} />
                                             </button>
+
                                         </div>
                                     ))}
 
                                     {/* Upload Button */}
                                     {(existingImages.length + imageFiles.length) < 5 && (
-                                        <label className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all">
+                                        <label className="upload-box">
+
                                             <input
                                                 type="file"
                                                 multiple
                                                 accept="image/*"
                                                 onChange={handleImageChange}
-                                                className="hidden"
+                                                hidden
                                             />
-                                            <Upload className="text-gray-400 mb-1" size={24} />
-                                            <span className="text-xs text-gray-500 text-center">
+
+                                            <Upload className="upload-icon" size={24} />
+
+                                            <span className="upload-text">
                                                 Thêm ảnh
                                             </span>
+
                                         </label>
                                     )}
+
                                 </div>
                             </div>
 
                             {/* SECTION 2: BASIC INFO */}
-                            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <FileText className="text-green-600" size={20} />
+                            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200" style={{ padding: 15, margin: 15 }}>
+                                <div className="mb-4">
                                     <div>
                                         <h2 className="text-lg font-semibold text-gray-800">Thông tin cơ bản</h2>
                                         <p className="text-sm text-gray-500">Mô tả sản phẩm của bạn</p>
@@ -415,7 +426,7 @@ function EditPost() {
 
                                 <div className="space-y-5">
                                     {/* Title */}
-                                    <div>
+                                    <div style={{ paddingTop: 10 }}>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                                             Tiêu đề <span className="text-red-500">*</span>
                                         </label>
@@ -430,7 +441,7 @@ function EditPost() {
                                     </div>
 
                                     {/* Description */}
-                                    <div>
+                                    <div style={{ paddingTop: 10 }}>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                                             Mô tả chi tiết <span className="text-red-500">*</span>
                                         </label>
@@ -450,7 +461,7 @@ function EditPost() {
                                     </div>
 
                                     {/* Price Type */}
-                                    <div>
+                                    <div style={{ paddingTop: 10 }}>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                                             Kiểu giá <span className="text-red-500">*</span>
                                         </label>
@@ -470,7 +481,7 @@ function EditPost() {
 
                                     {/* Price Inputs */}
                                     {form.priceType === "FIXED" && (
-                                        <div>
+                                        <div style={{ paddingTop: 10 }}>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">
                                                 Giá (₫) <span className="text-red-500">*</span>
                                             </label>
@@ -486,7 +497,7 @@ function EditPost() {
                                     )}
 
                                     {form.priceType === "RANGE" && (
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-2 gap-4" style={{ paddingTop: 10 }}>
                                             <div>
                                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                                                     Giá tối thiểu (₫) <span className="text-red-500">*</span>
@@ -519,7 +530,7 @@ function EditPost() {
                             </div>
 
                             {/* Submit Button */}
-                            <div className="flex justify-end pt-4">
+                            <div className="flex justify-end pt-4" style={{ margin: 15 }}>
                                 <button
                                     type="submit"
                                     disabled={uploading}
@@ -532,8 +543,8 @@ function EditPost() {
                     </div>
 
                     {/* PREVIEW COLUMN */}
-                    <div className="space-y-4 lg:col-span-1">
-                        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 sticky top-6">
+                    <div className="space-y-4 lg:col-span-1" style={{ margin: 15 }}>
+                        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 sticky top-6" style={{ padding: 15 }}>
                             <div className="flex items-center gap-2 mb-3">
                                 <div>
                                     <h2 className="text-base font-semibold text-gray-800">Xem trước bài đăng</h2>
@@ -562,9 +573,6 @@ function EditPost() {
                                     ) : (
                                         <Upload size={28} className="text-gray-400" />
                                     )}
-                                    <span className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-0.5 rounded font-medium">
-                                        Đã duyệt
-                                    </span>
                                 </div>
 
                                 {/* Content */}
@@ -585,11 +593,9 @@ function EditPost() {
 
                                     <div className="space-y-1 text-xs text-gray-500">
                                         <div className="flex items-center gap-1">
-                                            <span>📍</span>
                                             <span className="truncate">Phường Tân Mỹ, TPHCM</span>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <span>👤</span>
                                             <span>userKhoi</span>
                                         </div>
                                     </div>
