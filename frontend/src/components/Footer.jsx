@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 // import "@/assets/Footer.css";
 function Footer() {
     return (
-        <footer className="bg-gray-900 mt-100">
+        <footer className="bg-gray-900 mt-100" style={{}}>
             <div style={styles.container}>
                 <div style={styles.grid}>
                     {/* Về chúng tôi */}

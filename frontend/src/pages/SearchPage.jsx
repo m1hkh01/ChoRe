@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faSearch, faFilter, faSlidersH, faChevronDown, faChevronUp,
-    faTimes, faSort, faSpinner, faBoxOpen, faMapMarkerAlt
+    faTimes, faSort, faSpinner, faBoxOpen, faMapMarkerAlt, faChevronRight
 } from "@fortawesome/free-solid-svg-icons";
 import PostCard from "@/components/Post/PostCard";
 import provinceData from "@/data/sauSapNhap/province.json";
@@ -13,8 +13,6 @@ import "@/assets/SearchPage.css";
 const API_BASE = "https://api.chore123.cloud/api";
 
 const SORT_OPTIONS = [
-    // { value: "newest", label: "Mới nhất" },
-    // { value: "oldest", label: "Cũ nhất" },
     { value: "price_asc", label: "Giá tăng dần" },
     { value: "price_desc", label: "Giá giảm dần" },
 ];
@@ -34,11 +32,11 @@ const PRICE_TYPES = [
     { value: "RANGE", label: "Khoảng giá" },
 ];
 
-// Chuyển object JSON → array, sort theo tên
 const provinces = Object.values(provinceData).sort((a, b) =>
     a.name.localeCompare(b.name, "vi")
 );
 
+// ── CollapsibleSection ─────────────────────────────────────────
 function CollapsibleSection({ title, children, defaultOpen = true }) {
     const [open, setOpen] = useState(defaultOpen);
     return (
@@ -52,29 +50,104 @@ function CollapsibleSection({ title, children, defaultOpen = true }) {
     );
 }
 
+// ── CategoryTree: render cha-con dạng accordion ────────────────
+function CategoryTree({ nodes, selectedCateId, onSelect, level = 0 }) {
+    // Mở accordion tự động nếu có con đang được chọn
+    const hasSelected = (node) => {
+        if (node.cateId === selectedCateId) return true;
+        return node.subCategories?.some(hasSelected) || false;
+    };
+
+    return (
+        <>
+            {nodes.map(node => {
+                const hasSubs = node.subCategories?.length > 0;
+                const isActive = selectedCateId === node.cateId;
+                const childSelected = hasSubs && node.subCategories.some(hasSelected);
+                const [expanded, setExpanded] = useState(childSelected || isActive);
+
+                return (
+                    <div key={node.cateId} className={`cate-tree-node level-${level}`}>
+                        <div className={`cate-tree-row ${isActive ? "active" : ""}`}>
+                            {/* Nút expand nếu có con */}
+                            {hasSubs ? (
+                                <button
+                                    className="cate-expand-btn"
+                                    onClick={() => setExpanded(!expanded)}
+                                    aria-label={expanded ? "Thu gọn" : "Mở rộng"}
+                                >
+                                    <FontAwesomeIcon
+                                        icon={faChevronRight}
+                                        className={`cate-expand-icon ${expanded ? "rotated" : ""}`}
+                                    />
+                                </button>
+                            ) : (
+                                <span className="cate-expand-spacer" />
+                            )}
+
+                            <label className={`filter-radio cate-label ${isActive ? "active" : ""}`}>
+                                <input
+                                    type="radio"
+                                    name="category"
+                                    checked={isActive}
+                                    onChange={() => onSelect(node.cateId)}
+                                />
+                                {node.cateName}
+                            </label>
+                        </div>
+
+                        {/* Sub-categories */}
+                        {hasSubs && expanded && (
+                            <div className="cate-children">
+                                <CategoryTree
+                                    nodes={node.subCategories}
+                                    selectedCateId={selectedCateId}
+                                    onSelect={onSelect}
+                                    level={level + 1}
+                                />
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
+        </>
+    );
+}
+
+// ── SearchPage ─────────────────────────────────────────────────
 function SearchPage() {
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const urlKeyword = searchParams.get("keyword") || "";
+    const urlKeyword  = searchParams.get("keyword") || "";
+    // Đọc cả cateId và categoryId (header dùng cateId, form cũ dùng categoryId)
+    const urlCateId   = searchParams.get("cateId") || searchParams.get("categoryId") || null;
+    const urlBrandId  = searchParams.get("brandId") || null;
 
-    // ── Filter state ───────────────────────────────────────────────
+    // ── Filter state ───────────────────────────────────────────
     const [selectedCateId, setSelectedCateId] = useState(
-        searchParams.get("categoryId") ? parseInt(searchParams.get("categoryId")) : null
+        urlCateId ? parseInt(urlCateId) : null
     );
     const [selectedBrandId, setSelectedBrandId] = useState(
-        searchParams.get("brandId") ? parseInt(searchParams.get("brandId")) : null
+        urlBrandId ? parseInt(urlBrandId) : null
     );
     const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
     const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
     const [selectedPriceType, setSelectedPriceType] = useState("");
     const [sortBy, setSortBy] = useState("newest");
 
-    // ── Địa chỉ: chọn tỉnh → ward ─────────────────────────────────
+    // Sync khi URL thay đổi từ bên ngoài (vd: click header)
+    useEffect(() => {
+        if (urlCateId)  setSelectedCateId(parseInt(urlCateId));
+        else            setSelectedCateId(null);
+        if (urlBrandId) setSelectedBrandId(parseInt(urlBrandId));
+        else            setSelectedBrandId(null);
+    }, [urlCateId, urlBrandId]);
+
+    // ── Địa chỉ ───────────────────────────────────────────────
     const [selectedProvinceCode, setSelectedProvinceCode] = useState("");
     const [selectedWardCode, setSelectedWardCode] = useState("");
     const [appliedAddress, setAppliedAddress] = useState(searchParams.get("address") || "");
 
-    // Wards thuộc tỉnh đang chọn
     const wardsForProvince = useMemo(() => {
         if (!selectedProvinceCode) return [];
         return Object.values(wardData)
@@ -82,20 +155,20 @@ function SearchPage() {
             .sort((a, b) => a.name.localeCompare(b.name, "vi"));
     }, [selectedProvinceCode]);
 
-    // Reset ward khi đổi tỉnh
-    useEffect(() => {
-        setSelectedWardCode("");
-    }, [selectedProvinceCode]);
+    useEffect(() => { setSelectedWardCode(""); }, [selectedProvinceCode]);
 
-    // ── Data state ─────────────────────────────────────────────────
+    // ── Data state ─────────────────────────────────────────────
     const [posts, setPosts] = useState([]);
     const [filteredPosts, setFilteredPosts] = useState([]);
     const [allBrands, setAllBrands] = useState([]);
-    const [categories, setCategories] = useState([]);
+    // Hierarchy categories: [{cateId, cateName, subCategories, brands}]
+    const [categoryHierarchy, setCategoryHierarchy] = useState([]);
+    // Flat list để lookup tên
+    const [flatCategories, setFlatCategories] = useState([]);
     const [loading, setLoading] = useState(false);
     const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-    // ── Fetch brands ───────────────────────────────────────────────
+    // ── Fetch brands ───────────────────────────────────────────
     useEffect(() => {
         fetch(`${API_BASE}/brands`)
             .then(r => r.ok ? r.json() : [])
@@ -103,24 +176,46 @@ function SearchPage() {
             .catch(() => setAllBrands([]));
     }, []);
 
-    // ── Fetch categories theo brand ────────────────────────────────
+    // ── Fetch category hierarchy ───────────────────────────────
     useEffect(() => {
-        const url = selectedBrandId
-            ? `${API_BASE}/categories/by-brand/${selectedBrandId}`
-            : `${API_BASE}/categories`;
-
-        fetch(url)
+        fetch(`${API_BASE}/categories/hierarchy`)
             .then(r => r.ok ? r.json() : [])
             .then(data => {
-                setCategories(data);
-                if (selectedCateId && !data.find(c => c.cateId === selectedCateId)) {
-                    setSelectedCateId(null);
-                }
+                setCategoryHierarchy(data);
+                // Flatten để lookup tên
+                const flat = [];
+                const flatten = (nodes) => {
+                    nodes.forEach(n => {
+                        flat.push({ cateId: n.cateId, cateName: n.cateName });
+                        if (n.subCategories?.length) flatten(n.subCategories);
+                    });
+                };
+                flatten(data);
+                setFlatCategories(flat);
             })
-            .catch(() => setCategories([]));
-    }, [selectedBrandId]);
+            .catch(() => setCategoryHierarchy([]));
+    }, []);
 
-    // ── Fetch posts ────────────────────────────────────────────────
+    // Nếu chọn brand → lọc hierarchy chỉ còn categories thuộc brand đó
+    const visibleHierarchy = useMemo(() => {
+        if (!selectedBrandId) return categoryHierarchy;
+        // Filter: chỉ giữ node nào có brand.brandId === selectedBrandId
+        const filterNodes = (nodes) =>
+            nodes
+                .filter(n =>
+                    n.brands?.some(b => b.brandId === selectedBrandId) ||
+                    n.subCategories?.some(sub =>
+                        sub.brands?.some(b => b.brandId === selectedBrandId)
+                    )
+                )
+                .map(n => ({
+                    ...n,
+                    subCategories: filterNodes(n.subCategories || [])
+                }));
+        return filterNodes(categoryHierarchy);
+    }, [selectedBrandId, categoryHierarchy]);
+
+    // ── Fetch posts ────────────────────────────────────────────
     const fetchPosts = useCallback(async () => {
         setLoading(true);
         try {
@@ -144,14 +239,13 @@ function SearchPage() {
 
     useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
-    // ── Client-side filter: priceType + appliedAddress + sort ──────
+    // ── Client-side filter + sort ──────────────────────────────
     useEffect(() => {
         let result = [...posts];
 
         if (selectedPriceType) {
             result = result.filter(p => p.priceType === selectedPriceType);
         }
-
         if (appliedAddress.trim()) {
             const addrLower = appliedAddress.trim().toLowerCase();
             result = result.filter(p => p.address?.toLowerCase().includes(addrLower));
@@ -164,7 +258,6 @@ function SearchPage() {
                 return 0;
             };
             switch (sortBy) {
-                case "oldest":     return new Date(a.createdAt) - new Date(b.createdAt);
                 case "price_asc":  return getPrice(a) - getPrice(b);
                 case "price_desc": return getPrice(b) - getPrice(a);
                 default:           return new Date(b.createdAt) - new Date(a.createdAt);
@@ -174,26 +267,23 @@ function SearchPage() {
         setFilteredPosts(result);
     }, [posts, selectedPriceType, appliedAddress, sortBy]);
 
-    // ── Tính địa chỉ sẽ apply ─────────────────────────────────────
+    // ── Helpers ────────────────────────────────────────────────
     const buildAddressString = () => {
         if (!selectedProvinceCode) return "";
         const province = provinceData[selectedProvinceCode];
         if (selectedWardCode) {
             const ward = wardData[selectedWardCode];
-            // dùng "path" của ward: "Minh Châu, Hà Nội"
             return ward?.path || province?.name || "";
         }
         return province?.name || "";
     };
 
-    // ── Apply filter ───────────────────────────────────────────────
     const handleApplyFilter = () => {
         const addr = buildAddressString();
         setAppliedAddress(addr);
-
         const params = {};
         if (urlKeyword) params.keyword = urlKeyword;
-        if (selectedCateId) params.categoryId = selectedCateId;
+        if (selectedCateId) params.cateId = selectedCateId;
         if (selectedBrandId) params.brandId = selectedBrandId;
         if (minPrice && selectedPriceType !== "NEGOTIABLE") params.minPrice = minPrice;
         if (maxPrice && selectedPriceType !== "NEGOTIABLE") params.maxPrice = maxPrice;
@@ -222,13 +312,9 @@ function SearchPage() {
 
     const handlePriceTypeChange = (val) => {
         setSelectedPriceType(val);
-        if (val === "NEGOTIABLE") {
-            setMinPrice("");
-            setMaxPrice("");
-        }
+        if (val === "NEGOTIABLE") { setMinPrice(""); setMaxPrice(""); }
     };
 
-    // Label hiển thị khu vực đang chọn (chưa apply)
     const pendingAddressLabel = buildAddressString();
 
     const activeCount = [
@@ -239,9 +325,10 @@ function SearchPage() {
         appliedAddress,
     ].filter(Boolean).length;
 
-    // ── Sidebar ────────────────────────────────────────────────────
+    // ── Sidebar ────────────────────────────────────────────────
     const FilterSidebar = () => (
         <aside className="search-sidebar">
+            {/* Sticky header */}
             <div className="sidebar-header">
                 <span><FontAwesomeIcon icon={faSlidersH} /> Bộ lọc</span>
                 {activeCount > 0 && (
@@ -251,127 +338,119 @@ function SearchPage() {
                 )}
             </div>
 
-            {/* Thương hiệu */}
-            <CollapsibleSection title="Thương hiệu">
-                <div className="filter-list">
-                    <label className={`filter-radio ${!selectedBrandId ? "active" : ""}`}>
-                        <input type="radio" name="brand" checked={!selectedBrandId} onChange={() => setSelectedBrandId(null)} />
-                        Tất cả thương hiệu
-                    </label>
-                    {allBrands.map(b => (
-                        <label key={b.brandId} className={`filter-radio ${selectedBrandId === b.brandId ? "active" : ""}`}>
-                            <input type="radio" name="brand" checked={selectedBrandId === b.brandId} onChange={() => setSelectedBrandId(b.brandId)} />
-                            {b.brandName}
-                        </label>
-                    ))}
-                </div>
-            </CollapsibleSection>
+            {/* Scrollable body */}
+            <div className="sidebar-scroll-body">
 
-            {/* Danh mục */}
-            <CollapsibleSection title="Danh mục">
-                <div className="filter-list">
-                    <label className={`filter-radio ${!selectedCateId ? "active" : ""}`}>
-                        <input type="radio" name="category" checked={!selectedCateId} onChange={() => setSelectedCateId(null)} />
-                        Tất cả danh mục
-                    </label>
-                    {categories.length === 0 && selectedBrandId && (
-                        <p className="filter-empty-note">Không có danh mục</p>
-                    )}
-                    {categories.map(c => (
-                        <label key={c.cateId} className={`filter-radio ${selectedCateId === c.cateId ? "active" : ""}`}>
-                            <input type="radio" name="category" checked={selectedCateId === c.cateId} onChange={() => setSelectedCateId(c.cateId)} />
-                            {c.cateName}
+                {/* Thương hiệu */}
+                <CollapsibleSection title="Thương hiệu">
+                    <div className="filter-list">
+                        <label className={`filter-radio ${!selectedBrandId ? "active" : ""}`}>
+                            <input type="radio" name="brand" checked={!selectedBrandId} onChange={() => setSelectedBrandId(null)} />
+                            Tất cả thương hiệu
                         </label>
-                    ))}
-                </div>
-            </CollapsibleSection>
-
-            {/* Loại giá */}
-            <CollapsibleSection title="Loại giá">
-                <div className="filter-list">
-                    {PRICE_TYPES.map(pt => (
-                        <label key={pt.value} className={`filter-radio ${selectedPriceType === pt.value ? "active" : ""}`}>
-                            <input type="radio" name="priceType" checked={selectedPriceType === pt.value} onChange={() => handlePriceTypeChange(pt.value)} />
-                            {pt.label}
-                        </label>
-                    ))}
-                </div>
-            </CollapsibleSection>
-
-            {/* Khoảng giá */}
-            {selectedPriceType !== "NEGOTIABLE" && (
-                <CollapsibleSection title="Khoảng giá">
-                    <div className="price-quick">
-                        {PRICE_RANGES.map(r => (
-                            <button
-                                key={r.label}
-                                className={`price-quick-btn ${minPrice == r.min && maxPrice == (r.max ?? "") ? "active" : ""}`}
-                                onClick={() => handlePriceRange(r)}
-                            >
-                                {r.label}
-                            </button>
+                        {allBrands.map(b => (
+                            <label key={b.brandId} className={`filter-radio ${selectedBrandId === b.brandId ? "active" : ""}`}>
+                                <input type="radio" name="brand" checked={selectedBrandId === b.brandId} onChange={() => setSelectedBrandId(b.brandId)} />
+                                {b.brandName}
+                            </label>
                         ))}
                     </div>
-                    <div className="price-inputs">
-                        <input type="number" placeholder="Từ (₫)" value={minPrice} onChange={e => setMinPrice(e.target.value)} min={0} />
-                        <span className="price-sep">–</span>
-                        <input type="number" placeholder="Đến (₫)" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} min={0} />
+                </CollapsibleSection>
+
+                {/* Danh mục — cha-con dạng tree */}
+                <CollapsibleSection title="Danh mục">
+                    <div className="filter-list">
+                        <label className={`filter-radio ${!selectedCateId ? "active" : ""}`}>
+                            <input type="radio" name="category" checked={!selectedCateId} onChange={() => setSelectedCateId(null)} />
+                            Tất cả danh mục
+                        </label>
+
+                        {visibleHierarchy.length === 0 && selectedBrandId ? (
+                            <p className="filter-empty-note">Không có danh mục cho thương hiệu này</p>
+                        ) : (
+                            <CategoryTree
+                                nodes={visibleHierarchy}
+                                selectedCateId={selectedCateId}
+                                onSelect={setSelectedCateId}
+                            />
+                        )}
                     </div>
                 </CollapsibleSection>
-            )}
 
-            {/* Khu vực - chọn tỉnh → ward */}
-            <CollapsibleSection title="Khu vực">
-                <div className="location-selects">
-                    {/* Chọn Tỉnh/Thành phố */}
-                    <div className="location-select-wrap">
-                        <FontAwesomeIcon icon={faMapMarkerAlt} className="location-icon" />
-                        <select
-                            className="location-select"
-                            value={selectedProvinceCode}
-                            onChange={e => setSelectedProvinceCode(e.target.value)}
-                        >
-                            <option value="">-- Tỉnh / Thành phố --</option>
-                            {provinces.map(p => (
-                                <option key={p.code} value={p.code}>{p.name}</option>
-                            ))}
-                        </select>
+                {/* Loại giá */}
+                <CollapsibleSection title="Loại giá">
+                    <div className="filter-list">
+                        {PRICE_TYPES.map(pt => (
+                            <label key={pt.value} className={`filter-radio ${selectedPriceType === pt.value ? "active" : ""}`}>
+                                <input type="radio" name="priceType" checked={selectedPriceType === pt.value} onChange={() => handlePriceTypeChange(pt.value)} />
+                                {pt.label}
+                            </label>
+                        ))}
                     </div>
+                </CollapsibleSection>
 
-                    {/* Chọn Phường/Xã — chỉ hiện khi đã chọn tỉnh */}
-                    {selectedProvinceCode && (
+                {/* Khoảng giá */}
+                {selectedPriceType !== "NEGOTIABLE" && (
+                    <CollapsibleSection title="Khoảng giá">
+                        <div className="price-quick">
+                            {PRICE_RANGES.map(r => (
+                                <button
+                                    key={r.label}
+                                    className={`price-quick-btn ${minPrice == r.min && maxPrice == (r.max ?? "") ? "active" : ""}`}
+                                    onClick={() => handlePriceRange(r)}
+                                >
+                                    {r.label}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="price-inputs">
+                            <input type="number" placeholder="Từ (₫)" value={minPrice} onChange={e => setMinPrice(e.target.value)} min={0} />
+                            <span className="price-sep">–</span>
+                            <input type="number" placeholder="Đến (₫)" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} min={0} />
+                        </div>
+                    </CollapsibleSection>
+                )}
+
+                {/* Khu vực */}
+                <CollapsibleSection title="Khu vực">
+                    <div className="location-selects">
                         <div className="location-select-wrap">
-                            <FontAwesomeIcon icon={faMapMarkerAlt} className="location-icon" style={{ opacity: 0.5 }} />
-                            <select
-                                className="location-select"
-                                value={selectedWardCode}
-                                onChange={e => setSelectedWardCode(e.target.value)}
-                            >
-                                <option value="">-- Phường / Xã (tùy chọn) --</option>
-                                {wardsForProvince.map(w => (
-                                    <option key={w.code} value={w.code}>{w.name_with_type}</option>
+                            <FontAwesomeIcon icon={faMapMarkerAlt} className="location-icon" />
+                            <select className="location-select" value={selectedProvinceCode} onChange={e => setSelectedProvinceCode(e.target.value)}>
+                                <option value="">-- Tỉnh / Thành phố --</option>
+                                {provinces.map(p => (
+                                    <option key={p.code} value={p.code}>{p.name}</option>
                                 ))}
                             </select>
                         </div>
-                    )}
+                        {selectedProvinceCode && (
+                            <div className="location-select-wrap">
+                                <FontAwesomeIcon icon={faMapMarkerAlt} className="location-icon" style={{ opacity: 0.5 }} />
+                                <select className="location-select" value={selectedWardCode} onChange={e => setSelectedWardCode(e.target.value)}>
+                                    <option value="">-- Phường / Xã (tùy chọn) --</option>
+                                    {wardsForProvince.map(w => (
+                                        <option key={w.code} value={w.code}>{w.name_with_type}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                        {pendingAddressLabel && pendingAddressLabel !== appliedAddress && (
+                            <p className="filter-hint">Sẽ lọc: <strong>{pendingAddressLabel}</strong></p>
+                        )}
+                        {pendingAddressLabel && pendingAddressLabel === appliedAddress && (
+                            <p className="filter-applied-note">Đang lọc: <strong>{appliedAddress}</strong></p>
+                        )}
+                    </div>
+                </CollapsibleSection>
 
-                    {/* Preview địa chỉ sẽ lọc */}
-                    {pendingAddressLabel && pendingAddressLabel !== appliedAddress && (
-                        <p className="filter-hint">
-                            Sẽ lọc: <strong>{pendingAddressLabel}</strong>
-                        </p>
-                    )}
-                    {pendingAddressLabel && pendingAddressLabel === appliedAddress && (
-                        <p className="filter-applied-note">
-                            Đang lọc: <strong>{appliedAddress}</strong>
-                        </p>
-                    )}
-                </div>
-            </CollapsibleSection>
+            </div>{/* end sidebar-scroll-body */}
 
-            <button className="apply-filter-btn" onClick={handleApplyFilter}>
-                <FontAwesomeIcon icon={faSearch} /> Áp dụng bộ lọc
-            </button>
+            {/* Sticky footer: nút áp dụng */}
+            <div className="sidebar-footer">
+                <button className="apply-filter-btn" onClick={handleApplyFilter}>
+                    <FontAwesomeIcon icon={faSearch} /> Áp dụng bộ lọc
+                </button>
+            </div>
         </aside>
     );
 
@@ -413,7 +492,7 @@ function SearchPage() {
                             )}
                             {selectedCateId && (
                                 <span className="filter-tag">
-                                    {categories.find(c => c.cateId === selectedCateId)?.cateName}
+                                    {flatCategories.find(c => c.cateId === selectedCateId)?.cateName}
                                     <button onClick={() => setSelectedCateId(null)}><FontAwesomeIcon icon={faTimes} /></button>
                                 </span>
                             )}
@@ -434,11 +513,9 @@ function SearchPage() {
                             {appliedAddress && (
                                 <span className="filter-tag">
                                     📍 {appliedAddress}
-                                    <button onClick={() => {
-                                        setSelectedProvinceCode("");
-                                        setSelectedWardCode("");
-                                        setAppliedAddress("");
-                                    }}><FontAwesomeIcon icon={faTimes} /></button>
+                                    <button onClick={() => { setSelectedProvinceCode(""); setSelectedWardCode(""); setAppliedAddress(""); }}>
+                                        <FontAwesomeIcon icon={faTimes} />
+                                    </button>
                                 </span>
                             )}
                         </div>

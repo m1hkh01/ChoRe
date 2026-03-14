@@ -1,10 +1,12 @@
 import PostCard from "./PostCard";
+import "./PostGrid.css";
 
 function PostGrid({ posts }) {
     if (!posts || posts.length === 0) {
         return (
-            <div className="text-center text-muted py-5">
-                Không tìm thấy sản phẩm nào phù hợp
+            <div className="post-grid-empty">
+                <span className="post-grid-empty-icon">🔍</span>
+                <p>Không tìm thấy sản phẩm nào phù hợp</p>
             </div>
         );
     }
@@ -12,9 +14,7 @@ function PostGrid({ posts }) {
     return (
         <div className="post-grid">
             {posts.map(post => (
-                <div key={post.postId} className="post-grid-item">
-                    <PostCard post={post} />
-                </div>
+                <PostCard key={post.postId} post={post} />
             ))}
         </div>
     );

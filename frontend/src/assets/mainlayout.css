@@ -13,4 +13,5 @@
 /* tránh scroll ngang mobile */
 body {
   overflow-x: hidden;
+  background-color: whitesmoke;
 }

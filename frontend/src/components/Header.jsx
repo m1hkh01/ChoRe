@@ -2,28 +2,18 @@ import { Link, useNavigate, useLocation, useSearchParams } from "react-router-do
 import { useAuthStore } from "@/store/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-    faAngleDown, faSearch, faMobileScreen, faAngleRight,
-    faList, faBars, faTimes, faPlus, faChevronRight,
+    faAngleDown, faSearch, faAngleRight,
+    faBars, faTimes, faPlus, faChevronRight,
     faLayerGroup, faShieldHalved, faRightFromBracket,
     faUser, faCreditCard, faClockRotateLeft, faGauge
 } from "@fortawesome/free-solid-svg-icons";
-import { faComment, faBell, faHeart, faBookmark } from "@fortawesome/free-regular-svg-icons";
+import { faComment, faBell, faHeart } from "@fortawesome/free-regular-svg-icons";
 import { useEffect, useRef, useState } from "react";
 import "@/assets/Header.css";
 import useFetch from "../Hooks/useFetch";
 import { useSignalR } from "../signalr/SignalRContext";
 import api from "../api";
 import ReviewForm from "./Review/ReviewForm";
-
-const CATEGORIES = [
-    { label: "Điện thoại", icon: "" },
-    { label: "Laptop", icon: "" },
-    { label: "Bàn phím", icon: "" },
-    { label: "PC, Màn hình", icon: "" },
-    { label: "Âm thanh, mic thu âm", icon: "" },
-    { label: "Phụ kiện", icon: "" },
-    { label: "Đồng hồ thông minh", icon: "" },
-];
 
 function Header() {
     const { user, logout } = useAuthStore();
@@ -45,7 +35,24 @@ function Header() {
     const [reviewChatRoomId, setReviewChatRoomId] = useState(null);
     const connectionRef = useSignalR();
     const isSearchPage = location.pathname === "/search";
+    const isHomePage = location.pathname === "/";
 
+    // ── CATEGORY STATE ──────────────────────────────────────────
+    const { data: categoryData } = useFetch('/api/categories/hierarchy');
+    const [categories, setCategories] = useState([]);
+    const [activeCate, setActiveCate] = useState(null);
+
+    // Mobile: accordion expand cho category cha
+    const [mobileExpandedCate, setMobileExpandedCate] = useState(null);
+
+    useEffect(() => {
+        if (categoryData) {
+            setCategories(categoryData);
+            setActiveCate(categoryData[0] || null);
+        }
+    }, [categoryData]);
+
+    // ── NOTIFICATIONS ───────────────────────────────────────────
     useEffect(() => { if (data) setNotificationData(data); }, [data]);
 
     useEffect(() => {
@@ -66,6 +73,7 @@ function Header() {
         if (isSearchPage) setSearchKeyword(searchParams.get("keyword") || "");
     }, [isSearchPage]);
 
+    // ── HANDLERS ────────────────────────────────────────────────
     const handleCreatePost = () => {
         if (!user) navigate("/login", { state: { redirectTo: "/post/create" } });
         else navigate("/post/create");
@@ -168,7 +176,10 @@ function Header() {
 
                     {/* ── LOGO ── */}
                     <Link to="/" className="hdr-logo">
-                        <img src="/logodenrmvbg.png" alt="ChoRe" />
+                        <img src="/logovientrang.png" alt="ChoRe" style={{
+                            borderRadius: "10px",
+                            objectFit: "cover"
+                        }} />
                     </Link>
 
                     {/* ── CATEGORY ── */}
@@ -183,44 +194,140 @@ function Header() {
                         </button>
 
                         {open && (
-                            <div className="hdr-cat-panel">
-                                <div className="hdr-cat-panel-header">Danh mục sản phẩm</div>
-                                {CATEGORIES.map((item) => (
-                                    <button key={item.label} className="hdr-cat-item" onClick={() => setOpen(false)}>
-                                        <span className="hdr-cat-emoji">{item.icon}</span>
-                                        <span className="hdr-cat-label">{item.label}</span>
-                                        <FontAwesomeIcon icon={faChevronRight} className="hdr-cat-arrow" />
-                                    </button>
-                                ))}
+                            <div className="hdr-cat-panel hdr-cat-panel--mega">
+                                {/* Cột trái: danh sách category cha */}
+                                <div className="hdr-mega-left">
+                                    <div className="hdr-cat-panel-header">Danh mục</div>
+                                    {categories.map((cate) => (
+                                        <button
+                                            key={cate.cateId}
+                                            className={`hdr-cat-item ${activeCate?.cateId === cate.cateId ? "hdr-cat-item--active" : ""}`}
+                                            onMouseEnter={() => setActiveCate(cate)}
+                                            onClick={() => {
+                                                setOpen(false);
+                                                navigate(`/search?cateId=${cate.cateId}`);
+                                            }}
+                                        >
+                                            <span className="hdr-cat-label">{cate.cateName}</span>
+                                            <FontAwesomeIcon icon={faChevronRight} className="hdr-cat-arrow" />
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Cột phải: sub-categories + brands */}
+                                {activeCate && (
+                                    <div className="hdr-mega-right">
+                                        {/* Sub-categories */}
+                                        {activeCate.subCategories?.length > 0 && (
+                                            <div className="hdr-mega-section">
+                                                <div className="hdr-mega-section-title">Danh mục con</div>
+                                                <div className="hdr-mega-chips">
+                                                    {activeCate.subCategories.map((sub) => (
+                                                        <button
+                                                            key={sub.cateId}
+                                                            className="hdr-mega-chip"
+                                                            onClick={() => {
+                                                                setOpen(false);
+                                                                navigate(`/search?cateId=${sub.cateId}`);
+                                                            }}
+                                                        >
+                                                            {sub.cateName}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Brands */}
+                                        {activeCate.brands?.length > 0 && (
+                                            <div className="hdr-mega-section">
+                                                <div className="hdr-mega-section-title">Thương hiệu</div>
+                                                <div className="hdr-mega-brands">
+                                                    {activeCate.brands.map((brand) => (
+                                                        <button
+                                                            key={brand.brandId}
+                                                            className="hdr-mega-brand-card"
+                                                            onClick={() => {
+                                                                setOpen(false);
+                                                                navigate(`/search?brandId=${brand.brandId}`);
+                                                            }}
+                                                        >
+                                                            {/* {brand.brandLogo ? (
+                                                                <img
+                                                                    src={`https://api.chore123.cloud/uploads/${brand.brandLogo}`}
+                                                                    alt={brand.brandName}
+                                                                    className="hdr-mega-brand-logo"
+                                                                />
+                                                            ) : (
+                                                                <div className="hdr-mega-brand-logo hdr-mega-brand-logo--placeholder">
+                                                                    {brand.brandName?.charAt(0)}
+                                                                </div>
+                                                            )} */}
+                                                            <span>{brand.brandName}</span>
+                                                            {/* Sub-brands */}
+                                                            {brand.subBrands?.length > 0 && (
+                                                                <div className="hdr-mega-subbrand-list">
+                                                                    {brand.subBrands.map(sb => (
+                                                                        <button
+                                                                            key={sb.brandId}
+                                                                            className="hdr-mega-subbrand"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setOpen(false);
+                                                                                navigate(`/search?brandId=${sb.brandId}`);
+                                                                            }}
+                                                                        >
+                                                                            {sb.brandName}
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Fallback nếu không có data */}
+                                        {!activeCate.subCategories?.length && !activeCate.brands?.length && (
+                                            <div className="hdr-mega-empty">
+                                                Chưa có danh mục con hoặc thương hiệu
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
 
                     {/* ── SEARCH ── */}
-                    <div className={`hdr-search ${searchFocused ? "hdr-search--focused" : ""}`}>
-                        <button className="hdr-search-icon-btn" onClick={doSearch} aria-label="Tìm kiếm">
-                            <FontAwesomeIcon icon={faSearch} />
-                        </button>
-                        <input
-                            type="text"
-                            placeholder="Tìm sản phẩm, danh mục, thương hiệu..."
-                            value={searchKeyword}
-                            onChange={(e) => setSearchKeyword(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            onFocus={() => setSearchFocused(true)}
-                            onBlur={() => setSearchFocused(false)}
-                        />
-                        {searchKeyword && (
-                            <button
-                                className="hdr-search-clear"
-                                onClick={() => { setSearchKeyword(""); if (isSearchPage) setSearchParams({}); }}
-                                aria-label="Xóa"
-                            >
-                                <FontAwesomeIcon icon={faTimes} />
+                    {/* ── SEARCH ── */}
+                    {!isHomePage && (
+                        <div className={`hdr-search ${searchFocused ? "hdr-search--focused" : ""}`}>
+                            <button className="hdr-search-icon-btn" onClick={doSearch} aria-label="Tìm kiếm">
+                                <FontAwesomeIcon icon={faSearch} />
                             </button>
-                        )}
-                        <button className="hdr-search-submit" onClick={doSearch}>Tìm</button>
-                    </div>
+                            <input
+                                type="text"
+                                placeholder="Tìm sản phẩm, danh mục, thương hiệu..."
+                                value={searchKeyword}
+                                onChange={(e) => setSearchKeyword(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                onFocus={() => setSearchFocused(true)}
+                                onBlur={() => setSearchFocused(false)}
+                            />
+                            {searchKeyword && (
+                                <button
+                                    className="hdr-search-clear"
+                                    onClick={() => { setSearchKeyword(""); if (isSearchPage) setSearchParams({}); }}
+                                    aria-label="Xóa"
+                                >
+                                    <FontAwesomeIcon icon={faTimes} />
+                                </button>
+                            )}
+                            <button className="hdr-search-submit" onClick={doSearch}>Tìm</button>
+                        </div>
+                    )}
 
                     {/* ── RIGHT ACTIONS ── */}
                     <div className="hdr-actions">
@@ -307,7 +414,6 @@ function Header() {
 
                         {/* PRO */}
                         <Link to="/service-package" className="hdr-pro-link">
-                            {/* Gói <span className="hdr-pro-badge">PRO</span> */}
                             Mua <span className="hdr-pro-badge">GÓI</span>
                         </Link>
 
@@ -382,23 +488,25 @@ function Header() {
                 </div>
 
                 {/* ── MOBILE SEARCH ROW ── */}
-                <div className="hdr-mobile-search-row">
-                    <button className="hdr-mobile-cat-btn" onClick={() => setOpen(!open)}>
-                        <FontAwesomeIcon icon={faLayerGroup} />
-                        <span>Danh mục</span>
-                    </button>
-                    <div className="hdr-mobile-search-divider" />
-                    <div className="hdr-mobile-search-input">
-                        <FontAwesomeIcon icon={faSearch} onClick={doSearch} />
-                        <input
-                            type="text"
-                            placeholder="Tìm kiếm sản phẩm..."
-                            value={searchKeyword}
-                            onChange={(e) => setSearchKeyword(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                        />
+                {!isHomePage && (
+                    <div className="hdr-mobile-search-row">
+                        <button className="hdr-mobile-cat-btn" onClick={() => setOpen(!open)}>
+                            <FontAwesomeIcon icon={faLayerGroup} />
+                            <span>Danh mục</span>
+                        </button>
+                        <div className="hdr-mobile-search-divider" />
+                        <div className="hdr-mobile-search-input">
+                            <FontAwesomeIcon icon={faSearch} onClick={doSearch} />
+                            <input
+                                type="text"
+                                placeholder="Tìm kiếm sản phẩm..."
+                                value={searchKeyword}
+                                onChange={(e) => setSearchKeyword(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                            />
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* ── MOBILE CATEGORY PANEL ── */}
                 {open && (
@@ -406,12 +514,82 @@ function Header() {
                         <div className="hdr-mobile-backdrop" onClick={() => setOpen(false)} />
                         <div className="hdr-mobile-cat-panel" onClick={(e) => e.stopPropagation()}>
                             <div className="hdr-cat-panel-header">Danh mục</div>
-                            {CATEGORIES.map(item => (
-                                <button key={item.label} className="hdr-cat-item" onClick={() => setOpen(false)}>
-                                    <span className="hdr-cat-emoji">{item.icon}</span>
-                                    <span className="hdr-cat-label">{item.label}</span>
-                                    <FontAwesomeIcon icon={faChevronRight} className="hdr-cat-arrow" />
-                                </button>
+                            {categories.map(cate => (
+                                <div key={cate.cateId}>
+                                    {/* Category cha — click để mở rộng sub */}
+                                    <button
+                                        className={`hdr-cat-item ${mobileExpandedCate === cate.cateId ? "hdr-cat-item--active" : ""}`}
+                                        onClick={() =>
+                                            setMobileExpandedCate(
+                                                mobileExpandedCate === cate.cateId ? null : cate.cateId
+                                            )
+                                        }
+                                    >
+                                        <span className="hdr-cat-label">{cate.cateName}</span>
+                                        <FontAwesomeIcon
+                                            icon={faChevronRight}
+                                            className="hdr-cat-arrow"
+                                            style={{
+                                                transform: mobileExpandedCate === cate.cateId ? "rotate(90deg)" : "none",
+                                                transition: "transform 0.2s"
+                                            }}
+                                        />
+                                    </button>
+
+                                    {/* Accordion: sub-categories + brands */}
+                                    {mobileExpandedCate === cate.cateId && (
+                                        <div className="hdr-mobile-cate-expand">
+                                            {cate.subCategories?.length > 0 && (
+                                                <>
+                                                    <div className="hdr-mega-section-title" style={{ padding: "6px 16px 4px" }}>Danh mục con</div>
+                                                    {cate.subCategories.map(sub => (
+                                                        <button
+                                                            key={sub.cateId}
+                                                            className="hdr-mobile-sub-item"
+                                                            onClick={() => {
+                                                                setOpen(false);
+                                                                navigate(`/search?cateId=${sub.cateId}`);
+                                                            }}
+                                                        >
+                                                            <FontAwesomeIcon icon={faAngleRight} style={{ fontSize: 11, opacity: 0.4 }} />
+                                                            {sub.cateName}
+                                                        </button>
+                                                    ))}
+                                                </>
+                                            )}
+                                            {cate.brands?.length > 0 && (
+                                                <>
+                                                    <div className="hdr-mega-section-title" style={{ padding: "6px 16px 4px" }}>Thương hiệu</div>
+                                                    <div className="hdr-mobile-brand-chips">
+                                                        {cate.brands.map(brand => (
+                                                            <button
+                                                                key={brand.brandId}
+                                                                className="hdr-mega-chip"
+                                                                style={{ margin: "0 0 6px 12px" }}
+                                                                onClick={() => {
+                                                                    setOpen(false);
+                                                                    navigate(`/search?brandId=${brand.brandId}`);
+                                                                }}
+                                                            >
+                                                                {brand.brandName}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </>
+                                            )}
+                                            {/* Nút xem tất cả category cha */}
+                                            <button
+                                                className="hdr-mobile-sub-item hdr-mobile-sub-item--all"
+                                                onClick={() => {
+                                                    setOpen(false);
+                                                    navigate(`/search?cateId=${cate.cateId}`);
+                                                }}
+                                            >
+                                                Xem tất cả {cate.cateName}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             ))}
                         </div>
                     </>

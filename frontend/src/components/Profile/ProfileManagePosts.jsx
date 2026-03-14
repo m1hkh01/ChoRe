@@ -397,6 +397,12 @@ export default function ProfileManagePosts({ userId }) {
                             }
                             className="pf-row-image"
                             alt=""
+                            onError={(e) => {
+                            if (!e.target.dataset.fallback) {
+                                e.target.dataset.fallback = "true";
+                                e.target.src = `http://localhost:5121/uploads/${post.thumbnail}`;
+                            }
+                        }}
                         />
 
                         {/* INFO */}
