@@ -147,7 +147,7 @@ export default function ReviewForm({ review, transactionId, sellerId, postId, ch
             // CALL API
             // ========================
             if (review) {
-                const res = await api.put(`/api/review/${review.reviewId}`, formData);
+                const res = await api.post(`/api/review/${review.reviewId}`, formData);
                 Toast.fire({
                     icon: 'success',
                     title: res.data.message || "Cập nhật đánh giá thành công"

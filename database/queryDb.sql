@@ -30,3 +30,5 @@ select * from PostSpecifications
 select * from poststatuses
 
 select * from EscrowTransations
+
+select * from savedposts

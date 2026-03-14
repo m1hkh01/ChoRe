@@ -1,40 +1,45 @@
-
 #root {
   width: 100%;
   margin: 0 auto;
   padding: 0;
 }
 
+/* tránh layout bị tràn */
+* {
+  box-sizing: border-box;
+}
+
+/* LOGIN */
 .login-container {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
-  margin-top: 20px;
   justify-content: center;
-  /* align-items: center; */
+  padding: 20px;
 }
 
 .login-container form {
-  width: 500px;
-  height: max-content;
-  padding: 10px 16px;
+  width: 100%;
+  max-width: 500px;
+  padding: 16px;
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3), 10px 10px 2px rgba(0, 0, 0, 0.3);
-
+  box-shadow: 0 0 10px rgba(0,0,0,0.3),
+              10px 10px 2px rgba(0,0,0,0.3);
 }
 
+/* MENU */
 .menu {
   background-color: #14532de9;
-  padding: 0 2%;
+  padding: 8px 16px;
   position: sticky;
   top: 0;
   z-index: 1000;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
+/* BRAND */
 .navbar-brand {
   color: whitesmoke !important;
-  /* Chữ trắng */
   font-size: 24px !important;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -43,23 +48,55 @@
 .navbar-brand span {
   color: #22c55e;
 }
-.nav-link{
-  font-size: 20px !important;
+
+/* NAV LINK */
+.nav-link {
+  font-size: 18px !important;
   color: white !important;
   font-weight: 600 !important;
 }
 
+/* ACCOUNT */
 .Account,
 .Account a {
   text-decoration: none;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: bold;
   color: white;
 }
 
+/* DROPDOWN */
 .dropdown-item {
   cursor: pointer;
   font-size: 16px !important;
   font-weight: 500 !important;
   color: black !important;
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 768px) {
+
+  .login-container {
+    padding: 12px;
+  }
+
+  .login-container form {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .navbar-brand {
+    font-size: 20px !important;
+  }
+
+  .nav-link {
+    font-size: 16px !important;
+  }
+
+  .Account,
+  .Account a {
+    font-size: 18px;
+  }
+
 }

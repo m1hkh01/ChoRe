@@ -23,7 +23,7 @@ public class ReviewController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
-    [HttpPut("{id:int}")]
+    [HttpPost("{id:int}")]
     public async Task<IActionResult> UpdateReview(int id, [FromForm] UpdateReviewRequest request)
     {
         try

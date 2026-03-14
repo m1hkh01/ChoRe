@@ -1,3 +1,16 @@
-.main-content {
-    margin-bottom: 300px;
+.layout-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.layout-content {
+  flex: 1;
+  width: 100%;
+}
+
+/* tránh scroll ngang mobile */
+body {
+  overflow-x: hidden;
 }

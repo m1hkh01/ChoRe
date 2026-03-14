@@ -67,7 +67,7 @@ public class TransactionController : ControllerBase
             {
                 return NotFound("Không tìm thấy giao dịch");
             }
-            if (transaction.EscrowTransStatusId != EscrowStatus.Paid)
+            if (transaction.EscrowTransStatusId == EscrowStatus.Paid)
             {
                 await _hubContext.Clients.Group(rq.ChatRoomId!).SendAsync(
                     "UpdateTransaction",

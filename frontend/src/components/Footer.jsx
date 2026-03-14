@@ -1,18 +1,18 @@
 import { Link } from "react-router-dom";
-import "@/assets/Footer.css";
+// import "@/assets/Footer.css";
 function Footer() {
     return (
-        <footer className="bg-gray-900 mt-auto">
+        <footer className="bg-gray-900 mt-100">
             <div style={styles.container}>
                 <div style={styles.grid}>
                     {/* Về chúng tôi */}
                     <div style={styles.column}>
                         <h3 style={styles.title}>Về chúng tôi</h3>
                         <p style={styles.description}>
-                            Nền tảng mua bán trực tuyến uy tín, kết nối người mua và người bán
+                            Nền tảng mua bán đồ điện tử cũ trực tuyến, kết nối người mua và người bán
                             một cách nhanh chóng, an toàn và tiện lợi.
                         </p>
-                        <div style={styles.socialLinks}>
+                        {/* <div style={styles.socialLinks}>
                             <a href="#" style={styles.socialIcon}>
                                 <i className="fab fa-facebook-f"></i>
                             </a>
@@ -25,7 +25,7 @@ function Footer() {
                             <a href="#" style={styles.socialIcon}>
                                 <i className="fab fa-youtube"></i>
                             </a>
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* Hỗ trợ khách hàng */}
@@ -38,7 +38,7 @@ function Footer() {
                             <li style={styles.listItem}>
                                 <Link to="/contact" style={styles.link}>Liên hệ</Link>
                             </li>
-                                                        <li style={styles.listItem}>
+                            <li style={styles.listItem}>
                                 <Link to="/helpcenter" style={styles.link}>Trung tâm trợ giúp</Link>
                             </li>
                             <li style={styles.listItem}>
@@ -72,15 +72,15 @@ function Footer() {
                         <ul style={styles.list}>
                             <li style={styles.contactItem}>
                                 <i className="fas fa-map-marker-alt" style={styles.icon}></i>
-                                <span>Biên Hòa, Đồng Nai, Việt Nam</span>
+                                <span>Phường Tân Triều, Tỉnh Đồng Nai, Việt Nam</span>
                             </li>
                             <li style={styles.contactItem}>
                                 <i className="fas fa-phone" style={styles.icon}></i>
-                                <span>1900 xxxx</span>
+                                <span>0836 044 008</span>
                             </li>
                             <li style={styles.contactItem}>
                                 <i className="fas fa-envelope" style={styles.icon}></i>
-                                <span>support@example.com</span>
+                                <span>ng.minhkhoi2912@gmail.com</span>
                             </li>
                             <li style={styles.contactItem}>
                                 <i className="fas fa-clock" style={styles.icon}></i>
@@ -93,7 +93,10 @@ function Footer() {
                 {/* Copyright */}
                 <div style={styles.copyright}>
                     <p style={styles.copyrightText}>
-                        © 2025 Your Company. All rights reserved.
+                        © {new Date().getFullYear()} Chợ Rẻ. All rights reserved.
+                    </p>
+                    <p style={{ ...styles.copyrightText, marginTop: "6px", fontSize: "12px" }}>
+                        Academic project – Graduation Thesis, FPT Polytechnic.
                     </p>
                 </div>
             </div>

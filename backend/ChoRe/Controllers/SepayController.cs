@@ -60,8 +60,9 @@ public class SepayController : ControllerBase
                 }
                 _context.SubscriptionOrders.Update(order);
                 await _context.SaveChangesAsync();
+                return Ok("Order Payment Message : " + order.PaymentMessage);
             }
-            else if (webhookData.Content.StartsWith("TRANS"))
+            else if (transaction.Contains("TRANS"))
             {
                 var orderCode = Regex.Match(webhookData.Content, @"TRANS[A-Za-z0-9]+").Value;
                 var escrow = await _context.EscrowTransations.FirstOrDefaultAsync(t => t.TransactionOrderCode == orderCode);
@@ -84,8 +85,9 @@ public class SepayController : ControllerBase
                 }
                 _context.EscrowTransations.Update(escrow);
                 await _context.SaveChangesAsync();
+                return Ok("Escrow Payment Message : " + escrow.PaymentMessage);
             }
-            return Ok();
+            return Ok("Đã nhận thanh toán");
         }
         catch(Exception e)
         {

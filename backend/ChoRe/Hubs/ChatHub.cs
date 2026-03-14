@@ -267,7 +267,7 @@ public class ChatHub : Hub
                                     20000),
                                 500000);
 
-                var datePart = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+                var datePart = DateTime.Now.ToString("yyyyMMddHHmmss");
                 var randomPart = Guid.NewGuid().ToString("N")[..4].ToUpper();
                 var orderCode = $"TRANS{transactionDto.BuyerId + "T" + transactionDto.SellerId}E{datePart}{randomPart}";
 
