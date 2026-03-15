@@ -232,6 +232,7 @@
 .hdr-mega-brand-card:hover {
   border-color: var(--hdr-accent);
   box-shadow:   0 2px 10px rgba(34,197,94,0.18);
+  transform:    translateY(-1px);
 }
 
 .hdr-mega-subbrand-list {
@@ -378,6 +379,7 @@
   font-size:       17px;
   cursor:          pointer;
   text-decoration: none;
+  transition:      background 0.18s, border-color 0.18s, transform 0.15s;
 }
 
 .hdr-icon-btn:hover,
@@ -423,12 +425,13 @@
   padding:         6px 10px;
   border-radius:   8px;
   white-space:     nowrap;
+  transition:      background 0.18s;
 }
 
 .hdr-pro-link:hover { background: var(--hdr-w15); }
 
 .hdr-pro-badge {
-  color:       #ffc532;
+  color:       #fbbf24;
   font-size:   13px;
   font-weight: 800;
 }
@@ -449,10 +452,12 @@
   white-space:     nowrap;
   text-decoration: none;
   box-shadow:      0 2px 8px rgba(0,0,0,0.10);
+  transition:      background 0.18s, transform 0.15s, box-shadow 0.18s;
 }
 
 .hdr-create-btn:hover {
   background: #f0fdf4;
+  transform:  translateY(-1px);
   box-shadow: 0 4px 14px rgba(0,0,0,0.14);
 }
 
@@ -469,6 +474,7 @@
   font-weight:     700;
   text-decoration: none;
   white-space:     nowrap;
+  transition:      background 0.18s;
 }
 
 .hdr-login-btn:hover { background: var(--hdr-w30); }
@@ -520,6 +526,7 @@
   font-weight:   500;
   color:         #9ca3af;
   cursor:        pointer;
+  transition:    color 0.15s, border-color 0.15s;
 }
 
 .hdr-notif-tab--active { color: var(--hdr-bg); font-weight: 700; border-bottom-color: var(--hdr-accent); }
@@ -550,7 +557,7 @@
   border-bottom: 1px solid #f9fafb;
   text-align:  left;
   cursor:      pointer;
-
+  transition:  background 0.15s;
 }
 
 .hdr-notif-item:hover        { background: #f9fafb; }
@@ -630,6 +637,7 @@
 .hdr-avatar-chevron {
   font-size:  11px;
   color:      var(--hdr-w70);
+  transition: transform 0.25s ease;
 }
 
 .hdr-avatar-btn--open .hdr-avatar-chevron { transform: rotate(180deg); }
@@ -698,11 +706,12 @@
   width:       100%;
   text-align:  left;
   cursor:      pointer;
+  transition:  background 0.15s, color 0.15s;
 }
 
 .hdr-profile-item:hover { background: #f0fdf4; color: var(--hdr-bg); }
 
-.hdr-profile-item-icon { width: 16px; color: #9ca3af;}
+.hdr-profile-item-icon { width: 16px; color: #9ca3af; transition: color 0.15s; }
 .hdr-profile-item:hover .hdr-profile-item-icon { color: var(--hdr-bg); }
 
 .hdr-profile-footer { border-top: 1px solid #f3f4f6; padding: 8px; }
@@ -720,10 +729,49 @@
   font-size:     13px;
   font-weight:   600;
   cursor:        pointer;
-
+  transition:    background 0.15s;
 }
 
 .hdr-logout-btn:hover { background: #fee2e2; }
+
+/* ── Mobile login button ─────────────────────────────────────────────────── */
+.hdr-mobile-login-btn {
+  display:         none;
+  align-items:     center;
+  height:          34px;
+  padding:         0 14px;
+  background:      var(--hdr-w20);
+  color:           #fff;
+  border:          1px solid var(--hdr-w30);
+  border-radius:   8px;
+  font-size:       13px;
+  font-weight:     700;
+  text-decoration: none;
+  white-space:     nowrap;
+  transition:      background 0.15s;
+  flex-shrink:     0;
+}
+.hdr-mobile-login-btn:hover { background: var(--hdr-w30); }
+
+/* ── Mobile right group (login + hamburger) ──────────────────────────────── */
+.hdr-mobile-login-btn {
+  display:         none;
+  align-items:     center;
+  height:          34px;
+  padding:         0 14px;
+  background:      #fff;
+  color:           var(--hdr-bg);
+  border:          none;
+  border-radius:   8px;
+  font-size:       13px;
+  font-weight:     700;
+  text-decoration: none;
+  white-space:     nowrap;
+  flex-shrink:     0;
+  transition:      background 0.15s, opacity 0.15s;
+}
+
+.hdr-mobile-login-btn:hover { background: #f0fdf4; }
 
 /* ── Mobile hamburger ────────────────────────────────────────────────────── */
 .hdr-mobile-menu-btn {
@@ -740,6 +788,7 @@
   cursor:          pointer;
   flex-shrink:     0;
   margin-left:     auto;
+  transition:      background 0.18s;
 }
 
 .hdr-mobile-menu-btn:hover { background: var(--hdr-w20); }
@@ -852,6 +901,7 @@
   font-size:   13px;
   color:       #374151;
   cursor:      pointer;
+  transition:  color 0.15s, background 0.15s;
 }
 
 .hdr-mobile-sub-item:hover           { color: var(--hdr-bg); background: #f0fdf4; }
@@ -895,6 +945,61 @@
   background: linear-gradient(135deg, var(--hdr-bg), var(--hdr-bg-dark));
 }
 
+.hdr-drawer-guest {
+  display:        flex;
+  flex-direction: column;
+  gap:            12px;
+  align-items:    flex-start;
+}
+
+.hdr-drawer-guest-msg {
+  font-size: 13px;
+  color:     rgba(255,255,255,0.7);
+  margin:    0;
+}
+
+.hdr-drawer-guest-btns {
+  display: flex;
+  gap:     8px;
+  width:   100%;
+}
+
+.hdr-drawer-login-btn {
+  flex:            1;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  height:          38px;
+  background:      #fff;
+  color:           var(--hdr-bg);
+  border:          none;
+  border-radius:   9px;
+  font-size:       14px;
+  font-weight:     700;
+  text-decoration: none;
+  transition:      background 0.15s;
+}
+
+.hdr-drawer-login-btn:hover { background: #f0fdf4; }
+
+.hdr-drawer-register-btn {
+  flex:            1;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  height:          38px;
+  background:      var(--hdr-w20);
+  color:           #fff;
+  border:          1px solid var(--hdr-w30);
+  border-radius:   9px;
+  font-size:       14px;
+  font-weight:     700;
+  text-decoration: none;
+  transition:      background 0.15s;
+}
+
+.hdr-drawer-register-btn:hover { background: var(--hdr-w30); }
+
 .hdr-drawer-user {
   display:     flex;
   align-items: center;
@@ -932,6 +1037,7 @@
   font-size:       14px;
   font-weight:     500;
   border-radius:   10px;
+  transition:      background 0.15s, color 0.15s;
 }
 
 .hdr-drawer-link:hover { background: #f0fdf4; color: var(--hdr-bg); }
@@ -953,6 +1059,7 @@
   font-size:       14px;
   font-weight:     600;
   cursor:          pointer;
+  transition:      background 0.15s;
 }
 
 .hdr-drawer-logout:hover { background: #fee2e2; }
@@ -986,6 +1093,7 @@
   font-weight:     700;
   cursor:          pointer;
   margin-bottom:   4px;
+  transition:      background 0.18s;
 }
 
 .hdr-drawer-create:hover { background: var(--hdr-bg-dark); }
@@ -1013,6 +1121,7 @@
   font-weight:     600;
   color:           #374151;
   cursor:          pointer;
+  transition:      background 0.15s;
 }
 
 .hdr-drawer-acc-btn:hover,
@@ -1027,6 +1136,7 @@
 .hdr-drawer-acc-chevron {
   font-size:  11px;
   opacity:    0.6;
+  transition: transform 0.25s ease;
 }
 
 .hdr-drawer-acc-btn.open .hdr-drawer-acc-chevron { transform: rotate(180deg); }
@@ -1060,6 +1170,7 @@
   font-weight:     500;
   color:           #374151;
   cursor:          pointer;
+  transition:      background 0.15s, color 0.15s;
 }
 
 .hdr-drawer-cate-item:hover,
@@ -1068,6 +1179,7 @@
 .hdr-drawer-cate-arrow {
   font-size:  10px;
   color:      #d1d5db;
+  transition: transform 0.2s;
 }
 
 .hdr-drawer-cate-item.open .hdr-drawer-cate-arrow { transform: rotate(90deg); color: var(--hdr-bg); }
@@ -1090,6 +1202,7 @@
   color:       #6b7280;
   cursor:      pointer;
   text-align:  left;
+  transition:  background 0.15s, color 0.15s;
 }
 
 .hdr-drawer-sub-item:hover         { background: #f0fdf4; color: var(--hdr-bg); }
@@ -1116,6 +1229,7 @@
   font-weight:   500;
   color:         #9ca3af;
   cursor:        pointer;
+  transition:    color 0.15s, border-color 0.15s;
 }
 
 .hdr-drawer-notif-tab.active { color: var(--hdr-bg); font-weight: 700; border-bottom-color: var(--hdr-accent); }
@@ -1135,6 +1249,7 @@
   text-align:  left;
   cursor:      pointer;
   border-radius: 8px;
+  transition:  background 0.15s;
 }
 
 .hdr-drawer-notif-item:hover   { background: #f9fafb; }
@@ -1167,13 +1282,13 @@
 
 /* ── Animations ──────────────────────────────────────────────────────────── */
 @keyframes hdrSlideDown {
-  from { opacity: 0;}
-  to   { opacity: 1;}
+  from { opacity: 0; transform: translateY(-10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes hdrDrawerIn {
-  from { opacity: 0;}
-  to   { opacity: 1;}
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
@@ -1204,8 +1319,9 @@
   .hdr-actions { display: none; }
 
   /* Show mobile elements */
-  .hdr-mobile-menu-btn   { display: flex; }
-  .hdr-mobile-search-row { display: flex; }
+  .hdr-mobile-menu-btn    { display: flex; }
+  .hdr-mobile-login-btn   { display: flex; }
+  .hdr-mobile-search-row  { display: flex; }
 }
 
 /* Desktop: hide mobile-only elements */

@@ -371,7 +371,7 @@ export default function ProfileManagePosts({ userId }) {
                 onError={(e) => {
                   if (!e.target.dataset.fb) {
                     e.target.dataset.fb = "1";
-                    e.target.src = `${LOCAL}${post.thumbnail}`;
+                    e.target.src = `${UPLOADS}${post.thumbnail}`;
                   }
                 }}
               />

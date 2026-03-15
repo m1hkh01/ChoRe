@@ -500,7 +500,12 @@ export default function Header() {
             )}
           </div>
 
-          {/* Mobile hamburger */}
+          {/* Mobile: login button + hamburger */}
+          {/* {!user && (
+            <Link to="/login" className="hdr-mobile-login-btn">
+              Đăng nhập
+            </Link>
+          )} */}
           <button
             className="hdr-mobile-menu-btn"
             onClick={() => setDrawerOpen(v => !v)}
@@ -535,6 +540,13 @@ export default function Header() {
             </div>
           </div>
         )}
+
+        {/* Mobile top bar — login + create (hiện khi ở homepage hoặc cần auth) */}
+        {/* {isHomePage && !user && (
+          <div className="hdr-mobile-auth-bar">
+            <Link to="/login" className="hdr-mobile-login-btn">Đăng nhập</Link>
+          </div>
+        )} */}
 
         {/* Mobile category panel */}
         {cateOpen && (
@@ -621,9 +633,25 @@ export default function Header() {
                   </div>
                 ) : (
                   <div className="hdr-drawer-guest">
-                    <Link to="/login" className="hdr-create-btn" onClick={() => setDrawerOpen(false)}>
-                      Đăng nhập
-                    </Link>
+                    <p className="hdr-drawer-guest-msg">
+                      Đăng nhập để sử dụng các tính năng và nhận thông báo nhanh chóng!
+                    </p>
+                    <div className="hdr-drawer-guest-btns">
+                      <Link
+                        to="/login"
+                        className="hdr-drawer-login-btn"
+                        onClick={() => setDrawerOpen(false)}
+                      >
+                        Đăng nhập
+                      </Link>
+                      <Link
+                        to="/register"
+                        className="hdr-drawer-register-btn"
+                        onClick={() => setDrawerOpen(false)}
+                      >
+                        Đăng ký
+                      </Link>
+                    </div>
                   </div>
                 )}
               </div>
@@ -754,6 +782,7 @@ export default function Header() {
 
                   {user && [
                     { to: "/profile",                 icon: faUser,            label: "Trang cá nhân" },
+                    { to: "/manage-posts",            icon: faLayerGroup,      label: "Tin của tôi" },
                     { to: "/service-package-manager", icon: faCreditCard,      label: "Quản lý Gói" },
                     { to: "/user-transactions",       icon: faClockRotateLeft, label: "Giao dịch" },
                     ...(dash ? [dash] : []),
