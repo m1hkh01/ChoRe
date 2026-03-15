@@ -18,6 +18,10 @@ import {
 
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import api from "../api";
+import { useAuthStore } from "../store/auth";
+import { Toast } from "../utils/toast";
+import Swal from "sweetalert2";
 
 function CreatePost() {
     const navigate = useNavigate();
@@ -45,6 +49,8 @@ function CreatePost() {
     /* ===================== ADDRESS ===================== */
     const [provinceCode, setProvinceCode] = useState("");
     const [wardCode, setWardCode] = useState("");
+
+    const { user } = useAuthStore();
 
     const filteredWards = Object.values(wards).filter(
         w => w.parent_code === provinceCode
@@ -298,6 +304,58 @@ function CreatePost() {
         }
     };
 
+    /* ===================== CHECK FREE POST && SUB POST ===================== */
+    const hanldeCheck = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await api.get(`/api/posts/check-free-post/${user.userId}`);
+            if (res.data) {
+                const { freePost, subPost } = res.data;
+                console.log("Free Post: ", freePost);
+                console.log("Sub Post: ", subPost);
+                if (subPost == 0) {
+                    Toast.fire({
+                        icon: "error",
+                        title:"Bạn đã hết lượt đăng tin trong tháng"
+                    })
+                    return;
+                }
+                if (freePost == 0) {
+                    Swal.fire({
+                        title: "Bạn đã hết lượt đăng tin miễn phí ! Bạn có muốn mua thêm lượt đăng tin ?",
+                        text: `Lưu ý : Bạn sẽ phải thanh toán sau khi bài đăng được duyệt để hiển thị bài đăng của mình
+                                            Giá 10.000đ 1 lượt đăng tin`,
+                        icon: "question",
+                        showCancelButton: true,
+                        confirmButtonText: "Mua",
+                        cancelButtonText: "Huỷ",
+                        buttonsStyling: false,
+                        customClass: {
+                            confirmButton:
+                                "bg-green-600 text-white text-md me-2 px-4 py-2 rounded mr-2 hover:bg-green-700",
+                            cancelButton:
+                                "bg-red-500 text-white text-md px-4 py-2 rounded hover:bg-red-700",
+                        },
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            handleSubmit(e);
+                        }
+                        else {
+                            return;
+                        }
+                    });
+                }
+                if (freePost > 0) {
+                    handleSubmit(e);
+                }
+            }
+        }
+        catch (e) {
+            
+            console.log("Đã có lỗi xảy ra khi kiểm tra lượt đăng tin: ", e);
+        }
+    }
+
     /* ===================== PROGRESS STEPS ===================== */
     const steps = [
         { id: 1, name: "Hình ảnh" },
@@ -335,7 +393,7 @@ function CreatePost() {
 
     /* ===================== UI ===================== */
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100" style={{ paddingTop: 30, paddingBottom: 100 }}>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100" style={{ paddingTop: 30, paddingBottom: 100}}>
             <div className="max-w-4xl mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-8">
@@ -344,11 +402,11 @@ function CreatePost() {
                 </div>
 
                 {/* Progress Steps */}
-                <div className="mb-8" style={{ marginBottom: "20px" }}>
+                <div className="mb-8" style={{ marginBottom: "20px", position: "relative", left: 20}} >
                     <div className="flex items-center justify-between">
                         {steps.map((step, index) => (
-                            <div key={step.id} className="flex items-center flex-1">
-                                <div className="flex flex-col items-center flex-1">
+                            <div key={step.id} className="flex items-center flex-1" >
+                                <div className="flex flex-col items-left flex-1">
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${isStepComplete(step.id)
                                         ? 'bg-green-500 text-white'
                                         : currentStep === step.id
@@ -380,7 +438,7 @@ function CreatePost() {
                 )}
 
                 {/* Main Form */}
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={hanldeCheck} className="space-y-6">
 
                     {/* SECTION 1: IMAGES */}
                     <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-200" style={{ padding: 15, margin: 15 }}>
@@ -822,7 +880,7 @@ function CreatePost() {
                         <button style={{ borderRadius: 5 }}
                             type="button"
                             onClick={() => navigate("/")}
-                            className="flex-1 px-5 py-4 border-2 border-[var(--cancel)] text-[var(--cancel)] font-semibold rounded-lg hover:bg-[var(--cancel)] hover:text-white transition-all"
+                            className="flex-1 px-1 py-4 border-2 border-[var(--cancel)] text-[var(--cancel)] font-semibold rounded-lg hover:bg-[var(--cancel)] hover:text-white transition-all"
                         >
                             Hủy bỏ
                         </button>
@@ -831,7 +889,7 @@ function CreatePost() {
                             style={{ borderRadius: 5 }}
                             type="submit"
                             disabled={uploading}
-                            className="flex-1 px-5 py-4 bg-[var(--primary-color)] text-[var(--primary-color-text)] font-semibold rounded-lg hover:bg-[var(--primary-color-hover)] transition-all shadow-lg hover:shadow-xl transform disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 px-1 py-4 bg-[var(--primary-color)] text-[var(--primary-color-text)] font-semibold rounded-lg hover:bg-[var(--primary-color-hover)] transition-all shadow-lg hover:shadow-xl transform disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {uploading ? "Đang tải lên..." : "Gửi tin ngay"}
                         </button>

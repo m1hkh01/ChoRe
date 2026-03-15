@@ -87,6 +87,31 @@ public class SepayController : ControllerBase
                 await _context.SaveChangesAsync();
                 return Ok("Escrow Payment Message : " + escrow.PaymentMessage);
             }
+            else if (transaction.Contains("POST"))
+            {
+                var orderCode = Regex.Match(webhookData.Content, @"POST[A-Za-z0-9]+").Value;
+                var post = await _context.Posts.FirstOrDefaultAsync(t => t.PostOrderCode == orderCode);
+                if (post== null)
+                {
+                    return BadRequest("Không tìm thấy bài viết cần thanh toán");
+                }
+                if (post.PostStatusId == 2)
+                {
+                    post.PaymentMessage = "Đơn hàng đã được thanh toán";
+                }
+                else if (webhookData.TransferAmount != 10000)
+                {
+                    post.PaymentMessage = "Số tiền không khớp";
+                }
+                else
+                {
+                    post.PostStatusId = 2;
+                    post.PaymentMessage = "Thanh toán thành công";
+                }
+                _context.Posts.Update(post);
+                await _context.SaveChangesAsync();
+                return Ok("Post Payment Message : " + post.PaymentMessage);
+            }
             return Ok("Đã nhận thanh toán");
         }
         catch(Exception e)

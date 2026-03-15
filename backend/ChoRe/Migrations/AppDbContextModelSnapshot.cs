@@ -735,7 +735,7 @@ namespace ChoRe.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("TransactionOrderCode")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("EscrowTransId");
 
@@ -750,6 +750,9 @@ namespace ChoRe.Migrations
 
                     b.HasIndex("SellerUserId")
                         .HasDatabaseName("IX_EscrowTransations_SellerUserId");
+
+                    b.HasIndex("TransactionOrderCode")
+                        .HasDatabaseName("IX_EscrowTransations_OrderCode");
 
                     b.ToTable("EscrowTransations");
 
@@ -836,6 +839,12 @@ namespace ChoRe.Migrations
                     b.Property<decimal?>("MinPrice")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("PaymentMessage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PostOrderCode")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("PostStatusId")
                         .HasColumnType("int");
 
@@ -892,6 +901,9 @@ namespace ChoRe.Migrations
 
                     b.HasIndex("CreatedAt")
                         .HasDatabaseName("IX_Posts_CreatedAt");
+
+                    b.HasIndex("PostOrderCode")
+                        .HasDatabaseName("IX_Post_OrderCode");
 
                     b.HasIndex("PostStatusId")
                         .HasDatabaseName("IX_Posts_PostStatusId");
@@ -1358,6 +1370,12 @@ namespace ChoRe.Migrations
                             PostStatusId = 6,
                             Description = "Tin đã ẩn",
                             PostStatusName = "Hidden"
+                        },
+                        new
+                        {
+                            PostStatusId = 7,
+                            Description = "Tin chờ thanh toán",
+                            PostStatusName = "PendingPayment"
                         });
                 });
 
@@ -1637,6 +1655,9 @@ namespace ChoRe.Migrations
                     b.HasKey("OrderId");
 
                     b.HasIndex("OrdStatusId");
+
+                    b.HasIndex("OrderCode")
+                        .HasDatabaseName("IX_SubscriptionOrder_OrderCode");
 
                     b.HasIndex("SubPlanId");
 

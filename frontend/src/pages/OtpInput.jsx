@@ -1,97 +1,206 @@
 import { useEffect, useRef, useState } from "react";
 
-export default function OtpInput({ length = 6, onComplete }) {
-    const [otp, setOtp] = useState(Array(length).fill(""));
-    const [expired, setExpired] = useState(120); //hết hạn sau 120s
-    const inputsRef = useRef([]);
+// ─── CSS ──────────────────────────────────────────────────────────────────────
 
-    useEffect(() => {
-        const countdown = setInterval(() => {
-            setExpired((prev) => {
-                if (prev <= 0) {
-                    clearInterval(countdown);
-                    return 0;
-                }
-                else {
-                    return prev - 1;
-                }
-            });
-        }, 1000);
-        return () => clearInterval(countdown);
-    }, []);
-    const handleChange = (e, index) => {
-        const value = e.target.value.replace(/\D/g, "");
-        if (!value) return;
+const CSS = `
+  .otp-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
 
-        const newOtp = [...otp];
-        newOtp[index] = value[value.length - 1];
-        setOtp(newOtp);
+  /* ── Inputs row ── */
+  .otp-inputs {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
 
-        if (index < length - 1) {
-            inputsRef.current[index + 1].focus();
-        }
+  .otp-box {
+    width: 48px;
+    height: 54px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    text-align: center;
+    outline: none;
+    caret-color: #22c55e;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  }
 
-        if (newOtp.every(v => v !== "")) {
-            onComplete?.(newOtp.join(""));
-        }
-    };
+  .otp-box:focus {
+    border-color: #22c55e;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.12);
+  }
 
-    const handleKeyDown = (e, index) => {
-        if (e.key === "Backspace") {
-            if (otp[index]) {
-                const newOtp = [...otp];
-                newOtp[index] = "";
-                setOtp(newOtp);
-            } else if (index > 0) {
-                inputsRef.current[index - 1].focus();
-            }
-        }
-    };
+  .otp-box.filled {
+    border-color: #22c55e;
+    background: #f0fdf4;
+    color: #16a34a;
+  }
 
-    const handlePaste = (e) => {
-        e.preventDefault();
-        const paste = e.clipboardData.getData("text").replace(/\D/g, "");
-        if (!paste) return;
+  /* ── Timer ── */
+  .otp-timer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #94a3b8;
+  }
 
-        const newOtp = [...otp];
-        paste.split("").slice(0, length).forEach((char, i) => {
-            newOtp[i] = char;
-        });
+  .otp-timer-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: otpPulse 1s infinite;
+  }
 
-        setOtp(newOtp);
-        inputsRef.current[Math.min(paste.length, length) - 1]?.focus();
+  .otp-timer.expired .otp-timer-dot { background: #ef4444; animation: none; }
+  .otp-timer.expired                 { color: #ef4444; }
 
-        if (newOtp.every(v => v !== "")) {
-            onComplete?.(newOtp.join(""));
-        }
-    };
+  @keyframes otpPulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+  }
 
-    return (
-        <div className="OtpContainer">
-            <h2>Nhập mã OTP</h2>
-            <span>Mã OTP đã được gửi đến email của bạn. Vui nhập mã OTP để xác nhận email</span>
-            <div className="OtpInputs" onPaste={handlePaste}>
-                {otp.map((value, index) => (
-                    <input
-                        key={index}
-                        ref={el => inputsRef.current[index] = el}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={value}
-                        onChange={e => handleChange(e, index)}
-                        onKeyDown={e => handleKeyDown(e, index)}
-                        className="OtpInput"
-                    />
-                ))}
-            </div>
-            {
-                expired > 0 ? (
-                    <span className="expired-otp-at">{expired > 0 ? `Mã OTP hết hạn sau ${expired} giây` : "Mã OTP đã hết hạn"}</span>
-                ) : (
-                    <span className="resend-otp" onClick={() => window.location.reload()}>Gửi lại mã OTP</span>
-                )
-            }
+  .otp-timer-count {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: inherit;
+  }
+
+  /* ── Resend ── */
+  .otp-resend {
+    font-size: 15px;
+    color: #94a3b8;
+    text-align: center;
+  }
+
+  .otp-resend-btn {
+    background: none;
+    border: none;
+    color: #22c55e;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    transition: color 0.15s;
+  }
+
+  .otp-resend-btn:hover    { color: #16a34a; }
+  .otp-resend-btn:disabled { color: #94a3b8; cursor: not-allowed; text-decoration: none; }
+
+  /* ── Responsive ── */
+  @media (max-width: 380px) {
+    .otp-box    { width: 40px; height: 46px; font-size: 18px; border-radius: 8px; }
+    .otp-inputs { gap: 7px; }
+  }
+`;
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+const EXPIRE_SEC = 120;
+
+export default function OtpInput({ length = 6, onComplete, onResend }) {
+  const [otp,     setOtp]     = useState(Array(length).fill(""));
+  const [seconds, setSeconds] = useState(EXPIRE_SEC);
+  const inputsRef = useRef([]);
+
+  // ── Countdown ───────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (seconds <= 0) return;
+    const t = setTimeout(() => setSeconds(s => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [seconds]);
+
+  const resetTimer = () => setSeconds(EXPIRE_SEC);
+
+  const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+
+  // ── Input handlers ──────────────────────────────────────────────────────────
+
+  const update = (newOtp) => {
+    setOtp(newOtp);
+    if (newOtp.every(v => v !== "")) onComplete?.(newOtp.join(""));
+  };
+
+  const handleChange = (e, i) => {
+    const digit = e.target.value.replace(/\D/g, "").slice(-1);
+    if (!digit) return;
+    const next = [...otp];
+    next[i] = digit;
+    update(next);
+    if (i < length - 1) inputsRef.current[i + 1]?.focus();
+  };
+
+  const handleKeyDown = (e, i) => {
+    if (e.key !== "Backspace") return;
+    if (otp[i]) {
+      const next = [...otp]; next[i] = ""; setOtp(next);
+    } else if (i > 0) {
+      inputsRef.current[i - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const digits = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, length);
+    if (!digits) return;
+    const next = Array(length).fill("");
+    digits.split("").forEach((d, i) => { next[i] = d; });
+    update(next);
+    inputsRef.current[Math.min(digits.length, length) - 1]?.focus();
+  };
+
+  const handleResend = () => {
+    setOtp(Array(length).fill(""));
+    resetTimer();
+    inputsRef.current[0]?.focus();
+    onResend?.();
+  };
+
+  const expired = seconds === 0;
+
+  return (
+    <>
+      <style>{CSS}</style>
+      <div className="otp-wrap">
+
+        {/* Input boxes */}
+        <div className="otp-inputs" onPaste={handlePaste}>
+          {otp.map((val, i) => (
+            <input
+              key={i}
+              ref={el => inputsRef.current[i] = el}
+              type="text"
+              inputMode="numeric"
+              maxLength={1}
+              value={val}
+              onChange={e => handleChange(e, i)}
+              onKeyDown={e => handleKeyDown(e, i)}
+              className={`otp-box ${val ? "filled" : ""}`}
+              autoFocus={i === 0}
+            />
+          ))}
         </div>
-    );
-};
+
+        {/* Timer */}
+        <div className={`otp-timer ${expired ? "expired" : ""}`}>
+          <span className="otp-timer-dot" />
+          {expired
+            ? "Mã OTP đã hết hạn"
+            : <><span>Mã hết hạn sau</span> <span className="otp-timer-count">{fmt(seconds)}</span></>
+          }
+        </div>
+      </div>
+    </>
+  );
+}

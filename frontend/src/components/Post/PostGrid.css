@@ -1,0 +1,39 @@
+/* @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap'); */
+
+.post-grid {
+  display:               grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap:                   16px;
+  padding:               8px 0;
+}
+
+.post-grid-empty {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  justify-content: center;
+  padding:        60px 20px;
+  color:          #aaa;
+  font-size:      14px;
+  gap:            12px;
+}
+
+.post-grid-empty-icon {
+  font-size: 36px;
+  opacity:   0.5;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .post-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width: 400px) {
+  .post-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}

@@ -125,7 +125,8 @@ namespace ChoReDB.Data
                 new PostStatus { PostStatusId = 3, PostStatusName = "Reject", Description = "Tin đăng đã bị từ chối!" },
                 new PostStatus { PostStatusId = 4, PostStatusName = "Selling", Description = "Tin đang được rao bán" },
                 new PostStatus { PostStatusId = 5, PostStatusName = "Sold", Description = "Tin đã bán xong" },
-                new PostStatus { PostStatusId = 6, PostStatusName = "Hidden", Description = "Tin đã ẩn" }
+                new PostStatus { PostStatusId = 6, PostStatusName = "Hidden", Description = "Tin đã ẩn" },
+                new PostStatus { PostStatusId = 7, PostStatusName = "PendingPayment", Description = "Tin chờ thanh toán" }
             );
 
             // ================= POST ================= 

@@ -1,134 +1,385 @@
-import React, { use } from "react";
-import { CircleAlert } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
+import { CircleAlert, Zap, FileText, RefreshCw } from "lucide-react";
 import { useAuthStore } from "../../store/auth";
 import useFetch from "../../Hooks/useFetch";
-import { useNavigate } from "react-router-dom";
-export default function ServicePackageManager() {
-    const { user } = useAuthStore();
-    const { data } = useFetch(`/api/package/${user.userId}`);
-    const navigate = useNavigate();
-    console.log(data);
 
-    // const currentPlan = {
-    //     name: "ChoRè Free",
-    //     price: "0đ / Tháng",
-    //     description: "Gói miễn phí dành cho người dùng",
-    //     features: [
-    //         { label: "Miễn phí đăng tin", value: "còn 1 / 2 lần" },
-    //         { label: "Số lần được đăng tin trong tháng", value: "còn 1 / 2 lần" },
-    //         { label: "Miễn phí giao dịch trung gian", value: "0 lần" },
-    //     ],
-    // };
+// ─── CSS ──────────────────────────────────────────────────────────────────────
 
-    return (
-        <div className="min-h-screen bg-gray-100 p-10!">
-            <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-sm p-10!">
+const CSS = `
+  .spm {
+    min-height: 100vh;
+    background: #f1f5f9;
+    padding: 40px 20px 60px;
+  }
 
-                {/* Title */}
-                <h1 className="text-3xl font-bold! text-center mb-6!">
-                    Gói của bạn
-                </h1>
+  .spm-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+  /* ── Header ── */
+  .spm-header { text-align: center; }
 
-                    {/* LEFT - Current Plan */}
-                    <div className="relative border rounded-2xl p-5! mb-2 shadow-sm overflow-hidden">
+  .spm-title {
+    font-size: 30px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 4px;
+  }
 
-                        {/* Badge */}
-                        <span className="absolute top-0 -right-1 bg-green-500 text-white text-left text-xs font-bold p-3! rounded-bl-2xl">
-                            Không giới hạn
-                        </span>
+  .spm-sub {
+    font-size: 15px;
+    color: #94a3b8;
+    margin: 0;
+  }
 
-                        <h2 className="text-xl text-center font-semibold! mb-4! mt-2">
-                            {data?.subscriptionPlanDto?.subPlanName}
-                        </h2>
-                        <div className="relative mb-2">
-                            <span className=" relative z-50 p-2 text-gray-400 bg-white ml-3!">Thông tin gói</span>
-                            <div className="absolute top-1/2 h-[1px] z-10 w-full bg-gray-300"></div>
-                        </div>
-                        <div className="text-base text-gray-600 space-y-2">
-                            <div className="mb-2 flex justify-between p-2">
-                                <span><strong>Tên gói:</strong> {data?.subscriptionPlanDto?.subPlanName}</span>
-                                <span>
-                                    <strong>Giá: </strong>
-                                    {data?.subscriptionPlanDto?.price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
-                                    / {data?.subscriptionPlanDto?.durationDays} ngày
-                                </span>
-                            </div>
-                            <div className="mb-2 p-2">
-                                <strong>Mô tả:</strong> {data?.subscriptionPlanDto?.title}
-                            </div>
-                        </div>
+  /* ── Main grid ── */
+  .spm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
 
-                        <div className="mt-6">
-                            <div className="relative mb-2">
-                                <span className=" relative z-50 p-2 text-gray-400 bg-white ml-3!">Quyền lợi</span>
-                                <div className="absolute top-1/2 h-[1px] z-10 w-full bg-gray-300"></div>
-                            </div>
-                            <ul className="text-sm text-gray-700 pl-0!">
-                                <li
-                                    className="flex justify-between text-base p-2"
-                                >
-                                    <span>Miễn phí đăng tin</span>
-                                    <span>{data?.remainingFreePost} / {data?.subscriptionPlanDto?.maxFreePost} lần</span>
-                                </li>
-                                <li
-                                    className="flex justify-between text-base p-2"
-                                >
-                                    <span>Số lần được đăng tin trong tháng</span>
-                                    <span>{data?.remainingSubPost} / {data?.subscriptionPlanDto?.maxPost} lần</span>
-                                </li>
-                                <li
-                                    className="flex justify-between text-base p-2"
-                                >
-                                    <span>Miễn phí giao dịch trung gian</span>
-                                    <span>
-                                        {data?.subscriptionPlanDto?.maxFreePlatform == 0 ?
-                                            "0 lần" : 
-                                            data?.remainingSubFPF + " / " + data?.subscriptionPlanDto?.maxFreePlatform + " lần"}
-                                    </span>
-                                </li>
-                                {/* {data?.map((item, index) => (
-                                    <li
-                                        key={index}
-                                        className="flex justify-between text-base p-2"
-                                    >
-                                        <span>{item.label}</span>
-                                        <span>{item.value}</span>
-                                    </li>
-                                ))} */}
-                            </ul>
-                        </div>
-                    </div>
+  /* ── Plan card ── */
+  .spm-plan {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+  }
 
-                    {/* RIGHT - Upgrade Box */}
-                    <div className="text-center space-y-4">
-                        <p className="text-gray-700">
-                            Bạn muốn đăng nhiều tin, nhận nhiều ưu đãi hơn?
-                        </p>
-                        <p className="font-semibold">
-                            Hãy nâng cấp gói PRO ngay nào
-                        </p>
+  .spm-plan-head {
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    padding: 20px;
+    position: relative;
+  }
 
-                        <button
-                            className="bg-green-600 hover:bg-green-700 text-white px-6! py-3! rounded-xl! font-medium! transition"
-                            onClick={() => navigate("/service-package")}
-                        >
-                            Nâng cấp gói PRO
-                        </button>
-                    </div>
-                </div>
+  .spm-plan-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 4px;
+  }
 
-                {/* Warning Box */}
-                <div className="mt-10 bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-xl flex items-center gap-3">
-                    <CircleAlert size={20} className="mt-1" />
-                    <p className="text-base mb-0!">
-                        Lưu ý: Nếu bạn không gia hạn gói PRO thì sẽ tự động chuyển về
-                        gói mặc định (ChoRè Free)
-                    </p>
-                </div>
+  .spm-plan-price {
+    font-size: 15px;
+    color: rgba(255,255,255,0.8);
+    margin: 0;
+  }
 
+  .spm-plan-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 3px 10px;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+
+  .spm-plan-body { padding: 20px; }
+
+  .spm-section-label {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin: 0 0 12px;
+  }
+
+  .spm-desc {
+    font-size: 15px;
+    color: #475569;
+    margin: 0 0 20px;
+    line-height: 1.6;
+  }
+
+  /* ── Benefits ── */
+  .spm-benefits { display: flex; flex-direction: column; gap: 0; }
+
+  .spm-benefit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+    gap: 12px;
+  }
+  .spm-benefit:last-child { border-bottom: none; }
+
+  .spm-benefit-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    color: #374151;
+  }
+
+  .spm-benefit-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    background: #f0fdf4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #16a34a;
+  }
+
+  .spm-benefit-val {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+  }
+
+  .spm-benefit-val.zero { color: #94a3b8; font-weight: 500; }
+
+  /* ── Progress bar ── */
+  .spm-bar-wrap { margin-top: 4px; }
+
+  .spm-bar-track {
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 5px;
+  }
+
+  .spm-bar-fill {
+    height: 100%;
+    background: #22c55e;
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+
+  .spm-bar-fill.low { background: #f59e0b; }
+  .spm-bar-fill.empty { background: #e2e8f0; }
+
+  /* ── Upgrade card ── */
+  .spm-upgrade {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .spm-upgrade-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #fef9c3, #fef08a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #854d0e;
+  }
+
+  .spm-upgrade h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .spm-upgrade p {
+    font-size: 15px;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .spm-upgrade-btn {
+    width: 100%;
+    padding: 12px;
+    background: #22c55e;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.12s;
+  }
+  .spm-upgrade-btn:hover  { background: #16a34a; }
+  .spm-upgrade-btn:active { transform: scale(0.98); }
+
+  /* ── Warning banner ── */
+  .spm-warn {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: #fefce8;
+    border: 1px solid #fde047;
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: #854d0e;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .spm-warn svg { flex-shrink: 0; margin-top: 2px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .spm          { padding: 24px 12px 48px; }
+    .spm-grid     { grid-template-columns: 1fr; }
+    .spm-title    { font-size: 18px; }
+    .spm-plan-head { padding: 16px; }
+  }
+`;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function pct(used, max) {
+  if (!max || max <= 0) return 0;
+  return Math.min(100, Math.round((used / max) * 100));
+}
+
+function barCls(p) {
+  if (p === 0) return "empty";
+  if (p <= 25)  return "low";
+  return "";
+}
+
+// ─── Benefit row with progress ────────────────────────────────────────────────
+
+function Benefit({ icon: Icon, label, used, max }) {
+  const p   = pct(used, max);
+  const cls = barCls(p);
+  const val = max == null ? "—" : max === 0 ? "0 lần" : `${used} / ${max} lần`;
+
+  return (
+    <div className="spm-benefit">
+      <div className="spm-benefit-left">
+        <div className="spm-benefit-icon"><Icon size={14} /></div>
+        <div>
+          <div>{label}</div>
+          {max > 0 && (
+            <div className="spm-bar-wrap">
+              <div className="spm-bar-track">
+                <div className={`spm-bar-fill ${cls}`} style={{ width: `${p}%` }} />
+              </div>
             </div>
+          )}
         </div>
-    );
+      </div>
+      <span className={`spm-benefit-val ${max === 0 ? "zero" : ""}`}>{val}</span>
+    </div>
+  );
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function ServicePackageManager() {
+  const navigate     = useNavigate();
+  const { user }     = useAuthStore();
+  const { data }     = useFetch(`/api/package/${user.userId}`);
+
+  const plan = data?.subscriptionPlanDto;
+
+  const fmtPrice = (price, days) => {
+    if (!price) return "Miễn phí";
+    return `${price.toLocaleString("vi-VN", { style: "currency", currency: "VND" })} / ${days} ngày`;
+  };
+
+  return (
+    <>
+      <style>{CSS}</style>
+      <div className="spm">
+        <div className="spm-inner">
+
+          {/* Header */}
+          <div className="spm-header">
+            <h1 className="spm-title">Gói dịch vụ của bạn</h1>
+            <p className="spm-sub">Quản lý và nâng cấp gói để đăng tin hiệu quả hơn</p>
+          </div>
+
+          {/* Main grid */}
+          <div className="spm-grid">
+
+            {/* Left — current plan */}
+            <div className="spm-plan">
+              <div className="spm-plan-head">
+                <p className="spm-plan-name">{plan?.subPlanName ?? "—"}</p>
+                <p className="spm-plan-price">{fmtPrice(plan?.price, plan?.durationDays)}</p>
+                <span className="spm-plan-badge">Hiện tại</span>
+              </div>
+
+              <div className="spm-plan-body">
+                {plan?.title && (
+                  <>
+                    <p className="spm-section-label">Mô tả</p>
+                    <p className="spm-desc">{plan.title}</p>
+                  </>
+                )}
+
+                <p className="spm-section-label">Quyền lợi</p>
+                <div className="spm-benefits">
+                  <Benefit
+                    icon={FileText}
+                    label="Đăng tin miễn phí"
+                    used={data?.remainingFreePost ?? 0}
+                    max={plan?.maxFreePost ?? 0}
+                  />
+                  <Benefit
+                    icon={RefreshCw}
+                    label="Đăng tin trong tháng"
+                    used={data?.remainingSubPost ?? 0}
+                    max={plan?.maxPost ?? 0}
+                  />
+                  <Benefit
+                    icon={Zap}
+                    label="Giao dịch trung gian"
+                    used={data?.remainingSubFPF ?? 0}
+                    max={plan?.maxFreePlatform ?? 0}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Right — upgrade */}
+            <div className="spm-upgrade">
+              <div className="spm-upgrade-icon">
+                <Zap size={24} />
+              </div>
+              <h3>Nâng cấp gói</h3>
+              <p>
+                Đăng tin không giới hạn, ưu tiên hiển thị và nhiều tính năng
+                độc quyền dành cho người bán chuyên nghiệp.
+              </p>
+              <button className="spm-upgrade-btn" onClick={() => navigate("/service-package")}>
+                Xem các gói
+              </button>
+            </div>
+
+          </div>
+
+          {/* Warning */}
+          <div className="spm-warn">
+            <CircleAlert size={18} />
+            <span>
+              Lưu ý: Nếu bạn không gia hạn gói PRO, tài khoản sẽ tự động
+              chuyển về gói mặc định (ChoRe Free) khi hết hạn.
+            </span>
+          </div>
+
+        </div>
+      </div>
+    </>
+  );
 }

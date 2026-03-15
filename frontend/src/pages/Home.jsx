@@ -1,294 +1,373 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faMapMarkerAlt, faChevronDown, faTimes,
+  faLayerGroup, faChevronRight, faSearch,
+} from "@fortawesome/free-solid-svg-icons";
+
 import api from "@/api";
 import "@/assets/Home.css";
 import PostGrid from "@/components/Post/PostGrid";
+import FilterBar from "@/components/Filterbar/FilterBar";
 import { useAuthStore } from "@/store/auth";
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import { Autoplay, Navigation, Pagination } from "swiper/modules";
+import useFetch from "@/Hooks/useFetch";
+import provinceData from "@/data/sauSapNhap/province.json";
+import wardData from "@/data/sauSapNhap/ward.json";
 
-function Home() {
-  const { user } = useAuthStore();
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-  const [posts, setPosts] = useState([]);
-  const [allPosts, setAllPosts] = useState([]);
-  const [postCates, setPostCates] = useState([]);
-  const [brands, setBrands] = useState([]);
+const INITIAL_FILTERS = {
+  keyword:    "",
+  brandId:    null,
+  categoryId: null,
+  priceRange: [0, 0],
+  time:       null,
+  address:    null,
+  priceType:  null,
+};
+
+const provinces = Object.entries(provinceData)
+  .map(([code, data]) => ({ code, name: data.name }))
+  .sort((a, b) => a.name.localeCompare(b.name, "vi"));
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getMaxPrice(posts) {
+  const prices = posts.map(p => p.price || p.maxPrice || 0).filter(Boolean);
+  return Math.max(...prices, 0);
+}
+
+function resolveLocationLabel(provinceCode, wardCode) {
+  if (wardCode) return wardData[wardCode]?.path ?? wardData[wardCode]?.name_with_type ?? "";
+  return provinceData[provinceCode]?.name ?? "";
+}
+
+// ─── Hero Category Dropdown ───────────────────────────────────────────────────
+
+function HeroCategoryDropdown({ onClose }) {
+  const navigate = useNavigate();
+  const { data: categoryData } = useFetch("/api/categories/hierarchy");
   const [categories, setCategories] = useState([]);
-  const [maxPriceInDB, setMaxPriceInDB] = useState(0);
+  const [activeCate, setActiveCate] = useState(null);
 
-  const [filters, setFilters] = useState({
-    keyword: "",
-    brandId: null,
-    categoryId: null,
-    priceRange: [0, 0],
-    time: null,
-    address: null
-  });
-
-  // 👉 LẤY POSTS PHÙ HỢP VỚI FILTER HIỆN TẠI (CORE LOGIC)
-  const getFilteredPostsForRelation = () => {
-    let filtered = allPosts;
-
-    const categoryId = filters.categoryId ? Number(filters.categoryId) : null;
-    const brandId = filters.brandId ? Number(filters.brandId) : null;
-
-    if (categoryId) {
-      const postIdsInCategory = postCates
-        .filter(pc => (pc.cateId || pc.CateId) === categoryId)
-        .map(pc => pc.postId || pc.PostId);
-
-      filtered = filtered.filter(p =>
-        postIdsInCategory.includes(p.postId || p.PostId)
-      );
-    }
-
-    if (brandId) {
-      filtered = filtered.filter(
-        p => (p.brandId || p.BrandId) === brandId
-      );
-    }
-
-    return filtered;
-  };
-
-  // 👉 HÀM TÍNH CÁC BRAND KHẢ DỤNG - DỰA TRÊN CATEGORY ĐÃ CHỌN
-  const getAvailableBrands = () => {
-    // ⛔ CHƯA LOAD XONG DATA → KHÔNG DISABLE GÌ HẾT
-    if (!postCates.length || !allPosts.length) {
-      return brands.map(b => ({ ...b, isDisabled: false }));
-    }
-
-    const filteredPosts = getFilteredPostsForRelation();
-
-    const validBrandIds = [...new Set(
-      filteredPosts.map(p => p.brandId || p.BrandId)
-    )];
-
-    return brands.map(brand => {
-      const brandId = brand.brandId || brand.BrandId;
-      return {
-        ...brand,
-        isDisabled:
-          filters.categoryId !== null &&
-          !validBrandIds.includes(brandId)
-      };
-    });
-  };
-
-
-  // 👉 HÀM TÍNH CÁC CATEGORY KHẢ DỤNG - DỰA TRÊN BRAND ĐÃ CHỌN
-  const getAvailableCategories = () => {
-    if (!postCates.length || !allPosts.length) {
-      return categories.map(c => ({ ...c, isDisabled: false }));
-    }
-
-    const filteredPosts = getFilteredPostsForRelation();
-    const validPostIds = filteredPosts.map(p => p.postId || p.PostId);
-
-    const validCategoryIds = [...new Set(
-      postCates
-        .filter(pc =>
-          validPostIds.includes(pc.postId || pc.PostId)
-        )
-        .map(pc => pc.cateId || pc.CateId)
-    )];
-
-    return categories.map(category => {
-      const cateId = category.cateId || category.CateId;
-      return {
-        ...category,
-        isDisabled:
-          filters.brandId !== null &&
-          !validCategoryIds.includes(cateId)
-      };
-    });
-  };
-
-  // 👉 LOAD POSTS
-  const loadPosts = () => {
-    api.get("/api/posts/home", {
-      params: {
-        keyword: filters.keyword || null,
-        userId: user ? user.userId : null,
-        brandId: filters.brandId ? Number(filters.brandId) : null,
-        categoryId: filters.categoryId ? Number(filters.categoryId) : null,
-        minPrice: filters.priceRange[0],
-        maxPrice: filters.priceRange[1],
-        time: filters.time ? Number(filters.time) : null
-      }
-    })
-      .then(res => {
-        setPosts(res.data);
-
-        // ✅ TỰ ĐỘNG TÍNH MAX PRICE TỪ POSTS (chỉ lấy posts có giá)
-        if (res.data && res.data.length > 0) {
-          const pricesArray = res.data
-            .map(p => {
-              if (p.priceType === "FIXED" && p.price) return p.price;
-              if (p.priceType === "RANGE" && p.maxPrice) return p.maxPrice;
-              return 0;
-            })
-            .filter(price => price > 0);
-
-          if (pricesArray.length > 0) {
-            const calculatedMax = Math.max(...pricesArray);
-
-            if (calculatedMax > maxPriceInDB) {
-              setMaxPriceInDB(calculatedMax);
-
-              if (filters.priceRange[1] === maxPriceInDB || filters.priceRange[1] === 0) {
-                setFilters(prev => ({
-                  ...prev,
-                  priceRange: [prev.priceRange[0], calculatedMax]
-                }));
-              }
-            }
-          }
-        }
-      })
-      .catch(err => console.error("Lỗi load posts:", err));
-  };
-  // 👉 LOAD DATA BAN ĐẦU
   useEffect(() => {
-    api.get("api/brands").then(res => setBrands(res.data));
-    api.get("api/categories").then(res => setCategories(res.data));
-    api.get("api/postcates").then(res => setPostCates(res.data));
+    if (categoryData) {
+      setCategories(categoryData);
+      setActiveCate(categoryData[0] ?? null);
+    }
+  }, [categoryData]);
 
-    // ✅ CHỈ LẤY POSTS ĐÃ APPROVED (statusIds=2)
-    api.get("/api/posts/all", { params: { statusIds: [2], userId: user ? user.userId : null } })
-      .then(res => {
-        setAllPosts(res.data);
-        setPosts(res.data);
-
-        if (res.data && res.data.length > 0) {
-          const pricesArray = res.data
-            .map(p => {
-              if (p.priceType === "FIXED" && p.price) return p.price;
-              if (p.priceType === "RANGE" && p.maxPrice) return p.maxPrice;
-              return 0;
-            })
-            .filter(price => price > 0);
-
-          if (pricesArray.length > 0) {
-            const calculatedMax = Math.max(...pricesArray);
-            setMaxPriceInDB(calculatedMax);
-            setFilters(prev => ({
-              ...prev,
-              priceRange: [0, calculatedMax]
-            }));
-          }
-        }
-      })
-      .catch(err => console.error("Lỗi load posts:", err));
-      
-  }, []);
-
-  // 👉 SET DEFAULT ADDRESS FILTER WHEN USER CHANGES
-  // useEffect(() => {
-  //   if (user && user.address && !filters.address) {
-  //     setFilters(prev => ({
-  //       ...prev,
-  //       address: user.address
-  //     }));
-  //   }
-  // }, [user?.address]);
-
-  // 👉 AUTO-LOAD KHI FILTER THAY ĐỔI
-  useEffect(() => {
-    if (maxPriceInDB === 0) return;
-
-    const timer = setTimeout(() => {
-      loadPosts();
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [filters, maxPriceInDB, postCates, allPosts]);
-
-  // 👉 LẤY DANH SÁCH ĐÃ LỌC
-  const _AvailableBrands = getAvailableBrands();
-  const _AvailableCategories = getAvailableCategories();
-
-  // 👉 LẤY DANH SÁCH ĐỊA ĐIỂM TỪ POSTS HIỆN TẠI
-  // const _AvailableLocations = getAvailableLocations();
-
-  // 👉 LỌC POSTS THEO PRICE RANGE TRÊN FRONTEND
-  // 👉 LỌC POSTS THEO PRICE RANGE TRÊN FRONTEND
-  const getFilteredPosts = () => {
-    return posts.filter(post => {
-      // ✅ XỬ LÝ GIÁ THEO KIỂU
-      let priceMatch = true;
-
-      if (post.priceType === "NEGOTIABLE") {
-        // Bài thương lượng LUÔN hiển thị (không lọc theo giá)
-        priceMatch = true;
-      } else if (post.priceType === "FIXED") {
-        const price = post.price || 0;
-        priceMatch = price >= filters.priceRange[0] && price <= filters.priceRange[1];
-      } else if (post.priceType === "RANGE") {
-        // Hiển thị nếu có overlap với khoảng giá filter
-        const minPrice = post.minPrice || 0;
-        const maxPrice = post.maxPrice || 0;
-        priceMatch = maxPrice >= filters.priceRange[0] && minPrice <= filters.priceRange[1];
-      }
-
-      // 👉 FILTER THEO ADDRESS
-      const addressMatch = !filters.address || (post.address || post.Address || "").trim() === filters.address;
-
-      return priceMatch && addressMatch;
-    });
-  };
-
-  const filteredPosts = getFilteredPosts();
+  const go = (path) => { navigate(path); onClose(); };
 
   return (
-    <div className="home-wrapper">
-      <Swiper
-        modules={[Autoplay, Navigation, Pagination]}
-        spaceBetween={30}
-        slidesPerView={1}
-        centeredSlides
-        loop
-        speed={1000}
-        autoplay={{
-          delay: 5000,
-          disableOnInteraction: false,
-        }}
-        navigation
-        pagination={{ clickable: true }}
-        className="w-[90%] h-[200px] mb-8 mt-2 shadow-[0_0_5px_rgba(0,0,0,0.1)] rounded-lg mx-auto"
-      >
-        <SwiperSlide>
-          <img src="src/Images/banner1.jpg" className="w-full h-full object-cover" />
-        </SwiperSlide>
-        <SwiperSlide>
-          <img src="src/Images/banner2.jpg" className="w-full h-full object-cover" />
-        </SwiperSlide>
-        <SwiperSlide>
-          <img src="src/Images/banner3.jpg" className="w-full h-full object-cover" />
-        </SwiperSlide>
-      </Swiper>
-      <main className="home-main" style={{ marginTop: "80px" }}>
-        {/* POSTS */}
-        <section>
-          {filteredPosts.length === 0 ? (
-            <div className="text-center text-muted py-5">
-              Không tìm thấy sản phẩm nào phù hợp
-            </div>
-          ) : (
-            <div className="row g-4">
-              <div className="cards-panel">
-                <h4 className="mb-4 fw-semibold">Tin đăng mới nhất</h4>
-                <PostGrid posts={filteredPosts} />
+    <div className="hero-cate-panel">
+      <div className="hero-cate-left">
+        <div className="hero-cate-header">Danh mục</div>
+        {categories.map(cate => (
+          <button
+            key={cate.cateId}
+            className={`hero-cate-item ${activeCate?.cateId === cate.cateId ? "active" : ""}`}
+            onMouseEnter={() => setActiveCate(cate)}
+            onClick={() => go(`/search?cateId=${cate.cateId}`)}
+          >
+            <span>{cate.cateName}</span>
+            <FontAwesomeIcon icon={faChevronRight} className="hero-cate-arrow" />
+          </button>
+        ))}
+      </div>
+
+      {activeCate && (
+        <div className="hero-cate-right">
+          {activeCate.subCategories?.length > 0 && (
+            <div className="hero-cate-section">
+              <div className="hero-cate-section-title">Danh mục con</div>
+              <div className="hero-cate-chips">
+                {activeCate.subCategories.map(sub => (
+                  <button key={sub.cateId} className="hero-cate-chip"
+                    onClick={() => go(`/search?cateId=${sub.cateId}`)}>
+                    {sub.cateName}
+                  </button>
+                ))}
               </div>
             </div>
           )}
-        </section>
-
-      </main>
+          {activeCate.brands?.length > 0 && (
+            <div className="hero-cate-section">
+              <div className="hero-cate-section-title">Thương hiệu</div>
+              <div className="hero-cate-chips">
+                {activeCate.brands.map(brand => (
+                  <button key={brand.brandId} className="hero-cate-chip"
+                    onClick={() => go(`/search?brandId=${brand.brandId}`)}>
+                    {brand.brandName}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {!activeCate.subCategories?.length && !activeCate.brands?.length && (
+            <p className="hero-cate-empty">Chưa có danh mục con hoặc thương hiệu</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-export default Home;
+// ─── Main Component ───────────────────────────────────────────────────────────
+
+export default function Home() {
+  const { user }    = useAuthStore();
+  const navigate    = useNavigate();
+  const locationRef = useRef(null);
+  const cateRef     = useRef(null);
+
+  // Posts
+  const [posts,    setPosts]    = useState([]);
+  const [allPosts, setAllPosts] = useState([]);
+
+  // Search
+  const [searchInput, setSearchInput] = useState("");
+
+  // Location picker
+  const [locationOpen,         setLocationOpen]         = useState(false);
+  const [selectedProvinceCode, setSelectedProvinceCode] = useState("");
+  const [selectedWardCode,     setSelectedWardCode]     = useState("");
+  const [selectedLocation,     setSelectedLocation]     = useState("");
+
+  // Category dropdown
+  const [cateOpen, setCateOpen] = useState(false);
+
+  // Filters & price ceiling
+  const [maxPriceInDB, setMaxPriceInDB] = useState(0);
+  const [filters,      setFilters]      = useState(INITIAL_FILTERS);
+
+  // ── Derived ──────────────────────────────────────────────────────────────────
+
+  const wardsForProvince = useMemo(() =>
+    selectedProvinceCode
+      ? Object.entries(wardData)
+          .filter(([, w]) => w.parent_code === selectedProvinceCode)
+          .map(([code, w]) => ({ code, ...w }))
+      : [],
+    [selectedProvinceCode]
+  );
+
+  const filteredPosts = useMemo(() =>
+    posts.filter(post => {
+      if (filters.priceType && post.priceType !== filters.priceType) return false;
+      if (filters.address) {
+        const addr = (post.address ?? "").toLowerCase();
+        if (!addr.includes(filters.address.toLowerCase())) return false;
+      }
+      return true;
+    }),
+    [posts, filters]
+  );
+
+  const uniqueAddresses = useMemo(() => {
+    const set = new Set(allPosts.map(p => (p.address ?? "").trim()).filter(Boolean));
+    return [...set].sort();
+  }, [allPosts]);
+
+  // ── Effects ───────────────────────────────────────────────────────────────────
+
+  // Click outside — location
+  useEffect(() => {
+    const h = (e) => {
+      if (locationRef.current && !locationRef.current.contains(e.target)) setLocationOpen(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  // Click outside — category
+  useEffect(() => {
+    if (!cateOpen) return;
+    const h = (e) => {
+      if (cateRef.current && !cateRef.current.contains(e.target)) setCateOpen(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [cateOpen]);
+
+  // Initial load
+  useEffect(() => {
+    api.get("/api/posts/all", { params: { statusIds: [2], userId: user?.userId } })
+      .then(res => {
+        const data = res.data;
+        const max  = getMaxPrice(data);
+        setAllPosts(data);
+        setPosts(data);
+        setMaxPriceInDB(max);
+        setFilters(prev => ({ ...prev, priceRange: [0, max] }));
+      });
+  }, []);
+
+  // Debounced filter fetch
+  useEffect(() => {
+    if (!maxPriceInDB) return;
+    const timer = setTimeout(() => {
+      api.get("/api/posts/home", {
+        params: {
+          keyword:    filters.keyword || null,
+          brandId:    filters.brandId,
+          categoryId: filters.categoryId,
+          minPrice:   filters.priceRange[0],
+          maxPrice:   filters.priceRange[1],
+          time:       filters.time,
+          userId:     user?.userId,
+        },
+      }).then(res => setPosts(res.data));
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [filters, maxPriceInDB]);
+
+  // ── Handlers ─────────────────────────────────────────────────────────────────
+
+  const handleSearch = (e) => {
+    e?.preventDefault();
+    const q = searchInput.trim();
+    navigate(q ? `/search?keyword=${encodeURIComponent(q)}` : "/search");
+  };
+
+  const applyLocation = () => {
+    const location = resolveLocationLabel(selectedProvinceCode, selectedWardCode);
+    setSelectedLocation(location);
+    setFilters(prev => ({ ...prev, address: location || null }));
+    setLocationOpen(false);
+  };
+
+  const clearLocation = (e) => {
+    e.stopPropagation();
+    setSelectedLocation("");
+    setSelectedProvinceCode("");
+    setSelectedWardCode("");
+    setFilters(prev => ({ ...prev, address: null }));
+  };
+
+  const patchFilters = (patch) => setFilters(prev => ({ ...prev, ...patch }));
+
+  // ── Render ────────────────────────────────────────────────────────────────────
+
+  return (
+    <div className="home-wrapper">
+
+      {/* ── Hero ── */}
+      <section className="home-hero">
+        <div className="home-hero-inner">
+          <h1 className="hero-title">Mua bán đồ điện tử cũ dễ dàng!</h1>
+          <p className="hero-sub">Hàng nghìn sản phẩm, giá tốt, giao nhanh toàn quốc</p>
+
+          <form className="hero-search-bar" onSubmit={handleSearch}>
+
+            {/* Category button */}
+            <div className="hero-cate-wrap" ref={cateRef}>
+              <button
+                type="button"
+                className={`hero-cate-btn ${cateOpen ? "open" : ""}`}
+                onClick={() => setCateOpen(v => !v)}
+              >
+                <FontAwesomeIcon icon={faLayerGroup} />
+                {/* <span>Danh mục</span> */}
+                <FontAwesomeIcon icon={faChevronDown} className="hero-cate-chevron" />
+              </button>
+              {cateOpen && <HeroCategoryDropdown onClose={() => setCateOpen(false)} />}
+            </div>
+
+            <div className="hero-search-divider" />
+
+            {/* Keyword input */}
+            <input
+              type="text"
+              className="hero-input"
+              placeholder="Tìm sản phẩm, danh mục, thương hiệu..."
+              value={searchInput}
+              onChange={e => setSearchInput(e.target.value)}
+            />
+
+            {/* Location picker */}
+            <div className="hero-location" ref={locationRef}>
+              <button
+                type="button"
+                className={`hero-location-btn ${locationOpen ? "open" : ""}`}
+                onClick={() => setLocationOpen(v => !v)}
+              >
+                <FontAwesomeIcon icon={faMapMarkerAlt} className="hero-location-icon" />
+                <span className="hero-location-text">{selectedLocation || "Khu vực"}</span>
+                <FontAwesomeIcon
+                  icon={selectedLocation ? faTimes : faChevronDown}
+                  className="hero-location-chevron"
+                  onClick={selectedLocation ? clearLocation : undefined}
+                />
+              </button>
+
+              {locationOpen && (
+                <div className="hero-location-dropdown">
+                  <p className="hero-location-dropdown-title">Chọn khu vực</p>
+                  <select value={selectedProvinceCode}
+                    onChange={e => { setSelectedProvinceCode(e.target.value); setSelectedWardCode(""); }}>
+                    <option value="">Tỉnh / Thành phố</option>
+                    {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
+                  </select>
+
+                  {selectedProvinceCode && (
+                    <select value={selectedWardCode}
+                      onChange={e => setSelectedWardCode(e.target.value)}>
+                      <option value="">Phường / Xã</option>
+                      {wardsForProvince.map(w => (
+                        <option key={w.code} value={w.code}>{w.name_with_type ?? w.name}</option>
+                      ))}
+                    </select>
+                  )}
+
+                  <div className="hero-location-actions">
+                    {selectedLocation && (
+                      <button type="button" className="hero-location-clear" onClick={clearLocation}>
+                        Xóa
+                      </button>
+                    )}
+                    <button type="button" className="hero-location-apply" onClick={applyLocation}>
+                      Áp dụng
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button type="submit" className="hero-btn">
+              <FontAwesomeIcon icon={faSearch} />
+              <span>Tìm kiếm</span>
+            </button>
+
+          </form>
+        </div>
+      </section>
+
+      {/* ── Posts ── */}
+      <main className="home-main">
+        <div className="cards-panel">
+
+          <div className="section-header">
+            <h2 className="section-title">Tin đăng mới nhất</h2>
+            <span className="section-count">{filteredPosts.length} sản phẩm</span>
+          </div>
+
+          <FilterBar
+            filters={filters}
+            maxPrice={maxPriceInDB}
+            addresses={uniqueAddresses}
+            onFilterChange={patchFilters}
+          />
+
+          {filteredPosts.length === 0
+            ? <div className="empty-state">Không có sản phẩm</div>
+            : <PostGrid posts={filteredPosts} />
+          }
+
+        </div>
+      </main>
+
+    </div>
+  );
+}

@@ -207,25 +207,34 @@ public class AccountService
     {
         var existing = await _context.RefreshTokens
             .Include(rt => rt.User)
-            .ThenInclude(u => u.Role)
+                .ThenInclude(u => u.Role)
             .SingleOrDefaultAsync(rt => rt.Token == token);
 
         if (existing == null || existing.IsRevoked || DateTime.UtcNow >= existing.Expires)
             return null;
 
-        // revoke the old token
-        existing.IsRevoked = true;
-        await _context.SaveChangesAsync();
+        if (existing.Expires < DateTime.UtcNow.AddDays(1))
+        {
+            existing.IsRevoked = true;
 
-        // issue new refresh token
-        var newToken = GenerateRefreshToken();
-        newToken.UserId = existing.UserId;
+            var newToken = GenerateRefreshToken();
+            newToken.UserId = existing.UserId;
 
-        _context.RefreshTokens.Add(newToken);
-        await _context.SaveChangesAsync();
+            _context.RefreshTokens.Add(newToken);
+            await _context.SaveChangesAsync();
 
-        var jwt = GenerateJwtToken(existing.User!);
-        return new AuthResponse { Token = jwt, RefreshToken = newToken.Token };
+            return new AuthResponse
+            {
+                Token = GenerateJwtToken(existing.User!),
+                RefreshToken = newToken.Token
+            };
+        }
+
+        return new AuthResponse
+        {
+            Token = GenerateJwtToken(existing.User!),
+            RefreshToken = existing.Token
+        };
     }
 
     /// <summary>

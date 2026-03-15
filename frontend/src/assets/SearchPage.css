@@ -572,3 +572,151 @@
     margin: 4px 0 0;
     padding: 0 2px;
 }
+
+/* ═══════════════════════════════════════════════
+   SEARCH PAGE — append vào cuối SearchPage.css
+   Sticky sidebar + scrollable body + category tree
+═══════════════════════════════════════════════ */
+
+/* ── STICKY SIDEBAR WITH SCROLL ──────────────── */
+.search-sidebar {
+    position: sticky;
+    top: 64px;               /* bằng --hdr-h */
+    height: calc(100vh - 64px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;        /* clip, scroll từng vùng */
+}
+
+.sidebar-header {
+    flex-shrink: 0;          /* không co lại */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid #f3f4f6;
+    background: #fff;
+    z-index: 1;
+}
+
+/* Vùng cuộn chính */
+.sidebar-scroll-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 8px;
+}
+.sidebar-scroll-body::-webkit-scrollbar { width: 4px; }
+.sidebar-scroll-body::-webkit-scrollbar-thumb {
+    background: #e5e7eb;
+    border-radius: 2px;
+}
+.sidebar-scroll-body::-webkit-scrollbar-thumb:hover {
+    background: #d1d5db;
+}
+
+/* Footer sticky: nút áp dụng */
+.sidebar-footer {
+    flex-shrink: 0;
+    padding: 10px 16px 14px;
+    background: #fff;
+    border-top: 1px solid #f3f4f6;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+}
+.sidebar-footer .apply-filter-btn {
+    width: 100%;
+    margin: 0;
+}
+
+/* ── CATEGORY TREE ───────────────────────────── */
+.cate-tree-node {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Indent theo level */
+.cate-tree-node.level-1 { padding-left: 12px; }
+.cate-tree-node.level-2 { padding-left: 24px; }
+
+.cate-tree-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 6px;
+    transition: background 0.12s;
+}
+.cate-tree-row:hover {
+    background: #f9fafb;
+}
+.cate-tree-row.active {
+    background: #f0fdf4;
+}
+
+/* Nút expand/collapse */
+.cate-expand-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af;
+    padding: 0;
+    border-radius: 4px;
+    transition: color 0.15s, background 0.15s;
+}
+.cate-expand-btn:hover {
+    color: #374151;
+    background: #e5e7eb;
+}
+
+.cate-expand-icon {
+    font-size: 10px;
+    transition: transform 0.2s ease;
+}
+.cate-expand-icon.rotated {
+    transform: rotate(90deg);
+}
+
+/* Spacer khi không có nút expand */
+.cate-expand-spacer {
+    flex-shrink: 0;
+    width: 20px;
+}
+
+/* Label trong tree dùng lại .filter-radio nhưng flex:1 */
+.cate-tree-row .cate-label {
+    flex: 1;
+    padding: 7px 6px 7px 2px;
+    margin: 0;
+    border-radius: 0;
+    background: none !important; /* row cha xử lý bg */
+}
+.cate-tree-row .cate-label.active {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+/* Children container */
+.cate-children {
+    border-left: 1.5px solid #e5e7eb;
+    margin-left: 9px;
+    padding-left: 4px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+/* ── MOBILE: sidebar height full drawer ──────── */
+@media (max-width: 768px) {
+    .search-sidebar {
+        position: static;
+        height: auto;
+    }
+    .sidebar-scroll-body {
+        max-height: calc(100vh - 160px); /* drawer height - header - footer */
+        overflow-y: auto;
+    }
+}

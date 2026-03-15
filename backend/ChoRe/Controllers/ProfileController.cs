@@ -5,7 +5,6 @@ using ChoRe.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -27,7 +26,7 @@ namespace ChoRe.Controllers
             _env = env;
         }
 
-        // ── GET /api/profile/{userId}  — public ─────────────────────────────────
+        // ── GET /api/profile/{userId} ────────────────────────────────────────────
         [HttpGet("{userId:int}", Order = 2)]
         public async Task<IActionResult> GetProfile(int userId)
         {
@@ -44,9 +43,20 @@ namespace ChoRe.Controllers
                     Address = u.Address,
                     CreateAt = u.CreateAt,
                     TotalPosts = u.Posts!.Count(p => p.Status == "APPROVED"),
-                    AvgRating = u.RatingsReceived!.Any()
-                                    ? Math.Round(u.RatingsReceived.Average(r => (double)r.Star), 1) : 0,
-                    TotalRatings = u.RatingsReceived!.Count(),
+
+                    // ── dùng Review thay Rating ──────────────────────────────
+                    AvgRating = _context.Reviews
+                                       .Where(r => r.SellerId == userId)
+                                       .Any()
+                                   ? Math.Round(
+                                       _context.Reviews
+                                           .Where(r => r.SellerId == userId)
+                                           .Average(r => (double)r.Rating), 1)
+                                   : 0,
+
+                    TotalRatings = _context.Reviews
+                                       .Count(r => r.SellerId == userId),
+
                     Email = currentUserId == userId ? u.Email : null,
                     PhoneNumber = currentUserId == userId ? u.PhoneNumber : null,
                 })
@@ -56,53 +66,40 @@ namespace ChoRe.Controllers
             return Ok(user);
         }
 
-        // ── PUT /api/profile/me ─────────────────────────────────────────────────
+        // ── PUT /api/profile/me ──────────────────────────────────────────────────
         [HttpPut("me")]
-        [Authorize]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
         {
             var userId = GetCurrentUserIdRequired();
             var user = await _context.Users.FindAsync(userId);
             if (user == null) return NotFound();
 
-            // UserName — kiểm tra trùng (trừ chính mình)
             if (!string.IsNullOrWhiteSpace(dto.UserName))
             {
                 var trimmed = dto.UserName.Trim();
-                var conflict = await _context.Users
-                    .AnyAsync(u => u.UserName == trimmed && u.UserId != userId);
-                if (conflict)
+                if (await _context.Users.AnyAsync(u => u.UserName == trimmed && u.UserId != userId))
                     return BadRequest("Tên đăng nhập đã được sử dụng");
                 user.UserName = trimmed;
             }
 
-            // Email — kiểm tra trùng (trừ chính mình)
             if (!string.IsNullOrWhiteSpace(dto.Email))
             {
                 var trimmed = dto.Email.Trim().ToLower();
-                var conflict = await _context.Users
-                    .AnyAsync(u => u.Email == trimmed && u.UserId != userId);
-                if (conflict)
+                if (await _context.Users.AnyAsync(u => u.Email == trimmed && u.UserId != userId))
                     return BadRequest("Email đã được sử dụng");
                 user.Email = trimmed;
             }
 
-            if (!string.IsNullOrWhiteSpace(dto.FullName))
-                user.FullName = dto.FullName.Trim();
-
-            if (dto.PhoneNumber is not null)
-                user.PhoneNumber = dto.PhoneNumber.Trim();
-
-            if (dto.Address is not null)
-                user.Address = dto.Address.Trim();
+            if (!string.IsNullOrWhiteSpace(dto.FullName)) user.FullName = dto.FullName.Trim();
+            if (dto.PhoneNumber is not null) user.PhoneNumber = dto.PhoneNumber.Trim();
+            if (dto.Address is not null) user.Address = dto.Address.Trim();
 
             await _context.SaveChangesAsync();
             return Ok(new { message = "Cập nhật thành công" });
         }
 
-        // ── POST /api/profile/me/avatar ─────────────────────────────────────────
+        // ── POST /api/profile/me/avatar ──────────────────────────────────────────
         [HttpPost("me/avatar")]
-        [Authorize]
         public async Task<IActionResult> UploadAvatar(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -137,10 +134,10 @@ namespace ChoRe.Controllers
         // ── GET /api/profile/{userId}/posts ─────────────────────────────────────
         [HttpGet("{userId:int}/posts", Order = 1)]
         public async Task<IActionResult> GetPosts(
-        int userId,
-        [FromQuery] int? statusId,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 12)
+            int userId,
+            [FromQuery] int? statusId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 12)
         {
             try
             {
@@ -151,11 +148,9 @@ namespace ChoRe.Controllers
                     .Where(p => p.UserId == userId);
 
                 if (!isOwner)
-                    query = query.Where(p => p.PostStatusId == 2); // APPROVED only
+                    query = query.Where(p => p.PostStatusId == 2);
                 else if (statusId.HasValue)
                     query = query.Where(p => p.PostStatusId == statusId.Value);
-
-                Console.WriteLine($"Fetching posts for user {isOwner} {userId} with statusId={statusId}, page={page}, pageSize={pageSize}");
 
                 var total = await query.CountAsync();
                 var items = await query
@@ -167,25 +162,20 @@ namespace ChoRe.Controllers
                         PostId = p.PostId,
                         Title = p.Title,
                         ShortDescription = p.Description.Length > 120
-            ? p.Description.Substring(0, 120) + "..."
-            : p.Description,
-
+                                           ? p.Description.Substring(0, 120) + "..."
+                                           : p.Description,
                         PriceType = p.PriceType,
                         Price = p.Price,
                         MinPrice = p.MinPrice,
                         MaxPrice = p.MaxPrice,
-
                         Address = p.Address,
                         PostStatusId = p.PostStatusId,
-
                         CreatedAt = p.CreatedAt,
-
                         Thumbnail = p.PostImages
-                            .OrderBy(i => i.PostImgId)
-                            .Select(i => i.PostImage1)
-                            .FirstOrDefault(),
-
-                        UserName = p.User.UserName
+                                             .OrderBy(i => i.PostImgId)
+                                             .Select(i => i.PostImage1)
+                                             .FirstOrDefault(),
+                        UserName = p.User.UserName,
                     })
                     .ToListAsync();
 
@@ -193,152 +183,99 @@ namespace ChoRe.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error fetching posts for user {userId}: {ex}");
-                return StatusCode(401, "Đã có lỗi xảy ra");
+                Console.WriteLine($"GetPosts error for user {userId}: {ex}");
+                return StatusCode(500, "Đã có lỗi xảy ra");
             }
         }
 
+        // ── PUT /api/profile/{postId}/mark-sold ─────────────────────────────────
         [HttpPut("{postId:int}/mark-sold")]
         public async Task<IActionResult> MarkAsSold(int postId)
         {
             var userId = GetCurrentUserId();
-
-            var post = await _context.Posts
-                .FirstOrDefaultAsync(p => p.PostId == postId);
-
-            if (post == null)
-                return NotFound();
-
-            if (post.UserId != userId)
-            {
-                Console.WriteLine($"User {userId} attempted to mark post {postId} as sold but is not the owner.");
-                return Forbid();
-            }
+            var post = await _context.Posts.FirstOrDefaultAsync(p => p.PostId == postId);
+            if (post == null) return NotFound();
+            if (post.UserId != userId) return Forbid();
 
             post.PostStatusId = PostStatusHelper.Sold;
-
             await _context.SaveChangesAsync();
-
             return Ok(new { message = "Đã đánh dấu là đã bán" });
         }
+
+        // ── PUT /api/profile/{postId}/hide ──────────────────────────────────────
         [HttpPut("{postId:int}/hide")]
         public async Task<IActionResult> HidePost(int postId)
         {
             var userId = GetCurrentUserId();
-
             var post = await _context.Posts.FindAsync(postId);
-
-            if (post == null)
-                return NotFound("Không tìm thấy bài đăng");
-
-            if (post.UserId != userId)
-                return Forbid();
-
-            if (post.PostStatusId == PostStatusHelper.Hidden)
-                return BadRequest("Tin đã bị ẩn");
+            if (post == null) return NotFound("Không tìm thấy bài đăng");
+            if (post.UserId != userId) return Forbid();
+            if (post.PostStatusId == PostStatusHelper.Hidden) return BadRequest("Tin đã bị ẩn");
 
             post.PostStatusId = PostStatusHelper.Hidden;
-
             await _context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                message = "Đã ẩn tin"
-            });
+            return Ok(new { message = "Đã ẩn tin" });
         }
+
+        // ── PUT /api/profile/{postId}/unhide ────────────────────────────────────
         [HttpPut("{postId:int}/unhide")]
         public async Task<IActionResult> UnhidePost(int postId)
         {
             var userId = GetCurrentUserId();
-
             var post = await _context.Posts.FindAsync(postId);
-
-            if (post == null)
-                return NotFound("Không tìm thấy bài đăng");
-
-            if (post.UserId != userId)
-                return Forbid();
-
-            if (post.PostStatusId != PostStatusHelper.Hidden)
-                return BadRequest("Tin không ở trạng thái ẩn");
+            if (post == null) return NotFound("Không tìm thấy bài đăng");
+            if (post.UserId != userId) return Forbid();
+            if (post.PostStatusId != PostStatusHelper.Hidden) return BadRequest("Tin không ở trạng thái ẩn");
 
             post.PostStatusId = PostStatusHelper.Approved;
-
             await _context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                message = "Tin đã được hiển thị lại"
-            });
+            return Ok(new { message = "Tin đã được hiển thị lại" });
         }
+
+        // ── DELETE /api/profile/{postId} ────────────────────────────────────────
         [HttpDelete("{postId:int}")]
         public async Task<IActionResult> DeletePost(int postId)
         {
             var userId = GetCurrentUserId();
-
-            // lấy post + images
             var post = await _context.Posts
                 .Include(p => p.PostImages)
                 .FirstOrDefaultAsync(p => p.PostId == postId);
 
-            if (post == null)
-                return NotFound(new { message = "Không tìm thấy bài đăng" });
+            if (post == null) return NotFound(new { message = "Không tìm thấy bài đăng" });
+            if (post.UserId != userId) return Forbid();
 
-            // chỉ chủ bài đăng mới được xóa
-            if (post.UserId != userId)
-                return Forbid();
-
-            // XÓA FILE ẢNH TRÊN Ổ CỨNG (nếu có)
+            // Xóa file ảnh vật lý
             if (post.PostImages != null)
             {
                 foreach (var img in post.PostImages)
                 {
-                    var filePath = Path.Combine(
-                        Directory.GetCurrentDirectory(),
-                        "wwwroot/uploads",
-                        img.PostImage1
-                    );
-
-                    if (System.IO.File.Exists(filePath))
-                        System.IO.File.Delete(filePath);
+                    var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads", img.PostImage1);
+                    if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
                 }
-
-                // xóa record ảnh trong DB
                 _context.PostImages.RemoveRange(post.PostImages);
             }
 
-            // XÓA POST
             _context.Posts.Remove(post);
-
             await _context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                message = "Đã xóa vĩnh viễn bài đăng"
-            });
+            return Ok(new { message = "Đã xóa vĩnh viễn bài đăng" });
         }
+
+        // ── PUT /api/profile/{postId} ────────────────────────────────────────────
         [HttpPut("{postId:int}")]
         public async Task<IActionResult> UpdatePost(int postId, UpdatePostDTO dto)
         {
             var userId = GetCurrentUserId();
-
             var post = await _context.Posts
                 .Include(p => p.PostImages)
                 .FirstOrDefaultAsync(p => p.PostId == postId);
 
-            if (post == null)
-                return NotFound();
+            if (post == null) return NotFound();
+            if (post.UserId != userId) return Forbid();
 
-            if (post.UserId != userId)
-                return Forbid();
-
-            // only allow editing before the post is approved
-            if (post.PostStatusId != PostStatusHelper.Pending && post.PostStatusId != PostStatusHelper.Rejected)
-            {
+            if (post.PostStatusId != PostStatusHelper.Pending &&
+                post.PostStatusId != PostStatusHelper.Rejected)
                 return BadRequest("Không thể chỉnh sửa bài đăng đã được duyệt hoặc đã đóng");
-            }
 
-            // Cập nhật thông tin cơ bản
             post.Title = dto.Title;
             post.Description = dto.Description;
             post.Price = dto.Price;
@@ -346,42 +283,22 @@ namespace ChoRe.Controllers
             post.MinPrice = dto.MinPrice;
             post.MaxPrice = dto.MaxPrice;
 
-            // Xử lý hình ảnh nếu có
             if (dto.Images != null)
             {
-                // Xóa tất cả hình ảnh hiện tại
-                foreach (var postImage in post.PostImages.ToList())
+                foreach (var img in post.PostImages.ToList())
                 {
-                    // Xóa file vật lý
-                    var filePath = Path.Combine(_env.WebRootPath, "uploads", postImage.PostImage1);
-                    if (System.IO.File.Exists(filePath))
-                    {
-                        System.IO.File.Delete(filePath);
-                    }
+                    var path = Path.Combine(_env.WebRootPath, "uploads", img.PostImage1);
+                    if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
                 }
                 _context.PostImages.RemoveRange(post.PostImages);
 
-                // Thêm lại tất cả hình ảnh mới
                 foreach (var image in dto.Images)
-                {
-                    _context.PostImages.Add(new PostImage
-                    {
-                        PostId = post.PostId, // Explicitly set PostId
-                        PostImage1 = image
-                    });
-                }
-
-                Console.WriteLine($"Updated images for post {postId}: {string.Join(", ", dto.Images)}");
+                    _context.PostImages.Add(new PostImage { PostId = post.PostId, PostImage1 = image });
             }
 
             await _context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                message = "Cập nhật thành công"
-            });
+            return Ok(new { message = "Cập nhật thành công" });
         }
-
 
         // ── GET /api/profile/{userId}/ratings ───────────────────────────────────
         [HttpGet("{userId:int}/ratings", Order = 1)]
@@ -390,9 +307,9 @@ namespace ChoRe.Controllers
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
         {
-            var query = _context.Ratings
-                .Where(r => r.ToUserId == userId)
-                .Include(r => r.FromUser);
+            var query = _context.Reviews
+                .Where(r => r.SellerId == userId)
+                .Include(r => r.Reviewer);
 
             var total = await query.CountAsync();
             var items = await query
@@ -401,20 +318,20 @@ namespace ChoRe.Controllers
                 .Take(pageSize)
                 .Select(r => new RatingDto
                 {
-                    RatingId = r.RatingId,
-                    Stars = r.Star,
+                    RatingId = r.ReviewId,
+                    Stars = r.Rating,
                     Comment = r.Comment,
                     CreateAt = r.CreatedAt,
-                    RaterUserId = r.FromUser.UserId,
-                    RaterFullName = r.FromUser.FullName,
-                    RaterAvatar = r.FromUser.Avatar,
+                    RaterUserId = r.Reviewer!.UserId,
+                    RaterFullName = r.Reviewer.FullName,
+                    RaterAvatar = r.Reviewer.Avatar,
                 })
                 .ToListAsync();
 
             return Ok(new PagedDto<RatingDto>(items, total, page, pageSize));
         }
 
-        // ── GET /api/profile/{userId}/comments ────────────────────────────────────
+        // ── GET /api/profile/{userId}/comments ──────────────────────────────────
         [HttpGet("{userId:int}/comments", Order = 1)]
         public async Task<IActionResult> GetComments(
             int userId,
@@ -429,8 +346,6 @@ namespace ChoRe.Controllers
                     .Include(c => c.User);
 
                 var total = await query.CountAsync();
-                Console.WriteLine($"Total comments for user {userId}: {total}");
-
                 var items = await query
                     .OrderByDescending(c => c.CreateAt)
                     .Skip((page - 1) * pageSize)
@@ -443,27 +358,27 @@ namespace ChoRe.Controllers
                         Post = new PostInfoDto
                         {
                             PostId = c.Post.PostId,
-                            Title = c.Post.Title
+                            Title = c.Post.Title,
                         },
                         User = new UserInfoDto
                         {
                             UserId = c.User.UserId,
                             FullName = c.User.FullName,
-                            Avatar = c.User.Avatar
-                        }
+                            Avatar = c.User.Avatar,
+                        },
                     })
                     .ToListAsync();
 
-                Console.WriteLine($"Fetched {items.Count} comments for page {page}");
-                
                 return Ok(new PagedDto<CommentDto>(items, total, page, pageSize));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error fetching comments for user {userId}: {ex.Message}");
+                Console.WriteLine($"GetComments error for user {userId}: {ex.Message}");
                 return StatusCode(500, new { error = ex.Message });
             }
         }
+
+        // ── DELETE /api/comments/{id} ────────────────────────────────────────────
         [HttpDelete("/api/comments/{id}")]
         public async Task<IActionResult> DeleteComment(int id)
         {
@@ -472,21 +387,18 @@ namespace ChoRe.Controllers
 
             _context.Comments.Remove(comment);
             await _context.SaveChangesAsync();
-
             return Ok();
         }
 
-        // ── POST /api/profile/me/change-password ────────────────────────────────
+        // ── POST /api/profile/me/change-password ─────────────────────────────────
         [HttpPost("me/change-password")]
-        [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {
             var userId = GetCurrentUserIdRequired();
             var user = await _context.Users.FindAsync(userId);
             if (user == null) return NotFound();
 
-            var oldHash = HashPassword(dto.OldPassword);
-            if (user.PasswordHash != oldHash)
+            if (user.PasswordHash != HashPassword(dto.OldPassword))
                 return BadRequest("Mật khẩu hiện tại không đúng");
 
             if (dto.NewPassword.Length < 6)
@@ -497,18 +409,17 @@ namespace ChoRe.Controllers
             return Ok(new { message = "Đổi mật khẩu thành công" });
         }
 
-        // ── Helpers ─────────────────────────────────────────────────────────────
-        private string HashPassword(string password)
+        // ── Helpers ──────────────────────────────────────────────────────────────
+        private static string HashPassword(string password)
         {
-            using var sha256 = SHA256.Create();
-            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+            using var sha = SHA256.Create();
+            var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
             return Convert.ToBase64String(bytes);
         }
 
         private int? GetCurrentUserId()
         {
             var c = User.FindFirstValue("UserId");
-            Console.WriteLine($"Current user ID from claims: {c}");
             return c != null ? int.Parse(c) : null;
         }
 

@@ -80,6 +80,7 @@ builder.Services.AddScoped<IReminderStrategy, TransactionNotificationStrategy>()
 builder.Services.AddScoped<IReminderStrategy, SubscriptionExpireStrategy>();
 builder.Services.AddScoped<IReminderStrategy, SubscriptionNotificationStrategy>();
 builder.Services.AddScoped<IReminderStrategy, DisputeNotificationStrategy>();
+builder.Services.AddScoped<IReminderStrategy, PostNotificationStrategy>();
 builder.Services.AddScoped<IReminderStrategy, ReviewReminderStrategy>();
 
 builder.Services.AddHostedService<ReminderEngineService>();

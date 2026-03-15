@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  background-color: whitesmoke;
 }
 
 .layout-content {
@@ -13,4 +14,5 @@
 /* tránh scroll ngang mobile */
 body {
   overflow-x: hidden;
+  background-color: whitesmoke;
 }

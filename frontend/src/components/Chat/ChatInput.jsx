@@ -39,12 +39,12 @@ export function ChatInput({ connectionRef, conversationId, post, buyerId }) {
             },
         }).then(async (result) => {
             if (result.isConfirmed) {
-                // const canCreate = await connectionRef.current.invoke(
-                //     "CheckExistingTransaction",
-                //     Number(conversationId)
-                // );
+                const canCreate = await connectionRef.current.invoke(
+                    "CheckExistingTransaction",
+                    Number(conversationId)
+                );
 
-                // if (!canCreate) return;
+                if (!canCreate) return;
 
                 if (currentUser.userId == updatePost.userId) {
                     setIsOpenConfirmPrice(true);

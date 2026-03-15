@@ -248,6 +248,10 @@ namespace ChoRe.Data
             modelBuilder.Entity<Post>()
                 .HasIndex(p => new { p.PostStatusId, p.CreatedAt })
                 .HasDatabaseName("IX_Posts_Status_Created");
+            // Tìm Mã Đơn của bài đăng cần thanh toán
+            modelBuilder.Entity<Post>()
+            .HasIndex(p=>p.PostOrderCode)
+            .HasDatabaseName("IX_Post_OrderCode");
 
             // --- ESCROW TRANSACTION INDEXES ---
             // Tìm tất cả giao dịch user đã mua
@@ -269,6 +273,10 @@ namespace ChoRe.Data
             modelBuilder.Entity<EscrowTransation>()
                 .HasIndex(t => t.PostId)
                 .HasDatabaseName("IX_EscrowTransations_PostId");
+            // Tìm Mã Đơn của 1 giao dịch cụ thể
+            modelBuilder.Entity<EscrowTransation>()
+            .HasIndex(t => t.TransactionOrderCode)
+            .HasDatabaseName("IX_EscrowTransations_OrderCode");
 
             // --- RATING INDEXES ---
             // Tìm tất cả rating user đã cho
@@ -317,6 +325,10 @@ namespace ChoRe.Data
             modelBuilder.Entity<UserSubscription>()
                 .HasIndex(us => us.IsActive)
                 .HasDatabaseName("IX_UserSubscriptions_IsActive");
+            // Tìm Mã đơn theo gói
+            modelBuilder.Entity<SubscriptionOrder>()
+            .HasIndex(s => s.OrderCode)
+            .HasDatabaseName("IX_SubscriptionOrder_OrderCode");
         }
 
         /// <summary>

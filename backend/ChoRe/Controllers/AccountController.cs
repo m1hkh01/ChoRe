@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using ChoRe.Models;
 using ChoRe.Dto;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 [ApiController]
 [Route("/account")]
@@ -112,11 +113,11 @@ public class AccountController : ControllerBase
         };
 
         // Set refresh token as HttpOnly cookie
-        Response.Cookies.Append("refreshToken", auth.RefreshToken, new Microsoft.AspNetCore.Http.CookieOptions
+        Response.Cookies.Append("refreshToken", auth.RefreshToken, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None,
+            Secure = true,  
+            SameSite = SameSiteMode.None,
             Expires = DateTime.UtcNow.AddDays(7)
         });
 
@@ -129,23 +130,28 @@ public class AccountController : ControllerBase
         try
         {
             var refreshTokenFromCookie = Request.Cookies["refreshToken"];
+
             if (string.IsNullOrEmpty(refreshTokenFromCookie))
             {
                 return Unauthorized(new { message = "Refresh token không tồn tại" });
             }
+            refreshTokenFromCookie = WebUtility.UrlDecode(refreshTokenFromCookie);
+
+            // Fix dấu +
+            refreshTokenFromCookie = refreshTokenFromCookie.Replace(" ", "+");
 
             var auth = await _service.RefreshToken(refreshTokenFromCookie);
             if (auth == null)
             {
-                return Unauthorized(new { message = "Refresh token không hợp lệ hoặc đã hết hạn" });
+                return Unauthorized(new { message = "Refresh token không hợp lệ hoặc đã hết hạn" + refreshTokenFromCookie });
             }
 
             // Set new refresh token as HttpOnly cookie
-            Response.Cookies.Append("refreshToken", auth.RefreshToken, new Microsoft.AspNetCore.Http.CookieOptions
+            Response.Cookies.Append("refreshToken", auth.RefreshToken, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(7)
             });
 
@@ -165,8 +171,12 @@ public class AccountController : ControllerBase
             var refreshTokenFromCookie = Request.Cookies["refreshToken"];
             if (string.IsNullOrEmpty(refreshTokenFromCookie))
             {
-                return NotFound(new { message = "Refresh token không tồn tại" });
+                return Unauthorized(new { message = "Refresh token không tồn tại" });
             }
+            refreshTokenFromCookie = WebUtility.UrlDecode(refreshTokenFromCookie);
+
+            // Fix dấu +
+            refreshTokenFromCookie = refreshTokenFromCookie.Replace(" ", "+");
 
             var revoked = await _service.RevokeRefreshToken(refreshTokenFromCookie, HttpContext.Connection.RemoteIpAddress?.ToString());
             if (!revoked) return NotFound(new { message = "Token không tồn tại hoặc đã bị thu hồi" });

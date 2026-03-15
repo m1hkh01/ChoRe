@@ -116,6 +116,10 @@ function FavoriteItem({ post, onRemove }) {
                         : "/no-image.png"
                 }
                 className="favorite-image"
+                onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = `http://localhost:5121/uploads/${post.thumbnail}`;
+                        }}
             />
 
             {/* INFO */}

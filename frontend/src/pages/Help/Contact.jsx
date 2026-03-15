@@ -13,17 +13,17 @@ function Contact() {
 
                 <div style={styles.row}>
                     <span style={styles.label}>Email:</span>
-                    <span style={styles.value}>support@gmail.com</span>
+                    <span style={styles.value}>ng.minhkhoi2912@gmail.com</span>
                 </div>
 
                 <div style={styles.row}>
                     <span style={styles.label}>Điện thoại:</span>
-                    <span style={styles.value}>1900 xxxx</span>
+                    <span style={styles.value}>0836 044 008</span>
                 </div>
 
                 <div style={styles.row}>
                     <span style={styles.label}>Địa chỉ:</span>
-                    <span style={styles.value}>Biên Hòa, Đồng Nai, Việt Nam</span>
+                    <span style={styles.value}>Phường Tân Triều, Tỉnh Đồng Nai, Việt Nam</span>
                 </div>
 
                 <div style={styles.row}>

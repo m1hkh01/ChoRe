@@ -1,242 +1,153 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMapMarkerAlt, faUser, faHeart } from "@fortawesome/free-solid-svg-icons";
-import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
-import { useAuthStore } from "@/store/auth";
-import { useState, useEffect } from "react";
+import { faMapMarkerAlt, faUser, faEye, faHeart } from "@fortawesome/free-solid-svg-icons";
+import { faHeart as faHeartOutline } from "@fortawesome/free-regular-svg-icons";
+
 import "./PostCard.css";
 import api from "../../api";
+import { useAuthStore } from "@/store/auth";
 import { Toast } from "../../utils/toast";
-import { faEye } from "@fortawesome/free-solid-svg-icons";
 
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const STATUS_LABEL = {
-    1: "Chờ duyệt",
-    2: "Đã duyệt",
-    3: "Bị từ chối",
-    4: "Đang bán",
-    5: "Đã bán",
-    6: "Đã ẩn"
+  1: { label: "Chờ duyệt",  cls: "pending"  },
+  2: { label: "Đã duyệt",   cls: "approved" },
+  3: { label: "Từ chối",    cls: "rejected" },
+  4: { label: "Đang bán",   cls: "selling"  },
+  5: { label: "Đã bán",     cls: "sold"     },
+  6: { label: "Đã ẩn",      cls: "hidden"   },
 };
 
-function PostCard({ post }) {
+const IMG_BASE  = "https://api.chore123.cloud/uploads/";
+const IMG_LOCAL = "http://localhost:5121/uploads/";
 
-    const { user } = useAuthStore();
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-    const postId = post.postId;
-
-    const [isFavorite, setIsFavorite] = useState(false);
-
-    // ✅ Load trạng thái favorite khi component mount
-    useEffect(() => {
-
-        if (!user) {
-            setIsFavorite(false);
-            return;
-        }
-
-        //const favorites =
-        // JSON.parse(localStorage.getItem(`favorites_${user.userId}`)) || [];
-
-        const exists = post.isSaved || false;
-        console.log(`Post ${postId} isSaved:`, post);
-        setIsFavorite(exists);
-
-    }, [postId, user]);
-
-
-    const renderPrice = () => {
-
-        switch (post.priceType) {
-
-            case "NEGOTIABLE":
-                return <span className="price-text price-negotiable">Thương lượng</span>;
-
-            case "FIXED":
-                return (
-                    <span className="price-text price-fixed">
-                        {post.price
-                            ? post.price.toLocaleString("vi-VN") + " ₫"
-                            : "Liên hệ"}
-                    </span>
-                );
-
-            case "RANGE":
-                return (
-                    <span className="price-text price-range">
-                        {post.minPrice?.toLocaleString("vi-VN")} -{" "}
-                        {post.maxPrice?.toLocaleString("vi-VN")} ₫
-                    </span>
-                );
-
-            default:
-                return <span className="price-text price-contact">Liên hệ</span>;
-        }
-
-    };
-
-
-    // ❤️ CLICK FAVORITE
-    const handleFavoriteClick = async (e) => {
-        if (!user) {
-            alert("Vui lòng đăng nhập để thêm yêu thích");
-            return;
-        }
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        let favorites =
-            JSON.parse(localStorage.getItem(`favorites_${user.userId}`)) || [];
-
-        const exists = favorites.includes(postId);
-        if (isFavorite) {
-            try {
-                const res = await api.delete(`api/save-posts/${postId}`);
-                Toast.fire({
-                    icon: "success",
-                    title: res.data?.message || "Đã xóa khỏi yêu thích!"
-                });
-                setIsFavorite(false);
-                favorites = favorites.filter(id => id !== postId);
-            } catch (error) {
-                console.error("Error removing favorite:", error);
-                Toast.fire({
-                    icon: "error",
-                    title: "Lỗi khi xóa khỏi yêu thích!"
-                });
-                return;
-            }
-        } else {
-            try {
-                const res = await api.post("api/save-posts", { PostId: postId });
-                Toast.fire({
-                    icon: "success",
-                    title: res.data?.message || "Đã thêm vào yêu thích!"
-                });
-                favorites.unshift(postId);
-                setIsFavorite(true);
-            } catch (error) {
-                console.error("Error adding favorite:", error);
-                Toast.fire({
-                    icon: "error",
-                    title: "Lỗi khi thêm vào yêu thích!"
-                });
-                return;
-            }
-        }
-
-        localStorage.setItem(
-            `favorites_${user.userId}`,
-            JSON.stringify(favorites)
-        );
-
-        window.dispatchEvent(new Event("favoritesUpdated"));
-    };
-
-
-    return (
-
-        <div className="post-card-container">
-
-            <Link to={`/posts/${post.postId}`} className="post-card">
-
-                {/* IMAGE */}
-                <div className="post-card-image-wrapper">
-
-                    <img
-                        src={
-                            post.thumbnail
-                                ? `https://api.chore123.cloud/uploads/${post.thumbnail}`
-                                : "/no-image.png"
-                        }
-                        alt={post.title}
-                        className="post-card-image"
-                        loading="lazy"
-                    />
-
-                    {/* STATUS */}
-                    {post.postStatusId && (
-
-                        <span className={`post-status status-${post.postStatusId}`}>
-
-                            {STATUS_LABEL[post.postStatusId]}
-
-                        </span>
-
-                    )}
-
-                    {/* FAVORITE */}
-                    <button
-                        onClick={handleFavoriteClick}
-                        className="favorite-btn"
-                    >
-
-                        <FontAwesomeIcon
-                            icon={isFavorite ? faHeart : faHeartRegular}
-                            className={isFavorite ? "favorite-active" : ""}
-                        />
-
-                    </button>
-
-                </div>
-
-
-                {/* BODY */}
-                <div className="post-card-body">
-
-                    <h3 className="post-title">{post.title}</h3>
-
-                    <div className="post-price">
-                        {renderPrice()}
-                    </div>
-
-                    {post.shortDescription && (
-
-                        <p
-                            className="post-description"
-                            dangerouslySetInnerHTML={{
-                                __html: post.shortDescription,
-                            }}
-                        />
-
-                    )}
-
-                    <div className="post-footer">
-
-                        {post.address && (
-                            <div className="post-info">
-                                <FontAwesomeIcon icon={faMapMarkerAlt} />
-                                <span>{post.address}</span>
-                            </div>
-                        )}
-
-                        <div className="post-bottom">
-
-                            {post.userName && (
-                                <div className="post-info">
-                                    <FontAwesomeIcon icon={faUser} />
-                                    <span>{post.userName}</span>
-                                </div>
-                            )}
-
-                            <div className="post-info">
-                                <FontAwesomeIcon icon={faEye} />
-                                <span>{post.viewCount || 0}</span>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </Link>
-
-        </div>
-
-    );
-
+function renderPrice(post) {
+  switch (post.priceType) {
+    case "FIXED":
+      return (
+        <span className="pc-price pc-price--fixed">
+          {post.price ? post.price.toLocaleString("vi-VN") + " ₫" : "Liên hệ"}
+        </span>
+      );
+    case "RANGE":
+      return (
+        <span className="pc-price pc-price--range">
+          {post.minPrice?.toLocaleString("vi-VN")} – {post.maxPrice?.toLocaleString("vi-VN")} ₫
+        </span>
+      );
+    case "NEGOTIABLE":
+      return <span className="pc-price pc-price--negotiable">Thương lượng</span>;
+    default:
+      return <span className="pc-price pc-price--contact">Liên hệ</span>;
+  }
 }
 
-export default PostCard;
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function PostCard({ post }) {
+  const { user } = useAuthStore();
+  const [isFav, setIsFav] = useState(false);
+
+  useEffect(() => {
+    setIsFav(user ? (post.isSaved ?? false) : false);
+  }, [post.postId, user]);
+
+  const handleFavClick = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!user) {
+      alert("Vui lòng đăng nhập để thêm yêu thích");
+      return;
+    }
+
+    const key = `favorites_${user.userId}`;
+    let saved = JSON.parse(localStorage.getItem(key)) || [];
+
+    try {
+      if (isFav) {
+        const res = await api.delete(`api/save-posts/${post.postId}`);
+        Toast.fire({ icon: "success", title: res.data?.message || "Đã xóa khỏi yêu thích!" });
+        saved = saved.filter(id => id !== post.postId);
+        setIsFav(false);
+      } else {
+        const res = await api.post("api/save-posts", { PostId: post.postId });
+        Toast.fire({ icon: "success", title: res.data?.message || "Đã thêm vào yêu thích!" });
+        saved.unshift(post.postId);
+        setIsFav(true);
+      }
+      localStorage.setItem(key, JSON.stringify(saved));
+      window.dispatchEvent(new Event("favoritesUpdated"));
+    } catch {
+      Toast.fire({ icon: "error", title: isFav ? "Lỗi khi xóa yêu thích!" : "Lỗi khi thêm yêu thích!" });
+    }
+  };
+
+  const status = STATUS_LABEL[post.postStatusId];
+
+  return (
+    <Link to={`/posts/${post.postId}`} className="pc">
+
+      {/* Image */}
+      <div className="pc-img-wrap">
+        <img
+          src={`${IMG_BASE}${post.thumbnail}`}
+          alt={post.title}
+          className="pc-img"
+          loading="lazy"
+          onError={(e) => {
+            if (!e.target.dataset.fallback) {
+              e.target.dataset.fallback = "true";
+              e.target.src = `${IMG_LOCAL}${post.thumbnail}`;
+            }
+          }}
+        />
+
+        {status && (
+          <span className={`pc-status pc-status--${status.cls}`}>{status.label}</span>
+        )}
+
+        <button className={`pc-fav ${isFav ? "pc-fav--active" : ""}`} onClick={handleFavClick} aria-label="Yêu thích">
+          <FontAwesomeIcon icon={isFav ? faHeart : faHeartOutline} />
+        </button>
+      </div>
+
+      {/* Body */}
+      <div className="pc-body">
+        <h3 className="pc-title">{post.title}</h3>
+
+        <div className="pc-price-row">{renderPrice(post)}</div>
+
+        {post.shortDescription && (
+          <p className="pc-desc" dangerouslySetInnerHTML={{ __html: post.shortDescription }} />
+        )}
+
+        <div className="pc-footer">
+          {post.address && (
+            <div className="pc-meta">
+              <FontAwesomeIcon icon={faMapMarkerAlt} />
+              <span>{post.address}</span>
+            </div>
+          )}
+          <div className="pc-meta-row">
+            {post.userName && (
+              <div className="pc-meta">
+                <FontAwesomeIcon icon={faUser} />
+                <span>{post.userName}</span>
+              </div>
+            )}
+            <div className="pc-meta">
+              <FontAwesomeIcon icon={faEye} />
+              <span>{post.viewCount ?? 0}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </Link>
+  );
+}

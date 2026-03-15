@@ -210,7 +210,7 @@ namespace ChoRe.Controllers
             if (usage == null)
                 return BadRequest("Bạn chưa có gói đăng tin!");
             if (usage.RemainingSubPost <= 0)
-                return BadRequest("Bạn đã hết lượt đăng tin!");
+                return BadRequest("Bạn đã hết lượt đăng tin trong tháng!");
 
             /* ===================== 4️⃣ CHECK TRẠNG THÁI THIẾT BỊ ===================== */
             var validDeviceStatus = new[] { "NEW", "LIKE_NEW", "GOOD", "USED", "BROKEN" };
@@ -297,6 +297,16 @@ namespace ChoRe.Controllers
                 CreatedAt = DateTime.Now
             };
 
+            // Check lượt đăng tin miễn phí
+            if(usage.RemainingFreePost == 0)
+            {
+                var datePart = DateTime.Now.ToString("yyyyMMddHHmmss");
+                var randomPart = Guid.NewGuid().ToString("N")[..4].ToUpper();
+                var orderCode = $"POST{post.UserId}E{datePart}{randomPart}";
+
+                post.PostOrderCode = orderCode;
+            }
+
             _context.Posts.Add(post);
 
             /* ===================== 8️⃣ LƯU CATEGORY ===================== */
@@ -336,8 +346,12 @@ namespace ChoRe.Controllers
                 }
             }
 
-            /* ===================== 1️⃣1️⃣ TRỪ LƯỢT ĐĂNG TIN ===================== */
+            /* ===================== 1️⃣1️⃣ TRỪ LƯỢT ĐĂNG TIN && LƯỢT MIỄN PHÍ ĐĂNG TIN ===================== */
             usage.RemainingSubPost -= 1;
+            if(usage.RemainingFreePost > 0)
+            {
+                usage.RemainingFreePost -= 1;
+            }
             await _context.SaveChangesAsync();
 
             /* ===================== 1️⃣2️⃣ RESPONSE ===================== */
@@ -560,6 +574,70 @@ namespace ChoRe.Controllers
         //        return BadRequest(new { Error = "Có lỗi xảy ra khi từ chối tin tin: ", err.Message });
         //    }
         //}
+        [HttpGet("check-free-post/{id:int}")]
+        public async Task<IActionResult> CheckFreePost(int id)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            if (id != userId)
+            {
+                return Forbid("Bạn không thể xem lượt đăng tin của người khác");
+            }
+            var usage = await _context.UserSubUsages.FirstOrDefaultAsync(u => u.UserId == userId);
+            if (usage is null)
+            {
+                return NotFound("Không tìm thấy người dùng");
+            }
+            return Ok(new { FreePost = usage.RemainingFreePost, SubPost = usage.RemainingSubPost });
 
+        }
+
+        [HttpGet("pay/{id:int}")]
+        public async Task<IActionResult> GetPayPost(int id)
+        {
+            try
+            {
+                var post = await _context.Posts.FindAsync(id);
+                if (post is null)
+                {
+                    return NotFound("Không tìm thấy bài đăng");
+                }
+                if(post.PostOrderCode is null)
+                {
+                    return BadRequest("Bài đăng này không cần thanh toán");
+                }
+                return Ok(new { postId = post.PostId, orderCode = post.PostOrderCode , postTitle = post.Title});
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Có lỗi xảy ra khi tìm bài đăng cần thanh toán: " + e.Message);
+                return BadRequest("Có lỗi xảy ra khi tìm bài đăng cần thanh toán: " + e.Message);
+            }
+        }
+
+        [HttpPost("pay/{id:int}")]
+        public async Task<IActionResult> PayPost(int id)    {
+            try
+            {
+                var post = await _context.Posts.FindAsync(id);
+                if (post is null)
+                {
+                    return NotFound("Không tìm thấy bài đăng");
+                }
+                if (post.PostStatusId == 2)
+                {
+                    return Ok(new { Success = post.PaymentMessage ?? "Đã thanh toán thành công" });
+                }
+                else
+                {
+                    return Ok(new { Error = post.PaymentMessage 
+                        ?? "Thanh toán chưa thành công vui lòng kiểm tra lại số tiền và nội dung chuyển khoản" });
+                }
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine("Có lỗi xảy ra khi thanh toán: " + e.Message);
+                return BadRequest("Có lỗi xảy ra khi thanh toán: " + e.Message);
+            }
+        }
     }
 }

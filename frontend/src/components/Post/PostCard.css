@@ -1,397 +1,212 @@
-/* Post Card Container */
-.post-card-container {
-    width: 100%;
-    max-width: 280px;
-    margin: 0 auto;
-    padding: 8px;
-}
-.post-status {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    padding: 5px 10px;
-    font-size: 12px;
-    font-weight: 600;
-    border-radius: 8px;
-    color: white;
-    background: black;
-    z-index: 5;
+/* ── Variables ───────────────────────────────────────────────────────────── */
+:root {
+  --pc-radius:  14px;
+  --pc-border:  #e5e7eb;
+  --pc-shadow:  0 1px 4px rgba(0,0,0,0.07);
+  --pc-ink:     #111827;
+  --pc-muted:   #6b7280;
+  --pc-soft:    #9ca3af;
+  --pc-surface: #f9fafb;
 }
 
-/* Approved */
-.post-approved {
-    background: #22c55e;
+/* ── Card ────────────────────────────────────────────────────────────────── */
+.pc {
+  display:         flex;
+  flex-direction:  column;
+  width:           100%;
+  background:      #fff;
+  border-radius:   var(--pc-radius);
+  border:          1px solid var(--pc-border);
+  box-shadow:      var(--pc-shadow);
+  text-decoration: none;
+  color:           inherit;
+  overflow:        hidden;
+  transition:      box-shadow 0.2s, transform 0.2s;
 }
 
-/* Pending */
-.post-pending {
-    background: #f59e0b;
+.pc:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+  transform:  translateY(-2px);
 }
 
-/* Rejected */
-.post-rejected {
-    background: #ef4444;
+.pc:focus-visible {
+  outline:        2px solid #22c55e;
+  outline-offset: 2px;
 }
 
-/* Sold */
-.post-sold {
-    background: #6b7280;
-}
-.post-card-image-wrapper {
-    position: relative;
-}
-
-.post-card {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 420px;
-    background: #ffffff;
-    border-radius: 16px;
-    overflow: hidden;
-    text-decoration: none;
-    color: inherit;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+/* ── Image ───────────────────────────────────────────────────────────────── */
+.pc-img-wrap {
+  position:   relative;
+  width:      100%;
+  aspect-ratio: 4 / 3;
+  background: var(--pc-surface);
+  overflow:   hidden;
+  flex-shrink: 0;
 }
 
-/* Image Section */
-.post-card-image-wrapper {
-    position: relative;
-    width: 100%;
-    height: 200px;
-    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-    overflow: hidden;
-    flex-shrink: 0;
+.pc-img {
+  width:      100%;
+  height:     100%;
+  object-fit: contain;
+  display:    block;
+  transition: transform 0.3s ease;
 }
 
-.post-card-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    background: #ffffff;
+.pc:hover .pc-img { transform: scale(1.03); }
+
+/* ── Status badge ────────────────────────────────────────────────────────── */
+.pc-status {
+  position:      absolute;
+  top:           8px;
+  left:          8px;
+  padding:       3px 9px;
+  font-size:     11px;
+  font-weight:   700;
+  border-radius: 6px;
+  color:         #fff;
+  z-index:       5;
+  letter-spacing: 0.02em;
 }
 
-/* Favorite Button */
-.favorite-btn {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 36px;
-    height: 36px;
-    border: none;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    z-index: 10;
+.pc-status--pending  { background: #f59e0b; }
+.pc-status--approved { background: #22c55e; }
+.pc-status--rejected { background: #ef4444; }
+.pc-status--selling  { background: #3b82f6; }
+.pc-status--sold     { background: #6b7280; }
+.pc-status--hidden   { background: #374151; }
+
+/* ── Favourite button ────────────────────────────────────────────────────── */
+.pc-fav {
+  position:        absolute;
+  top:             8px;
+  right:           8px;
+  width:           34px;
+  height:          34px;
+  background:      rgba(255,255,255,0.92);
+  border:          none;
+  border-radius:   50%;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  cursor:          pointer;
+  box-shadow:      0 2px 8px rgba(0,0,0,0.12);
+  z-index:         10;
+  transition:      background 0.2s, transform 0.15s;
+  font-size:       15px;
+  color:           var(--pc-soft);
 }
 
-.favorite-btn svg {
-    font-size: 16px;
-    color: #6b7280;
+.pc-fav:hover       { background: #fff; transform: scale(1.1); }
+.pc-fav--active     { color: #ef4444; }
+
+/* ── Body ────────────────────────────────────────────────────────────────── */
+.pc-body {
+  display:        flex;
+  flex-direction: column;
+  flex:           1;
+  padding:        12px 12px 10px;
+  gap:            6px;
+  min-height:     0;
 }
 
-.favorite-btn .favorite-active {
-    color: #ef4444;
+/* ── Title ───────────────────────────────────────────────────────────────── */
+.pc-title {
+  font-size:          14px;
+  font-weight:        600;
+  color:              var(--pc-ink);
+  line-height:        1.4;
+  margin:             0;
+  display:            -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow:           hidden;
 }
 
-/* Content Section */
-.post-card-body {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 220px;
-    padding: 16px;
-    gap: 10px;
-    flex-shrink: 0;
+/* ── Price ───────────────────────────────────────────────────────────────── */
+.pc-price-row { display: flex; align-items: center; }
+
+.pc-price {
+  font-size:   16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-/* Title */
-.post-title {
-    width: 100%;
-    height: 42px;
-    font-size: 15px;
-    font-weight: 600;
-    color: #111827;
-    line-height: 1.4;
-    margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;  
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    flex-shrink: 0;
+.pc-price--fixed,
+.pc-price--range      { color: #dc2626; }
+.pc-price--negotiable { color: #f59e0b; }
+.pc-price--contact    { color: var(--pc-muted); font-size: 14px; }
+
+/* ── Description ─────────────────────────────────────────────────────────── */
+.pc-desc {
+  font-size:          12px;
+  color:              var(--pc-muted);
+  line-height:        1.5;
+  margin:             0;
+  display:            -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow:           hidden;
 }
 
-/* Price */
-.post-price {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    height: 24px;
-    flex-shrink: 0;
+/* Strip inner element styles from rich text */
+.pc-desc * {
+  margin:      0 !important;
+  padding:     0 !important;
+  font-size:   inherit !important;
+  color:       inherit !important;
+  line-height: inherit !important;
 }
 
-.price-text {
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.pc-footer {
+  display:        flex;
+  flex-direction: column;
+  gap:            4px;
+  margin-top:     auto;
+  padding-top:    8px;
+  border-top:     1px solid #f3f4f6;
 }
 
-.price-fixed,
-.price-range {
-    color: #dc2626;
+.pc-meta-row {
+  display:     flex;
+  align-items: center;
+  gap:         12px;
 }
 
-.price-negotiable {
-    color: #f59e0b;
+.pc-meta {
+  display:     flex;
+  align-items: center;
+  gap:         5px;
+  font-size:   11px;
+  color:       var(--pc-muted);
+  min-width:   0;
 }
 
-.price-contact {
-    color: #6b7280;
-    font-size: 16px;
+.pc-meta svg {
+  font-size:   11px;
+  color:       var(--pc-soft);
+  flex-shrink: 0;
 }
 
-/* Description */
-.post-description {
-    width: 100%;
-    height: 39px;
-    font-size: 13px;
-    color: #6b7280;
-    line-height: 1.5;
-    margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;  
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    flex-shrink: 0;
+.pc-meta span {
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
 }
 
-.post-description * {
-    margin: 0 !important;
-    padding: 0 !important;
-    font-size: inherit !important;
-    color: inherit !important;
-    line-height: inherit !important;
-}
-
-/* Footer */
-.post-footer {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-    height: 68px;
-    padding-top: 12px;
-    border-top: 1px solid #f3f4f6;
-    flex-shrink: 0;
-}
-
-.post-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    height: 20px;
-    font-size: 12px;
-    color: #6b7280;
-}
-
-.post-info svg {
-    font-size: 12px;
-    color: #9ca3af;
-    flex-shrink: 0;
-}
-
-.post-info span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-    .post-card-container {
-        max-width: 260px;
-        padding: 6px;
-    }
-
-    .post-card {
-        height: 400px;
-    }
-
-    .post-card-image-wrapper {
-        height: 180px;
-    }
-
-    .post-card-body {
-        height: 220px;
-        padding: 14px;
-        gap: 8px;
-    }
-
-    .post-title {
-        height: 40px;
-        font-size: 14px;
-    }
-
-    .price-text {
-        font-size: 16px;
-    }
-
-    .post-description {
-        height: 36px;
-        font-size: 12px;
-    }
-
-    .post-footer {
-        height: 64px;
-    }
-}
-
-@media (max-width: 768px) {
-    .post-card-container {
-        max-width: 240px;
-        padding: 5px;
-    }
-
-    .post-card {
-        height: 380px;
-        border-radius: 12px;
-    }
-
-    .post-card-image-wrapper {
-        height: 160px;
-    }
-
-    .favorite-btn {
-        width: 32px;
-        height: 32px;
-        top: 10px;
-        right: 10px;
-    }
-
-    .favorite-btn svg {
-        font-size: 14px;
-    }
-
-    .post-card-body {
-        height: 220px;
-        padding: 12px;
-        gap: 8px;
-    }
-
-    .post-title {
-        height: 36px;
-        font-size: 13px;
-    }
-
-    .price-text {
-        height: 22px;
-        font-size: 15px;
-    }
-
-    .post-description {
-        height: 17px;
-        font-size: 11px;
-        -webkit-line-clamp: 1;
-        line-clamp: 2;  
-    }
-
-    .post-info {
-        height: 18px;
-        font-size: 11px;
-        gap: 6px;
-    }
-
-    .post-info svg {
-        font-size: 11px;
-    }
-
-    .post-footer {
-        height: 60px;
-    }
-}
-
+/* ── Mobile ──────────────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
-    .post-card-container {
-        max-width: 220px;
-        padding: 4px;
-    }
+  .pc { border-radius: 10px; }
 
-    .post-card {
-        height: 360px;
-        border-radius: 10px;
-    }
+  .pc-body { padding: 10px 10px 8px; gap: 5px; }
 
-    .post-card-image-wrapper {
-        height: 150px;
-    }
+  .pc-title { font-size: 13px; }
 
-    .post-card-body {
-        height: 210px;
-        padding: 10px;
-        gap: 6px;
-    }
+  .pc-price { font-size: 14px; }
 
-    .post-title {
-        height: 32px;
-        font-size: 12px;
-    }
+  .pc-desc  { font-size: 11px; -webkit-line-clamp: 1; }
 
-    .price-text {
-        height: 20px;
-        font-size: 14px;
-    }
+  .pc-fav   { width: 30px; height: 30px; font-size: 13px; }
 
-    .post-footer {
-        height: 56px;
-        padding-top: 8px;
-        gap: 6px;
-    }
-
-    .post-info {
-        height: 16px;
-    }
-}
-
-/* Focus States for Keyboard Navigation */
-.post-card:focus-visible {
-    outline: 2px solid #22c55e;
-    outline-offset: 2px;
-}
-
-.favorite-btn:focus-visible {
-    outline: 2px solid #22c55e;
-    outline-offset: 2px;
-}
-/* Disable Hover */
-.post-card:hover,
-.favorite-btn:hover {
-    transform: none !important;
-    box-shadow: none !important;
-}
-
-.post-card,
-.post-card * {
-    transition: none !important;
-}
-.post-bottom{
-    display:flex;
-    align-items:center;
-    gap:15px;
-    margin-top:4px;
-}
-
-.post-info{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    font-size:13px;
-    color:#666;
+  .pc-meta  { font-size: 10px; }
 }

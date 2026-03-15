@@ -9,13 +9,11 @@ import SwitchItem from "./PayComponents/SwitchItem";
 import TransferRow from "./PayComponents/TransferRow";
 // import { icon, text } from "@fortawesome/fontawesome-svg-core";
 
-function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
-    console.log("Package: ", pkg);
-    console.log("Order Code: ", orderCode);
+function Pay({ transaction, pkg, orderCode, post, onClose, paymentType }) {
     const totalAmount =
         paymentType === "Transaction"
             ? transaction.amount
-            : pkg.servicePrice || pkg.subPlanPrice;
+            : paymentType === "Post" ? 10000 : pkg.servicePrice || pkg.subPlanPrice;
 
     const qrcode = `https://qr.sepay.vn/img?acc=0379530805&bank=MB&amount=${totalAmount}&des=${orderCode}`;
 
@@ -35,7 +33,7 @@ function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
                 if (res.data.error) {
                     return;
                 }
-            } else {
+            } else if(paymentType == "Transaction") {
                 const res = await api.post("/api/transaction/pay", {
                     OrderCode: orderCode,
                     SellerId: transaction.sellerId,
@@ -43,6 +41,17 @@ function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
                     PostId: transaction.postId,
                     ChatRoomId: transaction.chatRoomId?.toString()
                 });
+                Toast.fire({
+                    icon: res.data.success ? "success" : "error",
+                    text: res.data.success
+                        ? res.data.success
+                        : res.data.error
+                });
+                if (res.data.error) {
+                    return;
+                }
+            } else{
+                const res = await api.post("/api/posts/pay",post.postId)
                 Toast.fire({
                     icon: res.data.success ? "success" : "error",
                     text: res.data.success
@@ -124,6 +133,32 @@ function Pay({ transaction, pkg, orderCode, onClose, paymentType }) {
                                         </span>
                                     </div>
                                 </>
+                            ) : paymentType === "Post" ? (
+                                    <>
+                                        <p className="text-sm text-gray-600 mb-0">
+                                            Thanh toán bài đăng
+                                        </p>
+                                        <span className="inline-block my-2 text-gray-600 py-1 text-base font-semibold">
+                                            {post.postTitle}
+                                        </span>
+
+                                        <div className="!mt-4 space-y-2 mb-0">
+                                            <PayRow
+                                                label="Mã đơn hàng"
+                                                value={orderCode}
+                                                full
+                                            />
+                                        </div>
+
+                                        <div className="border-t border-t-gray-400 mt-2 pt-4 flex justify-between items-center">
+                                            <span className="text-lg font-semibold text-gray-600">
+                                                Tổng tiền
+                                            </span>
+                                            <span className="text-2xl font-bold text-red-600">
+                                                10.000 ₫
+                                            </span>
+                                        </div>
+                                    </>
                             ) : (
                                 <>
                                     <p className="text-sm text-gray-600 mb-0">

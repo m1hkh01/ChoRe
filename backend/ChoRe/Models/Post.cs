@@ -62,6 +62,9 @@ namespace ChoRe.Models
 
         public int ViewCount { get; set; } = 0;
         public int SavedCount { get; set; } = 0;
+
+        public string? PostOrderCode { get; set; }
+        public string? PaymentMessage { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         [ForeignKey("Brand")]
@@ -83,3 +86,4 @@ namespace ChoRe.Models
         public virtual ICollection<ChatRoom> ChatRooms { get; set; }
     }
 }
+

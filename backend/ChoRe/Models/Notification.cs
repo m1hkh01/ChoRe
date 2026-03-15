@@ -21,6 +21,7 @@ public enum NotificationType
     Transaction,
     PostApproved,
     PostRejected,
+    PostNeedPayment,
     PendingPayment,
     PendingPaymentPackage,
     // PaymentReceived,

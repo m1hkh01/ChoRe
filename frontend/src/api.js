@@ -15,9 +15,15 @@ const api = axios.create({
   withCredentials: true, // Enable sending/receiving cookies
 });
 
+
 // Request interceptor: Add AccessToken from store to Authorization header
 api.interceptors.request.use(config => {
   const token = useAuthStore.getState().token;
+
+  if (!config.headers) {
+    config.headers = {};
+  }
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -25,43 +31,73 @@ api.interceptors.request.use(config => {
   return config;
 });
 
+
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+function subscribeTokenRefresh(cb) {
+  refreshSubscribers.push(cb);
+}
+
+function onRefreshed(token) {
+  refreshSubscribers.forEach(cb => cb(token));
+  refreshSubscribers = [];
+}
+
 // Response interceptor: Handle 401 + automatic refresh
 api.interceptors.response.use(
   response => response,
   async error => {
     const originalConfig = error.config;
-    // ❗ BỎ QUA refresh-token
+
     if (originalConfig.url.includes("/account/refresh-token")) {
       return Promise.reject(error);
     }
-    // If 401 and hasn't been retried yet
+
     if (error.response?.status === 401 && !originalConfig._retry) {
       originalConfig._retry = true;
 
-      try {
-        // Call refresh endpoint - it will use the refreshToken HttpOnly cookie automatically
-        const res = await api.post("/account/refresh-token");
-        const { token: newToken } = res.data;
+      if (!isRefreshing) {
+        isRefreshing = true;
 
-        // Update token in store (in memory)
-        useAuthStore.getState().setToken(newToken);
+        try {
+          const res = await api.post("/account/refresh-token");
+          const newToken = res.data.token;
 
-        // Retry original request with new token
-        originalConfig.headers.Authorization = `Bearer ${newToken}`;
-        return api(originalConfig);
-      } catch (refreshErr) {
-        console.log("Token refresh failed:", refreshErr);
+          useAuthStore.getState().setToken(newToken);
 
-        // If refresh fails, log out
-        const auth = useAuthStore.getState();
-        auth.logout();
+          isRefreshing = false;
+          onRefreshed(newToken);
 
-        if (navigateHandler) {
-          navigateHandler("/login");
-        } else {
-          window.location.href = "/login";
+        } catch (err) {
+          isRefreshing = false;
+
+          const auth = useAuthStore.getState();
+          auth.logout();
+
+          if (navigateHandler) {
+            navigateHandler("/login");
+          } else {
+            window.location.href = "/login";
+          }
+
+          return Promise.reject(err);
         }
       }
+
+      return new Promise(resolve => {
+        subscribeTokenRefresh(token => {
+          resolve(
+            api({
+              ...originalConfig,
+              headers: {
+                ...originalConfig.headers,
+                Authorization: `Bearer ${token}`
+              }
+            })
+          );
+        });
+      });
     }
 
     return Promise.reject(error);

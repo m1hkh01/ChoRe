@@ -11,6 +11,14 @@ select * from SubscriptionPlans
 
 select * from posts
 
+select * from PostStatuses
+
+select * from reviews
+
+select * from ratings
+
+select * from reportreviews
+
 select * from postcates
 
 select * from postimages

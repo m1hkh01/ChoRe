@@ -2,41 +2,54 @@ function Ds() {
     return (
         <div style={styles.container}>
 
-            <h1 style={styles.title}>Giải quyết tranh chấp</h1>
+            <h1 style={styles.title}>Chính sách giải quyết tranh chấp</h1>
 
             <p style={styles.description}>
-                Chúng tôi luôn khuyến khích người mua và người bán tự thỏa thuận để giải quyết
-                các vấn đề phát sinh trong quá trình giao dịch.
+                Khi phát sinh tranh chấp trong quá trình giao dịch, hệ thống khuyến khích
+                người mua và người bán chủ động trao đổi để tìm ra phương án giải quyết
+                phù hợp. Trong trường hợp hai bên không thể tự thống nhất, hệ thống sẽ
+                tiến hành xem xét và xử lý theo quy định.
             </p>
 
             <div style={styles.section}>
 
-                <h3 style={styles.sectionTitle}>Quy trình giải quyết tranh chấp</h3>
+                <h3 style={styles.sectionTitle}>Quy trình xử lý tranh chấp</h3>
 
-                <ul style={styles.list}>
+                <ol style={styles.list}>
 
                     <li style={styles.listItem}>
-                        Người mua liên hệ trực tiếp với người bán để trao đổi vấn đề
+                        Người mua và người bán chủ động liên hệ với nhau để trao đổi và
+                        thống nhất phương án giải quyết tranh chấp.
                     </li>
 
                     <li style={styles.listItem}>
-                        Hai bên cung cấp thông tin và bằng chứng liên quan
+                        Trong trường hợp hai bên không đạt được thỏa thuận, tranh chấp
+                        có thể được gửi đến hệ thống để được hỗ trợ xử lý.
                     </li>
 
                     <li style={styles.listItem}>
-                        Thỏa thuận phương án giải quyết phù hợp
+                        Hai bên cần cung cấp các thông tin, bằng chứng liên quan đến
+                        giao dịch (hình ảnh, tin nhắn, nội dung trao đổi,...).
                     </li>
 
                     <li style={styles.listItem}>
-                        Trong trường hợp cần thiết, hệ thống sẽ hỗ trợ xử lý
+                        Hệ thống sẽ xem xét các quy định hiện hành cùng với các bằng
+                        chứng được cung cấp để đánh giá tình huống tranh chấp.
                     </li>
 
-                </ul>
+                    <li style={styles.listItem}>
+                        Quản trị viên (Admin) sẽ là người đưa ra quyết định cuối cùng
+                        dựa trên các thông tin và bằng chứng từ hai bên.
+                    </li>
+
+                </ol>
 
             </div>
 
             <div style={styles.note}>
-                Lưu ý: Chúng tôi đóng vai trò là nền tảng trung gian kết nối người mua và người bán.
+                Lưu ý: Nền tảng đóng vai trò là hệ thống trung gian hỗ trợ kết nối và
+                giải quyết tranh chấp khi cần thiết. Người mua và người bán cần cung
+                cấp thông tin trung thực và hợp tác trong quá trình xử lý.
             </div>
 
         </div>
@@ -46,7 +59,10 @@ function Ds() {
 const styles = {
 
     container: {
-        maxWidth: "800px"
+        maxWidth: "850px",
+        margin: "0 auto",
+        padding: "24px",
+        lineHeight: "1.7"
     },
 
     title: {
@@ -63,9 +79,9 @@ const styles = {
     },
 
     section: {
-        background: "#f9f9f9",
-        padding: "20px",
-        borderRadius: "6px",
+        background: "#f9fafb",
+        padding: "22px",
+        borderRadius: "8px",
         border: "1px solid #eee",
         marginBottom: "20px"
     },
@@ -73,7 +89,7 @@ const styles = {
     sectionTitle: {
         fontSize: "18px",
         fontWeight: "600",
-        marginBottom: "10px"
+        marginBottom: "12px"
     },
 
     list: {
@@ -81,7 +97,7 @@ const styles = {
     },
 
     listItem: {
-        marginBottom: "10px",
+        marginBottom: "12px",
         fontSize: "16px",
         color: "#444"
     },

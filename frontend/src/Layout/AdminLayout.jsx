@@ -1,4 +1,4 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import "@/assets/admin.css";
 import { useAuthStore } from "../store/auth";
 import { useState } from "react";
@@ -17,9 +17,11 @@ import {
     faBars,
     faSignOutAlt
 } from "@fortawesome/free-solid-svg-icons";
+import api from "../api";
 
 function AdminLayout() {
-    const { user } = useAuthStore();
+    const { user, logout } = useAuthStore();
+    const navigate = useNavigate();
     const [expandedMenu, setExpandedMenu] = useState({
         content: false,
         users: false,
@@ -31,6 +33,11 @@ function AdminLayout() {
             ...prev,
             [menuName]: !prev[menuName]
         }));
+    };
+    const handleLogout = async () => {
+        try { await api.post("/account/revoke-token"); } catch { /* noop */ }
+        logout();
+        navigate("/");
     };
     return (
         <div className="admin-container">
@@ -135,7 +142,7 @@ function AdminLayout() {
 
                 {/* FOOTER SECTION */}
                 <div className="sidebar-footer">
-                    <button className="logout-btn" onClick={() => { }}>
+                    <button className="logout-btn" onClick={() => handleLogout()}>
                         <FontAwesomeIcon icon={faSignOutAlt} />
                         <span>Đăng xuất</span>
                     </button>

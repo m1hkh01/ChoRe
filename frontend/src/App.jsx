@@ -24,7 +24,6 @@ import Terms from "./pages/Help/Terms";
 import Contact from "./pages/Help/Contact";
 import Shipping from "./pages/Help/Helpcenter";
 import Payment from "./pages/Help/Payment";
-import ReturnPolicy from "./pages/Help/ReturnPolicy";
 import Warranty from "./pages/Help/Ds";
 
 /* ================= LAYOUTS ================= */
@@ -53,9 +52,27 @@ import Profile from "./pages/Profile";
 import ProfilePage from "./pages/Profile";
 import { useAuthStore } from "./store/auth";
 import { SignalRProvider } from "./signalr/SignalRContext";
+import PostPayPage from "./pages/Pay/PostPayPage";
+import { useEffect } from "react";
+import api from "./api";
 
 function App() {
+
   const { token } = useAuthStore();
+  const setToken = useAuthStore(state => state.setToken);
+
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        const res = await api.post("/account/refresh-token");
+        setToken(res.data.token);
+      } catch (err) {
+        console.log("No session");
+      }
+    };
+
+    initAuth();
+  }, []);
   return (
     <SignalRProvider token={token}>
       <Routes>
@@ -80,8 +97,6 @@ function App() {
             <Route path="/helpcenter" element={<Shipping />} />
 
             <Route path="/payment" element={<Payment />} />
-
-            <Route path="/return" element={<ReturnPolicy />} />
 
             <Route path="/ds" element={<Warranty />} />
 
@@ -127,6 +142,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <TransactionPayPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pay/post/:postId"
+            element={
+              <ProtectedRoute>
+                <PostPayPage />
               </ProtectedRoute>
             }
           />

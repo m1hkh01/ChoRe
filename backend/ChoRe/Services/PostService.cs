@@ -32,7 +32,14 @@ public class PostService : IPostService
         {
             throw new KeyNotFoundException("Không tìm thấy tài khoản người dùng hiện tại");
         }
-        post.PostStatusId = 2;
+        if (post.PostOrderCode != null)
+        {
+            post.PostStatusId = 7; // 7 = PendingPayment
+        }
+        else
+        {
+            post.PostStatusId = 2; // 2 = Approved
+        }
         post.ApprovedAt = DateTime.Now;
         post.ApprovedBy = userId;
         await _context.SaveChangesAsync();

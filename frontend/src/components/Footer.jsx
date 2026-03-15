@@ -1,198 +1,228 @@
 import { Link } from "react-router-dom";
-// import "@/assets/Footer.css";
-function Footer() {
-    return (
-        <footer className="bg-gray-900 mt-100">
-            <div style={styles.container}>
-                <div style={styles.grid}>
-                    {/* Về chúng tôi */}
-                    <div style={styles.column}>
-                        <h3 style={styles.title}>Về chúng tôi</h3>
-                        <p style={styles.description}>
-                            Nền tảng mua bán đồ điện tử cũ trực tuyến, kết nối người mua và người bán
-                            một cách nhanh chóng, an toàn và tiện lợi.
-                        </p>
-                        {/* <div style={styles.socialLinks}>
-                            <a href="#" style={styles.socialIcon}>
-                                <i className="fab fa-facebook-f"></i>
-                            </a>
-                            <a href="#" style={styles.socialIcon}>
-                                <i className="fab fa-instagram"></i>
-                            </a>
-                            <a href="#" style={styles.socialIcon}>
-                                <i className="fab fa-twitter"></i>
-                            </a>
-                            <a href="#" style={styles.socialIcon}>
-                                <i className="fab fa-youtube"></i>
-                            </a>
-                        </div> */}
-                    </div>
 
-                    {/* Hỗ trợ khách hàng */}
-                    <div style={styles.column}>
-                        <h3 style={styles.title}>Hỗ trợ khách hàng</h3>
-                        <ul style={styles.list}>
-                            <li style={styles.listItem}>
-                                <Link to="/about" style={styles.link}>Giới thiệu</Link>
-                            </li>
-                            <li style={styles.listItem}>
-                                <Link to="/contact" style={styles.link}>Liên hệ</Link>
-                            </li>
-                            <li style={styles.listItem}>
-                                <Link to="/helpcenter" style={styles.link}>Trung tâm trợ giúp</Link>
-                            </li>
-                            <li style={styles.listItem}>
-                                <Link to="/payment" style={styles.link}>Phương thức thanh toán</Link>
-                            </li>
-                        </ul>
-                    </div>
+// ─── Data ─────────────────────────────────────────────────────────────────────
 
-                    {/* Chính sách */}
-                    <div style={styles.column}>
-                        <h3 style={styles.title}>Chính sách</h3>
-                        <ul style={styles.list}>
-                            <li style={styles.listItem}>
-                                <Link to="/terms" style={styles.link}>Điều khoản sử dụng</Link>
-                            </li>
-                            <li style={styles.listItem}>
-                                <Link to="/privacy" style={styles.link}>Chính sách bảo mật</Link>
-                            </li>
-                            <li style={styles.listItem}>
-                                <Link to="/return" style={styles.link}>Chính sách đổi trả</Link>
-                            </li>
-                            <li style={styles.listItem}>
-                                <Link to="/ds" style={styles.link}>Giải quyết tranh chấp</Link>
-                            </li>
-                        </ul>
-                    </div>
+const SUPPORT_LINKS = [
+  { to: "/about",      label: "Giới thiệu" },
+  { to: "/contact",    label: "Liên hệ" },
+  { to: "/helpcenter", label: "Trung tâm trợ giúp" },
+  { to: "/payment",    label: "Phương thức thanh toán" },
+];
 
-                    {/* Liên hệ */}
-                    <div style={styles.column}>
-                        <h3 style={styles.title}>Liên hệ</h3>
-                        <ul style={styles.list}>
-                            <li style={styles.contactItem}>
-                                <i className="fas fa-map-marker-alt" style={styles.icon}></i>
-                                <span>Phường Tân Triều, Tỉnh Đồng Nai, Việt Nam</span>
-                            </li>
-                            <li style={styles.contactItem}>
-                                <i className="fas fa-phone" style={styles.icon}></i>
-                                <span>0836 044 008</span>
-                            </li>
-                            <li style={styles.contactItem}>
-                                <i className="fas fa-envelope" style={styles.icon}></i>
-                                <span>ng.minhkhoi2912@gmail.com</span>
-                            </li>
-                            <li style={styles.contactItem}>
-                                <i className="fas fa-clock" style={styles.icon}></i>
-                                <span>8:00 - 22:00 (Hàng ngày)</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+const POLICY_LINKS = [
+  { to: "/terms",   label: "Điều khoản sử dụng" },
+  { to: "/privacy", label: "Chính sách bảo mật" },
+  { to: "/ds",      label: "Giải quyết tranh chấp" },
+];
 
-                {/* Copyright */}
-                <div style={styles.copyright}>
-                    <p style={styles.copyrightText}>
-                        © {new Date().getFullYear()} Chợ Rẻ. All rights reserved.
-                    </p>
-                    <p style={{ ...styles.copyrightText, marginTop: "6px", fontSize: "12px" }}>
-                        Academic project – Graduation Thesis, FPT Polytechnic.
-                    </p>
-                </div>
-            </div>
-        </footer>
-    );
-}
+const CONTACT_ITEMS = [
+  { icon: "fas fa-map-marker-alt", text: "Phường Tân Triều, Tỉnh Đồng Nai, Việt Nam" },
+  { icon: "fas fa-phone",          text: "0836 044 008" },
+  { icon: "fas fa-envelope",       text: "ng.minhkhoi2912@gmail.com" },
+  { icon: "fas fa-clock",          text: "8:00 – 22:00 (Hàng ngày)" },
+];
 
-const styles = {
-    footer: {
-        backgroundColor: "white",
-        color: "#ffffff",
-        marginTop: "100px",
-        paddingTop: "50px",
-        paddingBottom: "20px"
-    },
-    container: {
-        maxWidth: "1200px",
-        margin: "0 auto",
-        padding: "20px"
-    },
-    grid: {
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-        gap: "40px",
-        marginBottom: "40px"
-    },
-    column: {
-        display: "flex",
-        flexDirection: "column"
-    },
-    title: {
-        fontSize: "18px",
-        fontWeight: "600",
-        marginBottom: "20px",
-        color: "#ffffff"
-    },
-    description: {
-        fontSize: "14px",
-        lineHeight: "1.6",
-        color: "#b0b0b0",
-        marginBottom: "20px"
-    },
-    socialLinks: {
-        display: "flex",
-        gap: "15px"
-    },
-    socialIcon: {
-        width: "35px",
-        height: "35px",
-        borderRadius: "50%",
-        backgroundColor: "#2a2a2a",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "#ffffff",
-        textDecoration: "none",
-        transition: "all 0.3s ease",
-        cursor: "pointer"
-    },
-    list: {
-        listStyle: "none",
-        padding: 0,
-        margin: 0
-    },
-    listItem: {
-        marginBottom: "12px"
-    },
-    link: {
-        color: "#b0b0b0",
-        textDecoration: "none",
-        fontSize: "14px",
-        transition: "color 0.3s ease"
-    },
-    contactItem: {
-        display: "flex",
-        alignItems: "flex-start",
-        marginBottom: "12px",
-        fontSize: "14px",
-        color: "#b0b0b0",
-        gap: "10px"
-    },
-    icon: {
-        marginTop: "2px",
-        minWidth: "16px",
-        color: "#4CAF50"
-    },
-    copyright: {
-        borderTop: "1px solid #2a2a2a",
-        paddingTop: "20px",
-        textAlign: "center"
-    },
-    copyrightText: {
-        fontSize: "14px",
-        color: "#808080",
-        margin: 0
+// ─── CSS ──────────────────────────────────────────────────────────────────────
+
+const CSS = `
+  .ft {
+    background: #0f172a;
+    color: #f8fafc;
+    margin-top: 60px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .ft-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 56px 24px 28px;
+  }
+  .ft-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1.4fr;
+    gap: 40px;
+    margin-bottom: 48px;
+  }
+  .ft-col {
+    display: flex;
+    flex-direction: column;
+  }
+  .ft-logo {
+    width: 200px;
+    height: auto;
+    object-fit: contain;
+    margin: 16px;
+    opacity: 0.9;
+  }
+  .ft-desc {
+    color: #94a3b8;
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 0;
+    max-width: 280px;
+  }
+  .ft-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #f8fafc;
+    margin: 0 0 18px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .ft-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .ft-link {
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-block;
+    transition: color 0.18s, padding-left 0.18s;
+  }
+  .ft-link:hover {
+    color: #22c55e;
+    padding-left: 4px;
+  }
+  .ft-contact {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ft-contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: #94a3b8;
+    font-size: 13px;
+  }
+  .ft-contact-item i {
+    margin-top: 3px;
+    min-width: 14px;
+    font-size: 13px;
+    color: #22c55e;
+    flex-shrink: 0;
+  }
+  .ft-bottom {
+    border-top: 1px solid #1e293b;
+    padding-top: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .ft-bottom p {
+    margin: 0;
+    color: #64748b;
+    font-size: 12px;
+  }
+
+  @media (max-width: 900px) {
+    .ft-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
     }
-};
+    .ft-col--brand {
+      grid-column: 1 / -1;
+    }
+    .ft-desc {
+      max-width: 100%;
+    }
+  }
 
-export default Footer;
+  @media (max-width: 520px) {
+    .ft-inner {
+      padding: 40px 16px 24px;
+    }
+    .ft-grid {
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+    .ft-col--brand {
+      grid-column: auto;
+    }
+    .ft-logo {
+      width: 110px;
+    }
+    .ft-bottom {
+      text-align: left;
+    }
+  }
+`;
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function Footer() {
+  return (
+    <>
+      <style>{CSS}</style>
+
+      <footer className="ft">
+        <div className="ft-inner">
+          <div className="ft-grid">
+
+            {/* Brand */}
+            <div className="ft-col ft-col--brand">
+              <img src="/logovientrang.png" alt="Chợ Rẻ" className="ft-logo" />
+              <p className="ft-desc">
+                Nền tảng mua bán đồ điện tử cũ trực tuyến, kết nối người mua và người bán
+                một cách nhanh chóng, an toàn và tiện lợi.
+              </p>
+            </div>
+
+            {/* Support */}
+            <div className="ft-col">
+              <h3 className="ft-title">Hỗ trợ khách hàng</h3>
+              <ul className="ft-list">
+                {SUPPORT_LINKS.map(item => (
+                  <li key={item.to}>
+                    <Link to={item.to} className="ft-link">{item.label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Policy */}
+            <div className="ft-col">
+              <h3 className="ft-title">Chính sách</h3>
+              <ul className="ft-list">
+                {POLICY_LINKS.map(item => (
+                  <li key={item.to}>
+                    <Link to={item.to} className="ft-link">{item.label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div className="ft-col">
+              <h3 className="ft-title">Liên hệ</h3>
+              <ul className="ft-contact">
+                {CONTACT_ITEMS.map((item, i) => (
+                  <li key={i} className="ft-contact-item">
+                    <i className={item.icon} />
+                    <span>{item.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+          </div>
+
+          {/* Bottom */}
+          <div className="ft-bottom">
+            <p>© {new Date().getFullYear()} Chợ Rẻ. All rights reserved.</p>
+            <p>Academic project – Graduation Thesis, FPT Polytechnic.</p>
+          </div>
+        </div>
+      </footer>
+    </>
+  );
+}
