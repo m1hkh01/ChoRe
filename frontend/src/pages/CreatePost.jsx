@@ -335,7 +335,7 @@ function CreatePost() {
 
     /* ===================== UI ===================== */
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100" style={{ paddingTop: 30, paddingBottom: 100 }}>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100" style={{ paddingTop: 30, paddingBottom: 100}}>
             <div className="max-w-4xl mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-8">
@@ -344,11 +344,11 @@ function CreatePost() {
                 </div>
 
                 {/* Progress Steps */}
-                <div className="mb-8" style={{ marginBottom: "20px" }}>
+                <div className="mb-8" style={{ marginBottom: "20px", position: "relative", left: 20}} >
                     <div className="flex items-center justify-between">
                         {steps.map((step, index) => (
-                            <div key={step.id} className="flex items-center flex-1">
-                                <div className="flex flex-col items-center flex-1">
+                            <div key={step.id} className="flex items-center flex-1" >
+                                <div className="flex flex-col items-left flex-1">
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${isStepComplete(step.id)
                                         ? 'bg-green-500 text-white'
                                         : currentStep === step.id
@@ -822,7 +822,7 @@ function CreatePost() {
                         <button style={{ borderRadius: 5 }}
                             type="button"
                             onClick={() => navigate("/")}
-                            className="flex-1 px-5 py-4 border-2 border-[var(--cancel)] text-[var(--cancel)] font-semibold rounded-lg hover:bg-[var(--cancel)] hover:text-white transition-all"
+                            className="flex-1 px-1 py-4 border-2 border-[var(--cancel)] text-[var(--cancel)] font-semibold rounded-lg hover:bg-[var(--cancel)] hover:text-white transition-all"
                         >
                             Hủy bỏ
                         </button>
@@ -831,7 +831,7 @@ function CreatePost() {
                             style={{ borderRadius: 5 }}
                             type="submit"
                             disabled={uploading}
-                            className="flex-1 px-5 py-4 bg-[var(--primary-color)] text-[var(--primary-color-text)] font-semibold rounded-lg hover:bg-[var(--primary-color-hover)] transition-all shadow-lg hover:shadow-xl transform disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 px-1 py-4 bg-[var(--primary-color)] text-[var(--primary-color-text)] font-semibold rounded-lg hover:bg-[var(--primary-color-hover)] transition-all shadow-lg hover:shadow-xl transform disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {uploading ? "Đang tải lên..." : "Gửi tin ngay"}
                         </button>

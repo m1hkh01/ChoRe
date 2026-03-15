@@ -1,446 +1,405 @@
 import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faPen, faTrash, faEyeSlash, faEye,
+  faTag, faFileAlt, faCheckCircle,
+} from "@fortawesome/free-solid-svg-icons";
 import api from "@/api";
-// import PostCard from "@/components/Post/PostCard";
-import "@/assets/ProfileManagePosts.css";
-// import EditPostModal from "@/components/Post/EditPostModal";
-import { useNavigate } from "react-router-dom";
 
-const STATUS = {
-    ALL: null,
-    PENDING: 1,
-    APPROVED: 2,
-    REJECTED: 3,
-    SELLING: 2,
-    SOLD: 5,
-    HIDDEN: 6
-};
+// ─── CSS ──────────────────────────────────────────────────────────────────────
 
-const STATUS_TABS = [
-    { key: STATUS.ALL, label: "Tất cả" },
-    { key: STATUS.PENDING, label: "Chờ duyệt" },
-    { key: STATUS.SELLING, label: "Đang bán" },
-    { key: STATUS.REJECTED, label: "Từ chối" },
-    { key: STATUS.SOLD, label: "Đã bán" },
-    { key: STATUS.HIDDEN, label: "Đã ẩn" },
+const CSS = `
+  .pm { display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── Filter chips ────────────────────────── */
+  .pm-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .pm-tab {
+    padding: 5px 14px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .pm-tab:hover { border-color: #22c55e; color: #16a34a; background: rgba(34,197,94,0.05); }
+  .pm-tab.on    { background: #22c55e; border-color: #22c55e; color: #fff; }
+
+  /* ── Count ──────────────────────────────── */
+  .pm-count { font-size: 13px; color: #64748b; margin: 0; }
+
+  /* ── Card ───────────────────────────────── */
+  .pm-card {
+    display: grid;
+    grid-template-columns: 96px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .pm-card:hover { border-color: #cbd5e1; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+
+  /* ── Thumbnail ──────────────────────────── */
+  .pm-thumb {
+    width: 96px;
+    height: 96px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #f1f5f9;
+    flex-shrink: 0;
+  }
+
+  /* ── Info ───────────────────────────────── */
+  .pm-info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .pm-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pm-date { font-size: 11px; color: #94a3b8; }
+
+  /* Status badge */
+  .pm-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 2px 9px;
+    width: fit-content;
+  }
+  .pm-badge-pending  { background: #fef9c3; color: #854d0e; }
+  .pm-badge-approved { background: #dcfce7; color: #166534; }
+  .pm-badge-rejected { background: #fee2e2; color: #991b1b; }
+  .pm-badge-sold     { background: #f1f5f9; color: #475569; }
+  .pm-badge-hidden   { background: #f3f4f6; color: #6b7280; }
+
+  /* Price */
+  .pm-price          { font-size: 15px; font-weight: 700; color: #dc2626; }
+  .pm-price-deal     { font-size: 14px; font-weight: 600; color: #f59e0b; }
+  .pm-price-contact  { font-size: 12px; font-weight: 500; color: #94a3b8; }
+
+  /* ── Actions ────────────────────────────── */
+  .pm-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+    min-width: 90px;
+  }
+
+  .pm-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border-radius: 7px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .pm-btn:hover       { border-color: #22c55e; color: #16a34a; background: #f0fdf4; }
+  .pm-btn-del:hover   { border-color: #ef4444; color: #dc2626; background: #fff5f5; }
+  .pm-btn-sold:hover  { border-color: #64748b; color: #1e293b; background: #f8fafc; }
+
+  /* ── Empty ──────────────────────────────── */
+  .pm-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 64px 20px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    text-align: center;
+  }
+  .pm-empty svg { font-size: 40px; color: #e2e8f0; }
+  .pm-empty p   { margin: 0; font-size: 14px; font-weight: 500; color: #475569; }
+  .pm-cta {
+    padding: 9px 22px;
+    background: #22c55e;
+    color: #fff;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .pm-cta:hover { background: #16a34a; }
+
+  /* ── Skeleton ───────────────────────────── */
+  .pm-skeleton {
+    height: 124px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: pmSk 1.4s infinite;
+  }
+  @keyframes pmSk {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── Responsive ─────────────────────────── */
+  @media (max-width: 640px) {
+    .pm-card {
+      grid-template-columns: 76px 1fr;
+      grid-template-rows: auto auto;
+    }
+
+    .pm-thumb { width: 76px; height: 76px; }
+
+    .pm-actions {
+      grid-column: 1 / -1;
+      flex-direction: row;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .pm-btn { flex: 1; min-width: 70px; font-size: 11px; padding: 5px 8px; }
+    .pm-title { font-size: 13px; }
+    .pm-price { font-size: 14px; }
+  }
+`;
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const S = { ALL: null, PENDING: 1, APPROVED: 2, REJECTED: 3, SOLD: 5, HIDDEN: 6 };
+
+const TABS = [
+  { key: S.ALL,      label: "Tất cả"    },
+  { key: S.APPROVED, label: "Đang bán"  },
+  { key: S.PENDING,  label: "Chờ duyệt" },
+  { key: S.REJECTED, label: "Từ chối"   },
+  { key: S.SOLD,     label: "Đã bán"    },
+  { key: S.HIDDEN,   label: "Đã ẩn"     },
 ];
 
+const BADGE_MAP = {
+  [S.PENDING]:  { cls: "pm-badge-pending",  text: "Chờ duyệt"      },
+  [S.APPROVED]: { cls: "pm-badge-approved", text: "Đang hiển thị"  },
+  [S.REJECTED]: { cls: "pm-badge-rejected", text: "Bị từ chối"     },
+  [S.SOLD]:     { cls: "pm-badge-sold",     text: "Đã bán"         },
+  [S.HIDDEN]:   { cls: "pm-badge-hidden",   text: "Đã ẩn"          },
+};
+
+const UPLOADS = "https://api.chore123.cloud/uploads/";
+const LOCAL   = "http://localhost:5121/uploads/";
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function Price({ post }) {
+  if (post.priceType === "NEGOTIABLE")
+    return <span className="pm-price-deal">Thương lượng</span>;
+  if (post.priceType === "FIXED")
+    return <span className="pm-price">{post.price ? post.price.toLocaleString("vi-VN") + " ₫" : "Liên hệ"}</span>;
+  if (post.priceType === "RANGE")
+    return <span className="pm-price">{post.minPrice?.toLocaleString("vi-VN")} – {post.maxPrice?.toLocaleString("vi-VN")} ₫</span>;
+  return <span className="pm-price-contact">Liên hệ</span>;
+}
+
+function CardActions({ post, onEdit, onDel, onHide, onUnhide, onSold }) {
+  const id  = post.postId;
+  const sid = post.postStatusId;
+  return (
+    <div className="pm-actions">
+      {sid === S.PENDING && (
+        <button className="pm-btn" onClick={() => onEdit(id)}>
+          <FontAwesomeIcon icon={faPen} /> Sửa
+        </button>
+      )}
+      {sid === S.APPROVED && (
+        <>
+          <button className="pm-btn pm-btn-sold" onClick={() => onSold(id)}>
+            <FontAwesomeIcon icon={faCheckCircle} /> Đã bán
+          </button>
+          <button className="pm-btn" onClick={() => onHide(id)}>
+            <FontAwesomeIcon icon={faEyeSlash} /> Ẩn tin
+          </button>
+        </>
+      )}
+      {sid === S.HIDDEN && (
+        <button className="pm-btn" onClick={() => onUnhide(id)}>
+          <FontAwesomeIcon icon={faEye} /> Hiện lại
+        </button>
+      )}
+      <button className="pm-btn pm-btn-del" onClick={() => onDel(id)}>
+        <FontAwesomeIcon icon={faTrash} /> Xóa
+      </button>
+    </div>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 export default function ProfileManagePosts({ userId }) {
-
-    const navigate = useNavigate();
-
-    const [posts, setPosts] = useState([]);
-    const [editingPost, setEditingPost] = useState(null);
-    const [statusId, setStatusId] = useState(null);
-    const [loading, setLoading] = useState(false);
-
-    /* ================= LOAD POSTS ================= */
-
-    const loadPosts = async () => {
-
-        setLoading(true);
-
-        try {
-
-            const params = {};
-
-            if (statusId !== null)
-                params.statusId = statusId;
-
-            const res = await api.get(
-                `/api/profile/${userId}/posts`,
-                { params }
-            );
-
-            setPosts(res.data.items);
-
-        }
-        catch (err) {
-
-            console.error(err);
-
-        }
-        finally {
-
-            setLoading(false);
-
-        }
-
-    };
-
-    useEffect(() => {
-
-        loadPosts();
-
-    }, [statusId, userId]);
-
-
-    /* ================= ACTIONS ================= */
-
-    // XÓA
-    const deletePost = async (postId) => {
-
-        if (!confirm("Bạn có chắc muốn xóa tin này?")) return;
-
-        try {
-
-            await api.delete(`/api/profile/${postId}`);
-
-            // update UI ngay
-            setPosts(prev =>
-                prev.filter(p => p.postId !== postId)
-            );
-
-        }
-        catch {
-            alert("Xóa thất bại");
-        }
-
-    };
-
-    const unhidePost = async (postId) => {
-
-        try {
-
-            await api.put(`/api/profile/${postId}/unhide`);
-
-            setPosts(prev =>
-                prev.map(p =>
-                    p.postId === postId
-                        ? { ...p, postStatusId: STATUS.APPROVED }
-                        : p
-                )
-            );
-
-        }
-        catch {
-            alert("Bỏ ẩn thất bại");
-        }
-
-    };
-
-
-    // SỬA
-    const editPost = (postId) => {
-        navigate(`/profile/edit/${postId}`);
-    };
-
-
-    // ĐÃ BÁN
-    const markAsSold = async (postId) => {
-        
-        try {
-            console.log(`Marking post ${postId} as sold...`);
-            await api.put(`/api/profile/${postId}/mark-sold`);
-
-            setPosts(prev =>
-                prev.map(p =>
-                    p.postId === postId
-                        ? { ...p, postStatusId: STATUS.SOLD }
-                        : p
-                )
-            );
-
-        }
-        catch {
-            alert("Cập nhật thất bại");
-        }
-
-    };
-
-
-    // ẨN TIN
-    const hidePost = async (postId) => {
-
-        try {
-
-            await api.put(`/api/profile/${postId}/hide`);
-
-            setPosts(prev =>
-                prev.map(p =>
-                    p.postId === postId
-                        ? { ...p, postStatusId: STATUS.HIDDEN }
-                        : p
-                )
-            );
-
-        }
-        catch {
-            alert("Ẩn tin thất bại");
-        }
-
-    };
-
-
-    /* ================= RENDER BUTTONS ================= */
-
-    const renderActions = (post) => {
-
-        switch (post.postStatusId) {
-
-            // CHỜ DUYỆT / TỪ CHỐI
-            case STATUS.PENDING:
-                return (
-                    <>
-                        <button
-                            className="pf-btn pf-btn-edit"
-                            onClick={() => editPost(post.postId)}
-                        >
-                            Sửa tin
-                        </button>
-
-                        <button
-                            className="pf-btn pf-btn-delete"
-                            onClick={() => deletePost(post.postId)}
-                        >
-                            Xóa tin
-                        </button>
-                    </>
-                );
-
-                case STATUS.REJECTED:
-                return (
-                    <>
-                        <button
-                            className="pf-btn pf-btn-delete"
-                            onClick={() => deletePost(post.postId)}
-                        >
-                             Xóa tin
-                        </button>
-                    </>
-                );
-
-
-            // ĐANG HIỂN THỊ / ĐANG BÁN
-            case STATUS.APPROVED:
-                return (
-                    <>
-                        <button
-                            className="pf-btn pf-btn-sold"
-                            onClick={() => markAsSold(post.postId)}
-                        >
-                            Đã bán
-                        </button>
-
-                        <button
-                            className="pf-btn pf-btn-hide"
-                            onClick={() => hidePost(post.postId)}
-                        >
-                            Ẩn tin
-                        </button>
-
-                        <button
-                            className="pf-btn pf-btn-delete"
-                            onClick={() => deletePost(post.postId)}
-                        >
-                             Xóa tin
-                        </button>
-                    </>
-                );
-
-
-            // ĐÃ ẨN
-            case STATUS.HIDDEN:
-                return (
-                    <>
-                        <button
-                            className="pf-btn pf-btn-unhide"
-                            onClick={() => unhidePost(post.postId)}
-                        >
-                            👁 Hiển thị lại
-                        </button>
-
-                        <button
-                            className="pf-btn pf-btn-delete"
-                            onClick={() => deletePost(post.postId)}
-                        >
-                             Xóa tin
-                        </button>
-                    </>
-                );
-
-
-            // ĐÃ BÁN
-            case STATUS.SOLD:
-                return (
-                    <>
-                        <button
-                            className="pf-btn pf-btn-delete"
-                            onClick={() => deletePost(post.postId)}
-                        >
-                             Xóa tin
-                        </button>
-                    </>
-                );
-
-
-            default:
-                return null;
-        }
-
-    };
-
-    const renderPrice = (post) => {
-
-        switch (post.priceType) {
-
-            case "NEGOTIABLE":
-                return (
-                    <span className="pf-price pf-price-negotiable">
-                        Thương lượng
-                    </span>
-                );
-
-            case "FIXED":
-                return (
-                    <span className="pf-price pf-price-fixed">
-                        {post.price
-                            ? post.price.toLocaleString("vi-VN") + " ₫"
-                            : "Liên hệ"}
-                    </span>
-                );
-
-            case "RANGE":
-                return (
-                    <span className="pf-price pf-price-range">
-                        {post.minPrice?.toLocaleString("vi-VN")} -{" "}
-                        {post.maxPrice?.toLocaleString("vi-VN")} ₫
-                    </span>
-                );
-
-            default:
-                return (
-                    <span className="pf-price pf-price-contact">
-                        Liên hệ
-                    </span>
-                );
-        }
-
-    };
-
-    const getStatusText = (statusId) => {
-
-        switch (statusId) {
-
-            case STATUS.PENDING:
-                return "Chờ duyệt";
-
-            case STATUS.APPROVED:
-            case STATUS.SELLING:
-                return "Đang hiển thị";
-
-            case STATUS.REJECTED:
-                return "Bị từ chối";
-
-            case STATUS.SOLD:
-                return "Đã bán";
-
-            case STATUS.HIDDEN:
-                return "Đã ẩn";
-
-            default:
-                return "";
-        }
-
-    };
-
-    /* ================= UI ================= */
-
-    return (
-
-        <div>
-
-            {/* FILTER */}
-            <div className="pf-filter-bar">
-
-                {STATUS_TABS.map(tab => (
-
-                    <button
-                        key={tab.key ?? "all"}
-                        className={`pf-chip ${statusId === tab.key ? "pf-chip--active" : ""}`}
-                        onClick={() => setStatusId(tab.key)}
-                    >
-                        {tab.label}
-                    </button>
-
-                ))}
-
-            </div>
-
-
-            {/* EMPTY */}
-            {!loading && posts.length === 0 && (
-
-                <div className="pf-empty">
-
-                    <div className="pf-empty-icon">📄</div>
-
-                    <p>Không có tin đăng nào</p>
-
-                </div>
-
-            )}
-
-
-            {/* LIST */}
-            <div className="pf-list">
-
-                {posts.map(post => (
-
-                    <div key={post.postId} className="pf-row-card">
-
-                        {/* IMAGE */}
-                        <img
-                            src={
-                                post.thumbnail
-                                    ? `https://api.chore123.cloud/uploads/${post.thumbnail}`
-                                    : "/no-image.png"
-                            }
-                            className="pf-row-image"
-                            alt=""
-                            onError={(e) => {
-                            if (!e.target.dataset.fallback) {
-                                e.target.dataset.fallback = "true";
-                                e.target.src = `http://localhost:5121/uploads/${post.thumbnail}`;
-                            }
-                        }}
-                        />
-
-                        {/* INFO */}
-                        <div className="pf-row-info">
-
-                            <div className="pf-row-title">
-                                {post.title}
-                            </div>
-
-                            <div className="pf-row-meta">
-                                Ngày đăng: {new Date(post.createdAt).toLocaleString()}
-                            </div>
-
-                            <div className="pf-row-status">
-                                Trạng thái: {getStatusText(post.postStatusId)}
-                            </div>
-
-                            <div className="pf-row-price">
-                                {renderPrice(post)}
-                            </div>
-
-                        </div>
-
-                        {/* ACTIONS */}
-                        <div className="pf-row-actions">
-
-                            {renderActions(post)}
-
-                        </div>
-
-                    </div>
-
-                ))}
-
-            </div>
-
+  const navigate = useNavigate();
+  const [posts,    setPosts]    = useState([]);
+  const [statusId, setStatusId] = useState(null);
+  const [loading,  setLoading]  = useState(false);
+  const [total,    setTotal]    = useState(0);
+
+  // ── Load ──────────────────────────────────────────────────────────────────
+
+  const load = async (sid) => {
+    setLoading(true);
+    try {
+      const params = { page: 1, pageSize: 50 };
+      if (sid !== null) params.statusId = sid;
+      const { data } = await api.get(`/api/profile/${userId}/posts`, { params });
+      setPosts(data.items ?? []);
+      setTotal(data.total ?? 0);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(statusId); }, [userId, statusId]);
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  const patchStatus = (id, newSid) =>
+    setPosts(p => p.map(x => x.postId === id ? { ...x, postStatusId: newSid } : x));
+
+  const dropPost = (id) => {
+    setPosts(p => p.filter(x => x.postId !== id));
+    setTotal(t => t - 1);
+  };
+
+  // ── Actions ───────────────────────────────────────────────────────────────
+
+  const handleDel = async (id) => {
+    if (!confirm("Xóa tin này?")) return;
+    try { await api.delete(`/api/profile/${id}`); dropPost(id); }
+    catch { alert("Xóa thất bại"); }
+  };
+
+  const handleHide = async (id) => {
+    try { await api.put(`/api/profile/${id}/hide`);     patchStatus(id, S.HIDDEN); }
+    catch { alert("Ẩn tin thất bại"); }
+  };
+
+  const handleUnhide = async (id) => {
+    try { await api.put(`/api/profile/${id}/unhide`);   patchStatus(id, S.APPROVED); }
+    catch { alert("Bỏ ẩn thất bại"); }
+  };
+
+  const handleSold = async (id) => {
+    try { await api.put(`/api/profile/${id}/mark-sold`); patchStatus(id, S.SOLD); }
+    catch { alert("Cập nhật thất bại"); }
+  };
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
+  return (
+    <>
+      <style>{CSS}</style>
+      <div className="pm">
+
+        {/* Tabs */}
+        <div className="pm-tabs">
+          {TABS.map(tab => (
+            <button
+              key={String(tab.key)}
+              className={`pm-tab ${statusId === tab.key ? "on" : ""}`}
+              onClick={() => setStatusId(tab.key)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-    );
+        <p className="pm-count">{total} tin đăng</p>
 
+        {/* Skeleton */}
+        {loading && posts.length === 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {Array.from({ length: 5 }, (_, i) => <div key={i} className="pm-skeleton" />)}
+          </div>
+        )}
+
+        {/* Empty */}
+        {!loading && posts.length === 0 && (
+          <div className="pm-empty">
+            <FontAwesomeIcon icon={faFileAlt} />
+            <p>Không có tin đăng nào</p>
+            <Link to="/post/create" className="pm-cta">+ Đăng tin ngay</Link>
+          </div>
+        )}
+
+        {/* List */}
+        {posts.map(post => {
+          const badge = BADGE_MAP[post.postStatusId];
+          return (
+            <div key={post.postId} className="pm-card">
+              <img
+                src={post.thumbnail ? `${UPLOADS}${post.thumbnail}` : "/no-image.png"}
+                className="pm-thumb"
+                alt={post.title}
+                onError={(e) => {
+                  if (!e.target.dataset.fb) {
+                    e.target.dataset.fb = "1";
+                    e.target.src = `${LOCAL}${post.thumbnail}`;
+                  }
+                }}
+              />
+
+              <div className="pm-info">
+                <div className="pm-title">{post.title}</div>
+                <span className="pm-date">
+                  {new Date(post.createdAt).toLocaleDateString("vi-VN")}
+                </span>
+                {badge && (
+                  <span className={`pm-badge ${badge.cls}`}>{badge.text}</span>
+                )}
+                <Price post={post} />
+              </div>
+
+              <CardActions
+                post={post}
+                onEdit={(id) => navigate(`/profile/edit/${id}`)}
+                onDel={handleDel}
+                onHide={handleHide}
+                onUnhide={handleUnhide}
+                onSold={handleSold}
+              />
+            </div>
+          );
+        })}
+
+      </div>
+    </>
+  );
 }

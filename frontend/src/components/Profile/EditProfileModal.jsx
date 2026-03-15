@@ -251,8 +251,8 @@ export default function EditProfileModal({ profile, onClose, onSaved }) {
                 <div className="pf-modal-tabs">
                     {[
                         { key: "info", icon: faUser, label: "Thông tin" },
-                        { key: "avatar", icon: faCamera, label: "Ảnh đại diện" },
-                        { key: "pw", icon: faLock, label: "Mật khẩu" },
+                        // { key: "avatar", icon: faCamera, label: "Ảnh đại diện" },
+                        // { key: "pw", icon: faLock, label: "Mật khẩu" },
                     ].map(t => (
                         <button
                             key={t.key}

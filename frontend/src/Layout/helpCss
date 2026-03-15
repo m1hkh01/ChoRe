@@ -1,0 +1,89 @@
+// Shared CSS dùng chung cho tất cả trang Help
+export const HELP_CSS = `
+  .hp { line-height: 1.75; }
+
+  .hp-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 14px;
+  }
+
+  .hp-desc {
+    font-size: 14px;
+    color: #475569;
+    margin: 0 0 20px;
+    line-height: 1.75;
+  }
+
+  .hp-section {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+
+  .hp-section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 12px;
+  }
+
+  .hp-list {
+    margin: 0;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .hp-list li {
+    font-size: 14px;
+    color: #374151;
+  }
+
+  .hp-note {
+    font-size: 13px;
+    color: #94a3b8;
+    font-style: italic;
+    margin-top: 4px;
+  }
+
+  /* ── Contact box ── */
+  .hp-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .hp-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 12px 18px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 14px;
+  }
+
+  .hp-row:last-child { border-bottom: none; }
+
+  .hp-label {
+    font-weight: 700;
+    color: #374151;
+    white-space: nowrap;
+    min-width: 110px;
+  }
+
+  .hp-value { color: #475569; }
+
+  /* ── Responsive ── */
+  @media (max-width: 480px) {
+    .hp-title       { font-size: 20px; }
+    .hp-section     { padding: 14px; }
+    .hp-row         { flex-direction: column; gap: 2px; padding: 10px 14px; }
+    .hp-label       { min-width: 0; }
+  }
+`;

@@ -23,7 +23,8 @@ function Helpcenter() {
                     </li>
 
                     <li style={styles.listItem}>
-                        Thỏa thuận và tiến hành giao dịch
+                        Thỏa thuận và tiến hành giao dịch. Giao dịch trực tiếp hoặc giao dịch trung gian qua hệ
+                        thống (mất phí)
                     </li>
 
                     <li style={styles.listItem}>
@@ -32,7 +33,6 @@ function Helpcenter() {
                 </ul>
 
             </div>
-
         </div>
     );
 }

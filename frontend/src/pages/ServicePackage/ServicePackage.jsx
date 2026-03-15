@@ -59,7 +59,7 @@ function ServicePackage() {
             {!isPay ? (
                 <>
 
-                    <h2>Chọn gói PRO đăng bài siêu vip</h2>
+                    <h2>Chọn gói đăng bài</h2>
                     <h4 className="text-center"><strong>Lưu ý:</strong> Bạn chỉ được sử dụng 1 gói trong thời gian thời gian của gói đã đăng ký</h4>
                     <Swiper
                         key={displayPackages.length}

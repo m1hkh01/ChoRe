@@ -2,28 +2,49 @@ function Payment() {
     return (
         <div style={styles.container}>
 
-            <h1 style={styles.title}>Phương thức thanh toán</h1>
+            <h1 style={styles.title}>Chính sách thanh toán</h1>
 
             <p style={styles.description}>
-                Người mua và người bán có thể thỏa thuận các phương thức thanh toán phù hợp.
+                Nền tảng hỗ trợ kết nối người mua và người bán. Hai bên có thể tự
+                thỏa thuận phương thức thanh toán phù hợp trong quá trình giao dịch.
             </p>
 
             <div style={styles.section}>
 
-                <h3 style={styles.sectionTitle}>Các phương thức phổ biến</h3>
+                <h3 style={styles.sectionTitle}>Các phương thức thanh toán</h3>
 
                 <ul style={styles.list}>
 
                     <li style={styles.listItem}>
-                        Thanh toán khi nhận hàng (COD)
+                        Thanh toán chuyển khoản ngân hàng khi giao dịch thông qua hệ thống.
                     </li>
 
                     <li style={styles.listItem}>
-                        Chuyển khoản ngân hàng
+                        Thanh toán tiền mặt trực tiếp khi người mua và người bán gặp mặt.
+                    </li>
+
+                </ul>
+
+            </div>
+
+            <div style={styles.section}>
+
+                <h3 style={styles.sectionTitle}>Lưu ý khi thanh toán</h3>
+
+                <ul style={styles.list}>
+
+                    <li style={styles.listItem}>
+                        Người mua nên kiểm tra kỹ thông tin sản phẩm trước khi thực hiện thanh toán.
                     </li>
 
                     <li style={styles.listItem}>
-                        Thanh toán trực tiếp khi gặp mặt
+                        Chỉ thực hiện thanh toán khi đã xác nhận rõ thông tin người bán
+                        và điều kiện giao dịch.
+                    </li>
+
+                    <li style={styles.listItem}>
+                        Trong trường hợp phát sinh tranh chấp, người dùng có thể gửi
+                        yêu cầu hỗ trợ để hệ thống xem xét và xử lý theo quy định.
                     </li>
 
                 </ul>
@@ -31,7 +52,9 @@ function Payment() {
             </div>
 
             <div style={styles.note}>
-                Khuyến nghị: Luôn kiểm tra sản phẩm trước khi thanh toán.
+                Lưu ý: Nền tảng đóng vai trò trung gian kết nối người mua và người bán,
+                chỉ trực tiếp thực hiện hoặc giữ tiền thanh toán giữa các bên nếu chọn 
+                giao dịch trung gian qua hệ thống.
             </div>
 
         </div>
@@ -41,13 +64,17 @@ function Payment() {
 const styles = {
 
     container: {
-        maxWidth: "800px"
+        maxWidth: "850px",
+        margin: "0 auto",
+        padding: "24px",
+        lineHeight: "1.7"
     },
 
     title: {
         fontSize: "28px",
         fontWeight: "600",
-        marginBottom: "15px"
+        marginBottom: "15px",
+        color: "#222"
     },
 
     description: {
@@ -57,9 +84,9 @@ const styles = {
     },
 
     section: {
-        background: "#f9f9f9",
-        padding: "20px",
-        borderRadius: "6px",
+        background: "#f9fafb",
+        padding: "22px",
+        borderRadius: "8px",
         border: "1px solid #eee",
         marginBottom: "20px"
     },
@@ -67,7 +94,7 @@ const styles = {
     sectionTitle: {
         fontSize: "18px",
         fontWeight: "600",
-        marginBottom: "10px"
+        marginBottom: "12px"
     },
 
     list: {
@@ -76,12 +103,14 @@ const styles = {
 
     listItem: {
         marginBottom: "10px",
-        fontSize: "16px"
+        fontSize: "16px",
+        color: "#444"
     },
 
     note: {
         fontSize: "14px",
-        color: "#777"
+        color: "#777",
+        fontStyle: "italic"
     }
 
 };

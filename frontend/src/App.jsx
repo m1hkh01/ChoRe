@@ -24,7 +24,6 @@ import Terms from "./pages/Help/Terms";
 import Contact from "./pages/Help/Contact";
 import Shipping from "./pages/Help/Helpcenter";
 import Payment from "./pages/Help/Payment";
-import ReturnPolicy from "./pages/Help/ReturnPolicy";
 import Warranty from "./pages/Help/Ds";
 
 /* ================= LAYOUTS ================= */
@@ -80,8 +79,6 @@ function App() {
             <Route path="/helpcenter" element={<Shipping />} />
 
             <Route path="/payment" element={<Payment />} />
-
-            <Route path="/return" element={<ReturnPolicy />} />
 
             <Route path="/ds" element={<Warranty />} />
 

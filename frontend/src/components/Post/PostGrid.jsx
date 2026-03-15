@@ -1,23 +1,21 @@
 import PostCard from "./PostCard";
 import "./PostGrid.css";
 
-function PostGrid({ posts }) {
-    if (!posts || posts.length === 0) {
-        return (
-            <div className="post-grid-empty">
-                <span className="post-grid-empty-icon">🔍</span>
-                <p>Không tìm thấy sản phẩm nào phù hợp</p>
-            </div>
-        );
-    }
-
+export default function PostGrid({ posts }) {
+  if (!posts?.length) {
     return (
-        <div className="post-grid">
-            {posts.map(post => (
-                <PostCard key={post.postId} post={post} />
-            ))}
-        </div>
+      <div className="post-grid-empty">
+        <span className="post-grid-empty-icon">🔍</span>
+        <p>Không tìm thấy sản phẩm nào phù hợp</p>
+      </div>
     );
-}
+  }
 
-export default PostGrid;
+  return (
+    <div className="post-grid">
+      {posts.map(post => (
+        <PostCard key={post.postId} post={post} />
+      ))}
+    </div>
+  );
+}
