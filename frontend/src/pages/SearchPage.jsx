@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -130,6 +130,92 @@ const CSS = `
 
   .sp-section-body { padding: 4px 12px 12px; }
 
+  /* ── Brand search input ── */
+  .sp-brand-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+    padding: 5px 9px;
+    margin-bottom: 8px;
+    background: #f8fafc;
+    transition: border-color 0.15s;
+  }
+  .sp-brand-search:focus-within { border-color: #22c55e; background: #fff; }
+  .sp-brand-search svg           { font-size: 11px; color: #94a3b8; flex-shrink: 0; }
+
+  .sp-brand-search input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 12px;
+    background: transparent;
+    color: #374151;
+    min-width: 0;
+  }
+  .sp-brand-search input::placeholder { color: #b0b8c1; }
+
+  .sp-brand-search-clear {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 10px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    transition: color 0.12s;
+  }
+  .sp-brand-search-clear:hover { color: #ef4444; }
+
+  /* ── Brand tree — dùng lại cùng class với category tree ── */
+  .sp-brand-empty {
+    font-size: 12px;
+    color: #94a3b8;
+    padding: 8px 4px;
+    text-align: center;
+  }
+
+  /* ── Cate search — dùng lại cùng style brand search ── */
+  .sp-cate-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+    padding: 5px 9px;
+    margin-bottom: 8px;
+    background: #f8fafc;
+    transition: border-color 0.15s;
+  }
+  .sp-cate-search:focus-within { border-color: #22c55e; background: #fff; }
+  .sp-cate-search svg           { font-size: 11px; color: #94a3b8; flex-shrink: 0; }
+
+  .sp-cate-search input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 12px;
+    background: transparent;
+    color: #374151;
+    min-width: 0;
+  }
+  .sp-cate-search input::placeholder { color: #b0b8c1; }
+
+  .sp-cate-search-clear {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 10px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    transition: color 0.12s;
+  }
+  .sp-cate-search-clear:hover { color: #ef4444; }
+
   /* ── Radio list ── */
   .sp-radio-list {
     display: flex;
@@ -198,7 +284,7 @@ const CSS = `
 
   .sp-cate-children { padding-left: 14px; }
 
-  /* ── Price quick buttons ── */
+  /* ── Price ── */
   .sp-price-quick {
     display: flex;
     flex-wrap: wrap;
@@ -220,11 +306,7 @@ const CSS = `
   .sp-price-quick-btn:hover { border-color: #22c55e; color: #16a34a; }
   .sp-price-quick-btn.on    { background: #22c55e; border-color: #22c55e; color: #fff; }
 
-  .sp-price-inputs {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+  .sp-price-inputs { display: flex; align-items: center; gap: 6px; }
 
   .sp-price-inputs input {
     flex: 1;
@@ -241,7 +323,7 @@ const CSS = `
 
   .sp-price-sep { font-size: 12px; color: #94a3b8; flex-shrink: 0; }
 
-  /* ── Location selects ── */
+  /* ── Location ── */
   .sp-location-selects { display: flex; flex-direction: column; gap: 8px; }
 
   .sp-loc-wrap {
@@ -277,7 +359,6 @@ const CSS = `
   /* ── Main area ── */
   .sp-main { flex: 1; min-width: 0; }
 
-  /* ── Toolbar ── */
   .sp-toolbar {
     display: flex;
     align-items: center;
@@ -318,11 +399,7 @@ const CSS = `
     padding: 1px 6px;
   }
 
-  .sp-result {
-    font-size: 13px;
-    color: #64748b;
-  }
-
+  .sp-result        { font-size: 13px; color: #64748b; }
   .sp-result strong { color: #0f172a; }
 
   .sp-sort {
@@ -338,13 +415,7 @@ const CSS = `
   }
   .sp-sort:focus { border-color: #22c55e; }
 
-  /* ── Active filter pills ── */
-  .sp-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 14px;
-  }
+  .sp-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 
   .sp-pill {
     display: flex;
@@ -371,14 +442,12 @@ const CSS = `
   }
   .sp-pill button:hover { opacity: 1; }
 
-  /* ── Grid ── */
   .sp-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 14px;
   }
 
-  /* ── States ── */
   .sp-loading, .sp-empty {
     display: flex;
     flex-direction: column;
@@ -411,19 +480,12 @@ const CSS = `
   }
   .sp-empty-reset:hover { background: #16a34a; }
 
-  /* ── Drawer (mobile) ── */
   .sp-backdrop {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.4);
     z-index: 200;
     backdrop-filter: blur(2px);
-    animation: spFade 0.2s ease;
-  }
-
-  @keyframes spFade {
-    from { opacity: 0; }
-    to   { opacity: 1; }
   }
 
   .sp-drawer {
@@ -435,13 +497,7 @@ const CSS = `
     display: flex;
     flex-direction: column;
     box-shadow: 8px 0 32px rgba(0,0,0,0.15);
-    animation: spSlideIn 0.25s cubic-bezier(0.22,1,0.36,1);
     overflow: hidden;
-  }
-
-  @keyframes spSlideIn {
-    from { transform: translateX(-100%); }
-    to   { transform: translateX(0); }
   }
 
   .sp-drawer-head {
@@ -467,22 +523,13 @@ const CSS = `
   }
   .sp-drawer-close:hover { background: #fee2e2; border-color: #ef4444; color: #ef4444; }
 
-  .sp-drawer-body {
-    flex: 1;
-    overflow-y: auto;
-  }
+  .sp-drawer-body  { flex: 1; overflow-y: auto; }
+  .sp-drawer-foot  { padding: 12px 14px; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
 
-  .sp-drawer-foot {
-    padding: 12px 14px;
-    border-top: 1px solid #f1f5f9;
-    flex-shrink: 0;
-  }
-
-  /* ── Responsive ── */
   @media (max-width: 900px) {
-    .sp-sidebar             { display: none; }
-    .sp-mobile-filter-btn   { display: flex; }
-    .sp-grid                { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+    .sp-sidebar           { display: none; }
+    .sp-mobile-filter-btn { display: flex; }
+    .sp-grid              { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
   }
 
   @media (max-width: 480px) {
@@ -536,53 +583,122 @@ function flatten(nodes, acc = []) {
   return acc;
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// Flatten brand tree thành map id → name để lookup cho pills
+function flattenBrands(nodes, acc = {}) {
+  nodes.forEach(n => {
+    acc[n.brandId] = n.brandName;
+    if (n.subBrands?.length) flattenBrands(n.subBrands, acc);
+  });
+  return acc;
+}
 
-function Section({ title, children, defaultOpen = true }) {
-  const [open, setOpen] = useState(defaultOpen);
+// ─── Brand Tree — cùng cấu trúc với CategoryTree ─────────────────────────────
+
+function BrandTree({ brands, selectedBrandId, onSelect }) {
+  if (!brands || brands.length === 0)
+    return <div className="sp-brand-empty">Không có thương hiệu</div>;
+
   return (
-    <div className="sp-section">
-      <button className="sp-section-btn" onClick={() => setOpen(v => !v)}>
-        {title}
-        <FontAwesomeIcon icon={open ? faChevronUp : faChevronDown} />
-      </button>
-      {open && <div className="sp-section-body">{children}</div>}
+    <>
+      {/* Tất cả */}
+      <div className="sp-cate-node">
+        <div className="sp-cate-row">
+          <span className="sp-cate-spacer" />
+          <label className={`sp-cate-label ${!selectedBrandId ? "on" : ""}`}>
+            <input type="radio" name="brand" checked={!selectedBrandId}
+              onChange={() => onSelect(null)} />
+            Tất cả
+          </label>
+        </div>
+      </div>
+
+      {brands.map(parent => (
+        <BrandNode
+          key={parent.brandId}
+          node={parent}
+          selectedBrandId={selectedBrandId}
+          onSelect={onSelect}
+        />
+      ))}
+    </>
+  );
+}
+
+function BrandNode({ node, selectedBrandId, onSelect }) {
+  const hasSubs  = node.subBrands?.length > 0;
+  const isActive = selectedBrandId === node.brandId;
+
+  // Auto-expand nếu sub đang được chọn
+  const [expanded, setExpanded] = useState(
+    hasSubs && node.subBrands.some(s => s.brandId === selectedBrandId)
+  );
+
+  return (
+    <div className="sp-cate-node">
+      <div className="sp-cate-row">
+        {hasSubs ? (
+          <button
+            className={`sp-cate-expand ${expanded ? "open" : ""}`}
+            onClick={() => setExpanded(v => !v)}
+          >
+            <FontAwesomeIcon icon={faChevronRight} />
+          </button>
+        ) : (
+          <span className="sp-cate-spacer" />
+        )}
+
+        <label className={`sp-cate-label ${isActive ? "on" : ""}`}>
+          <input type="radio" name="brand" checked={isActive}
+            onChange={() => onSelect(node.brandId)} />
+          {node.brandName}
+        </label>
+      </div>
+
+      {hasSubs && expanded && (
+        <div className="sp-cate-children">
+          {node.subBrands.map(sub => (
+            <BrandNode
+              key={sub.brandId}
+              node={sub}
+              selectedBrandId={selectedBrandId}
+              onSelect={onSelect}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-function CategoryTree({ nodes, selected, onSelect, level = 0 }) {
-  const hasSelected = (node) =>
-    node.cateId === selected || node.subCategories?.some(hasSelected);
+// ─── Category Tree component ──────────────────────────────────────────────────
 
+function CategoryTree({ nodes, selected, onSelect }) {
   return (
     <>
       {nodes.map(node => {
         const hasSubs  = node.subCategories?.length > 0;
         const isActive = selected === node.cateId;
-        const [expanded, setExpanded] = useState(hasSubs && (isActive || node.subCategories?.some(hasSelected)));
-
+        const [expanded, setExpanded] = useState(
+          hasSubs && (isActive || node.subCategories?.some(s => s.cateId === selected))
+        );
         return (
           <div key={node.cateId} className="sp-cate-node">
             <div className="sp-cate-row">
               {hasSubs ? (
-                <button
-                  className={`sp-cate-expand ${expanded ? "open" : ""}`}
-                  onClick={() => setExpanded(v => !v)}
-                >
+                <button className={`sp-cate-expand ${expanded ? "open" : ""}`}
+                  onClick={() => setExpanded(v => !v)}>
                   <FontAwesomeIcon icon={faChevronRight} />
                 </button>
               ) : <span className="sp-cate-spacer" />}
-
               <label className={`sp-cate-label ${isActive ? "on" : ""}`}>
-                <input type="radio" name="cate" checked={isActive} onChange={() => onSelect(node.cateId)} />
+                <input type="radio" name="cate" checked={isActive}
+                  onChange={() => onSelect(node.cateId)} />
                 {node.cateName}
               </label>
             </div>
-
             {hasSubs && expanded && (
               <div className="sp-cate-children">
-                <CategoryTree nodes={node.subCategories} selected={selected} onSelect={onSelect} level={level + 1} />
+                <CategoryTree nodes={node.subCategories} selected={selected} onSelect={onSelect} />
               </div>
             )}
           </div>
@@ -592,12 +708,13 @@ function CategoryTree({ nodes, selected, onSelect, level = 0 }) {
   );
 }
 
-// ─── Sidebar content (reused in both desktop & drawer) ───────────────────────
+// ─── Sidebar content ──────────────────────────────────────────────────────────
 
 function SidebarContent({
-  allBrands, visibleHierarchy,
+  brandTree, brandKeyword, setBrandKeyword,
   selectedBrandId, setSelectedBrandId,
-  selectedCateId,  setSelectedCateId,
+  cateKeyword, setCateKeyword,
+  visibleHierarchy, selectedCateId, setSelectedCateId,
   selectedPriceType, handlePriceTypeChange,
   minPrice, setMinPrice, maxPrice, setMaxPrice,
   selectedProvinceCode, setSelectedProvinceCode,
@@ -620,73 +737,105 @@ function SidebarContent({
 
       <div className="sp-sidebar-body">
 
-        {/* Brand */}
+        {/* ── Thương hiệu ── */}
         <Section title="Thương hiệu">
-          <div className="sp-radio-list">
-            <label className={`sp-radio ${!selectedBrandId ? "on" : ""}`}>
-              <input type="radio" name="brand" checked={!selectedBrandId} onChange={() => setSelectedBrandId(null)} />
-              Tất cả
-            </label>
-            {allBrands.map(b => (
-              <label key={b.brandId} className={`sp-radio ${selectedBrandId === b.brandId ? "on" : ""}`}>
-                <input type="radio" name="brand" checked={selectedBrandId === b.brandId} onChange={() => setSelectedBrandId(b.brandId)} />
-                {b.brandName}
-              </label>
-            ))}
+          {/* Ô tìm kiếm brand */}
+          <div className="sp-brand-search">
+            <FontAwesomeIcon icon={faSearch} />
+            <input
+              type="text"
+              placeholder="Tìm thương hiệu..."
+              value={brandKeyword}
+              onChange={e => setBrandKeyword(e.target.value)}
+            />
+            {brandKeyword && (
+              <button className="sp-brand-search-clear" onClick={() => setBrandKeyword("")}>
+                <FontAwesomeIcon icon={faTimes} />
+              </button>
+            )}
           </div>
+
+          {/* Cây brand cha-con */}
+          <BrandTree
+            brands={brandTree}
+            selectedBrandId={selectedBrandId}
+            onSelect={setSelectedBrandId}
+          />
         </Section>
 
-        {/* Category */}
+        {/* ── Danh mục ── */}
         <Section title="Danh mục">
+          {/* Ô tìm kiếm danh mục */}
+          <div className="sp-cate-search">
+            <FontAwesomeIcon icon={faSearch} />
+            <input
+              type="text"
+              placeholder="Tìm danh mục..."
+              value={cateKeyword}
+              onChange={e => setCateKeyword(e.target.value)}
+            />
+            {cateKeyword && (
+              <button className="sp-cate-search-clear" onClick={() => setCateKeyword("")}>
+                <FontAwesomeIcon icon={faTimes} />
+              </button>
+            )}
+          </div>
           <div className="sp-radio-list">
             <label className={`sp-radio ${!selectedCateId ? "on" : ""}`}>
-              <input type="radio" name="cate" checked={!selectedCateId} onChange={() => setSelectedCateId(null)} />
+              <input type="radio" name="cate" checked={!selectedCateId}
+                onChange={() => setSelectedCateId(null)} />
               Tất cả danh mục
             </label>
-            <CategoryTree nodes={visibleHierarchy} selected={selectedCateId} onSelect={setSelectedCateId} />
+            <CategoryTree
+              nodes={visibleHierarchy}
+              selected={selectedCateId}
+              onSelect={setSelectedCateId}
+            />
           </div>
         </Section>
 
-        {/* Price type */}
+        {/* ── Loại giá ── */}
         <Section title="Loại giá">
           <div className="sp-radio-list">
             {PRICE_TYPES.map(pt => (
               <label key={pt.value} className={`sp-radio ${selectedPriceType === pt.value ? "on" : ""}`}>
-                <input type="radio" name="priceType" checked={selectedPriceType === pt.value} onChange={() => handlePriceTypeChange(pt.value)} />
+                <input type="radio" name="priceType" checked={selectedPriceType === pt.value}
+                  onChange={() => handlePriceTypeChange(pt.value)} />
                 {pt.label}
               </label>
             ))}
           </div>
         </Section>
 
-        {/* Price range */}
+        {/* ── Khoảng giá ── */}
         {selectedPriceType !== "NEGOTIABLE" && (
           <Section title="Khoảng giá">
             <div className="sp-price-quick">
               {PRICE_RANGES.map(r => (
-                <button
-                  key={r.label}
+                <button key={r.label}
                   className={`sp-price-quick-btn ${minPrice == r.min && maxPrice == (r.max ?? "") ? "on" : ""}`}
-                  onClick={() => { setMinPrice(r.min ?? ""); setMaxPrice(r.max ?? ""); }}
-                >
+                  onClick={() => { setMinPrice(r.min ?? ""); setMaxPrice(r.max ?? ""); }}>
                   {r.label}
                 </button>
               ))}
             </div>
             <div className="sp-price-inputs">
-              <input type="number" placeholder="Từ (₫)" value={minPrice} onChange={e => setMinPrice(e.target.value)} min={0} />
+              <input type="number" placeholder="Từ (₫)" value={minPrice}
+                onChange={e => setMinPrice(e.target.value)} min={0} />
               <span className="sp-price-sep">–</span>
-              <input type="number" placeholder="Đến (₫)" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} min={0} />
+              <input type="number" placeholder="Đến (₫)" value={maxPrice}
+                onChange={e => setMaxPrice(e.target.value)} min={0} />
             </div>
           </Section>
         )}
 
-        {/* Location */}
+        {/* ── Khu vực ── */}
         <Section title="Khu vực">
           <div className="sp-location-selects">
             <div className="sp-loc-wrap">
               <FontAwesomeIcon icon={faMapMarkerAlt} />
-              <select className="sp-loc-select" value={selectedProvinceCode} onChange={e => setSelectedProvinceCode(e.target.value)}>
+              <select className="sp-loc-select" value={selectedProvinceCode}
+                onChange={e => setSelectedProvinceCode(e.target.value)}>
                 <option value="">Tỉnh / Thành phố</option>
                 {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
               </select>
@@ -694,9 +843,12 @@ function SidebarContent({
             {selectedProvinceCode && (
               <div className="sp-loc-wrap">
                 <FontAwesomeIcon icon={faMapMarkerAlt} style={{ opacity: 0.45 }} />
-                <select className="sp-loc-select" value={selectedWardCode} onChange={e => setSelectedWardCode(e.target.value)}>
+                <select className="sp-loc-select" value={selectedWardCode}
+                  onChange={e => setSelectedWardCode(e.target.value)}>
                   <option value="">Phường / Xã (tùy chọn)</option>
-                  {wardsForProvince.map(w => <option key={w.code} value={w.code}>{w.name_with_type}</option>)}
+                  {wardsForProvince.map(w => (
+                    <option key={w.code} value={w.code}>{w.name_with_type}</option>
+                  ))}
                 </select>
               </div>
             )}
@@ -717,6 +869,21 @@ function SidebarContent({
   );
 }
 
+// ─── Section accordion ────────────────────────────────────────────────────────
+
+function Section({ title, children, defaultOpen = true }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="sp-section">
+      <button className="sp-section-btn" onClick={() => setOpen(v => !v)}>
+        {title}
+        <FontAwesomeIcon icon={open ? faChevronUp : faChevronDown} />
+      </button>
+      {open && <div className="sp-section-body">{children}</div>}
+    </div>
+  );
+}
+
 // ─── Main SearchPage ──────────────────────────────────────────────────────────
 
 export default function SearchPage() {
@@ -726,33 +893,36 @@ export default function SearchPage() {
   const urlCateId  = searchParams.get("cateId")  || searchParams.get("categoryId") || null;
   const urlBrandId = searchParams.get("brandId") || null;
 
-  // ── Filter state ─────────────────────────────────────────────────────────────
-  const [selectedCateId,      setSelectedCateId]      = useState(urlCateId  ? +urlCateId  : null);
-  const [selectedBrandId,     setSelectedBrandId]     = useState(urlBrandId ? +urlBrandId : null);
-  const [minPrice,            setMinPrice]            = useState(searchParams.get("minPrice") || "");
-  const [maxPrice,            setMaxPrice]            = useState(searchParams.get("maxPrice") || "");
-  const [selectedPriceType,   setSelectedPriceType]   = useState("");
-  const [sortBy,              setSortBy]              = useState("newest");
-  const [selectedProvinceCode,setSelectedProvinceCode]= useState("");
-  const [selectedWardCode,    setSelectedWardCode]    = useState("");
-  const [appliedAddress,      setAppliedAddress]      = useState(searchParams.get("address") || "");
-  const [drawerOpen,          setDrawerOpen]          = useState(false);
+  // ── Filter state ──────────────────────────────────────────────────────────
+  const [selectedCateId,       setSelectedCateId]       = useState(urlCateId  ? +urlCateId  : null);
+  const [selectedBrandId,      setSelectedBrandId]      = useState(urlBrandId ? +urlBrandId : null);
+  const [brandKeyword,         setBrandKeyword]         = useState("");
+  const [cateKeyword,          setCateKeyword]          = useState("");
+  const [minPrice,             setMinPrice]             = useState(searchParams.get("minPrice") || "");
+  const [maxPrice,             setMaxPrice]             = useState(searchParams.get("maxPrice") || "");
+  const [selectedPriceType,    setSelectedPriceType]    = useState("");
+  const [sortBy,               setSortBy]               = useState("newest");
+  const [selectedProvinceCode, setSelectedProvinceCode] = useState("");
+  const [selectedWardCode,     setSelectedWardCode]     = useState("");
+  const [appliedAddress,       setAppliedAddress]       = useState(searchParams.get("address") || "");
+  const [drawerOpen,           setDrawerOpen]           = useState(false);
 
-  // ── Data ─────────────────────────────────────────────────────────────────────
+  // ── Data ─────────────────────────────────────────────────────────────────
   const [posts,             setPosts]             = useState([]);
   const [filteredPosts,     setFilteredPosts]     = useState([]);
-  const [allBrands,         setAllBrands]         = useState([]);
+  const [brandTree,         setBrandTree]         = useState([]);   // cây cha-con đã lọc
+  const [brandMap,          setBrandMap]          = useState({});   // id → name (cho pills)
   const [categoryHierarchy, setCategoryHierarchy] = useState([]);
   const [flatCategories,    setFlatCategories]    = useState([]);
   const [loading,           setLoading]           = useState(false);
 
-  // Sync URL params
+  // Sync URL params khi navigate
   useEffect(() => {
     setSelectedCateId(urlCateId  ? +urlCateId  : null);
     setSelectedBrandId(urlBrandId ? +urlBrandId : null);
   }, [urlCateId, urlBrandId]);
 
-  // Wards for selected province
+  // Wards
   const wardsForProvince = useMemo(() =>
     !selectedProvinceCode ? [] :
     Object.entries(wardData)
@@ -763,11 +933,6 @@ export default function SearchPage() {
   );
 
   useEffect(() => { setSelectedWardCode(""); }, [selectedProvinceCode]);
-
-  // ── Fetch brands ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    fetch(`${API}/brands`).then(r => r.ok ? r.json() : []).then(setAllBrands).catch(() => {});
-  }, []);
 
   // ── Fetch categories ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -780,25 +945,126 @@ export default function SearchPage() {
       .catch(() => {});
   }, []);
 
-  // Filter hierarchy if brand selected
+  // ── Fetch brands — dùng /api/brands/tree (đã có sẵn) ───────────────────────
+  const [allBrandTree, setAllBrandTree] = useState([]); // toàn bộ cây gốc
+  const brandDebounce = useRef(null);
+
+  // Load 1 lần khi mount — normalize PascalCase → camelCase từ .NET
+  const normalizeBrand = (b) => ({
+    brandId:   b.brandId   ?? b.BrandId,
+    brandName: b.brandName ?? b.BrandName,
+    brandLogo: b.brandLogo ?? b.BrandLogo,
+    subBrands: (b.subBrands ?? b.SubBrands ?? []).map(normalizeBrand),
+  });
+
+  useEffect(() => {
+    fetch(`${API}/brands/tree`)
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        const normalized = data.map(normalizeBrand);
+        setAllBrandTree(normalized);
+        setBrandMap(flattenBrands(normalized));
+      })
+      .catch(() => {});
+  }, []);
+
+  // Filter brandTree theo keyword + cateId ở client — debounce 300ms
+  useEffect(() => {
+    clearTimeout(brandDebounce.current);
+    brandDebounce.current = setTimeout(() => {
+      const kw = brandKeyword.trim().toLowerCase();
+
+      // Tập brandId hợp lệ theo cateId (lấy từ categoryHierarchy brands field)
+      let validIds = null;
+      if (selectedCateId) {
+        validIds = new Set();
+        const allCates = flatten(categoryHierarchy);
+        // Tìm cate đang chọn trong hierarchy và lấy brands của nó
+        const collectBrands = (nodes) => {
+          nodes.forEach(n => {
+            if (n.cateId === selectedCateId || !selectedCateId) {
+              n.brands?.forEach(b => {
+                validIds.add(b.brandId);
+                b.subBrands?.forEach(sb => validIds.add(sb.brandId));
+              });
+            }
+            if (n.subCategories?.length) collectBrands(n.subCategories);
+          });
+        };
+        collectBrands(categoryHierarchy);
+      }
+
+      const filtered = allBrandTree
+        .map(parent => {
+          const filteredSubs = (parent.subBrands ?? []).filter(sub =>
+            (!kw       || sub.brandName.toLowerCase().includes(kw)) &&
+            (!validIds || validIds.has(sub.brandId))
+          );
+
+          const parentMatch =
+            (!kw       || parent.brandName.toLowerCase().includes(kw)) &&
+            (!validIds || validIds.has(parent.brandId));
+
+          if (!parentMatch && filteredSubs.length === 0) return null;
+
+          return {
+            ...parent,
+            // Nếu không filter gì → giữ hết sub; có filter → chỉ giữ sub match
+            subBrands: (kw || validIds) ? filteredSubs : (parent.subBrands ?? []),
+          };
+        })
+        .filter(Boolean);
+
+      setBrandTree(filtered);
+    }, 300);
+    return () => clearTimeout(brandDebounce.current);
+  }, [brandKeyword, selectedCateId, allBrandTree, categoryHierarchy]);
+
+  // Khi brand đang chọn không còn trong danh sách → reset
+  useEffect(() => {
+    if (!selectedBrandId || !brandTree.length) return;
+    const allIds = new Set(Object.keys(brandMap).map(Number));
+    if (!allIds.has(selectedBrandId)) setSelectedBrandId(null);
+  }, [brandTree]);
+
+  // ── Visible category hierarchy (lọc theo brand + keyword) ─────────────────
   const visibleHierarchy = useMemo(() => {
-    if (!selectedBrandId) return categoryHierarchy;
-    const filter = (nodes) =>
+    const kw = cateKeyword.trim().toLowerCase();
+
+    const matchesKw = (n) =>
+      !kw || n.cateName.toLowerCase().includes(kw) ||
+      n.subCategories?.some(s => s.cateName.toLowerCase().includes(kw));
+
+    const filterBrand = (nodes) =>
       nodes
         .filter(n =>
           n.brands?.some(b => b.brandId === selectedBrandId) ||
           n.subCategories?.some(s => s.brands?.some(b => b.brandId === selectedBrandId))
         )
-        .map(n => ({ ...n, subCategories: filter(n.subCategories ?? []) }));
-    return filter(categoryHierarchy);
-  }, [selectedBrandId, categoryHierarchy]);
+        .map(n => ({ ...n, subCategories: filterBrand(n.subCategories ?? []) }));
+
+    const filterKw = (nodes) =>
+      nodes
+        .filter(matchesKw)
+        .map(n => ({
+          ...n,
+          subCategories: kw
+            ? (n.subCategories ?? []).filter(s => s.cateName.toLowerCase().includes(kw))
+            : (n.subCategories ?? []),
+        }));
+
+    let result = categoryHierarchy;
+    if (selectedBrandId) result = filterBrand(result);
+    if (kw)              result = filterKw(result);
+    return result;
+  }, [selectedBrandId, cateKeyword, categoryHierarchy]);
 
   // ── Fetch posts ───────────────────────────────────────────────────────────
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     try {
       const p = new URLSearchParams();
-      if (urlKeyword)     p.set("keyword",    urlKeyword);
+      if (urlKeyword)      p.set("keyword",    urlKeyword);
       if (selectedBrandId) p.set("brandId",    selectedBrandId);
       if (selectedCateId)  p.set("categoryId", selectedCateId);
       if (minPrice && selectedPriceType !== "NEGOTIABLE") p.set("minPrice", minPrice);
@@ -811,7 +1077,7 @@ export default function SearchPage() {
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
-  // ── Client-side filter + sort ────────────────────────────────────────────
+  // ── Client-side filter + sort ─────────────────────────────────────────────
   useEffect(() => {
     let r = [...posts];
     if (selectedPriceType) r = r.filter(p => p.priceType === selectedPriceType);
@@ -852,26 +1118,35 @@ export default function SearchPage() {
   };
 
   const handleReset = () => {
-    setSelectedCateId(null); setSelectedBrandId(null);
-    setMinPrice(""); setMaxPrice(""); setSelectedPriceType("");
-    setSortBy("newest"); setSelectedProvinceCode(""); setSelectedWardCode(""); setAppliedAddress("");
+    setSelectedCateId(null);
+    setSelectedBrandId(null);
+    setBrandKeyword("");
+    setCateKeyword("");
+    setMinPrice(""); setMaxPrice("");
+    setSelectedPriceType("");
+    setSortBy("newest");
+    setSelectedProvinceCode(""); setSelectedWardCode("");
+    setAppliedAddress("");
     setSearchParams(urlKeyword ? { keyword: urlKeyword } : {}, { preventScrollReset: true });
   };
 
   const activeCount = [
-    selectedCateId, selectedBrandId,
+    selectedCateId,
+    selectedBrandId,
     (minPrice || maxPrice) && selectedPriceType !== "NEGOTIABLE",
-    selectedPriceType, appliedAddress,
+    selectedPriceType,
+    appliedAddress,
   ].filter(Boolean).length;
 
   const sidebarProps = {
-    allBrands, visibleHierarchy,
+    brandTree, brandKeyword, setBrandKeyword,
     selectedBrandId, setSelectedBrandId,
-    selectedCateId,  setSelectedCateId,
+    cateKeyword, setCateKeyword,
+    visibleHierarchy, selectedCateId, setSelectedCateId,
     selectedPriceType, handlePriceTypeChange,
     minPrice, setMinPrice, maxPrice, setMaxPrice,
     selectedProvinceCode, setSelectedProvinceCode,
-    selectedWardCode,     setSelectedWardCode,
+    selectedWardCode, setSelectedWardCode,
     wardsForProvince, pendingAddressLabel, appliedAddress,
     activeCount, handleReset, handleApply,
   };
@@ -890,8 +1165,6 @@ export default function SearchPage() {
 
           {/* Main */}
           <main className="sp-main">
-
-            {/* Toolbar */}
             <div className="sp-toolbar">
               <div className="sp-toolbar-left">
                 <button className="sp-mobile-filter-btn" onClick={() => setDrawerOpen(true)}>
@@ -900,7 +1173,10 @@ export default function SearchPage() {
                   {activeCount > 0 && <span className="sp-filter-badge">{activeCount}</span>}
                 </button>
                 <span className="sp-result">
-                  {loading ? "Đang tải..." : <><strong>{filteredPosts.length}</strong> kết quả{urlKeyword && <> cho "<strong>{urlKeyword}</strong>"</>}</>}
+                  {loading
+                    ? "Đang tải..."
+                    : <><strong>{filteredPosts.length}</strong> kết quả{urlKeyword && <> cho "<strong>{urlKeyword}</strong>"</>}</>
+                  }
                 </span>
               </div>
               <select className="sp-sort" value={sortBy} onChange={e => setSortBy(e.target.value)}>
@@ -913,7 +1189,7 @@ export default function SearchPage() {
               <div className="sp-pills">
                 {selectedBrandId && (
                   <span className="sp-pill">
-                    {allBrands.find(b => b.brandId === selectedBrandId)?.brandName}
+                    {brandMap[selectedBrandId] ?? `Brand #${selectedBrandId}`}
                     <button onClick={() => setSelectedBrandId(null)}><FontAwesomeIcon icon={faTimes} /></button>
                   </span>
                 )}
@@ -964,7 +1240,6 @@ export default function SearchPage() {
                 {filteredPosts.map(post => <PostCard key={post.postId} post={post} />)}
               </div>
             )}
-
           </main>
         </div>
 

@@ -639,5 +639,37 @@ namespace ChoRe.Controllers
                 return BadRequest("Có lỗi xảy ra khi thanh toán: " + e.Message);
             }
         }
+        // ── DELETE /api/posts/{id} — chủ bài tự xóa ─────────────────────────────
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteMyPost(int id)
+        {
+            var userIdClaim = User.FindFirst("UserId");
+            if (userIdClaim == null)
+                return Unauthorized("Token không hợp lệ!");
+
+            var userId = int.Parse(userIdClaim.Value);
+
+            var post = await _context.Posts
+                .Include(p => p.PostImages)
+                .Include(p => p.PostSpecifications)
+                .Include(p => p.PostCates)
+                .Include(p => p.SavedPosts)
+                .FirstOrDefaultAsync(p => p.PostId == id);
+
+            if (post == null)
+                return NotFound(new { message = "Không tìm thấy bài đăng." });
+
+            if (post.UserId != userId)
+                return Forbid();
+
+            _context.PostImages.RemoveRange(post.PostImages);
+            _context.PostSpecifications.RemoveRange(post.PostSpecifications);
+            _context.PostCates.RemoveRange(post.PostCates);
+            _context.SavedPosts.RemoveRange(post.SavedPosts);
+            _context.Posts.Remove(post);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Đã xóa bài đăng." });
+        }
     }
 }

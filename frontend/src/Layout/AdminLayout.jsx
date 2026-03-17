@@ -7,142 +7,145 @@ import {
     faFileLines,
     faUsers,
     faBox,
-    faNewspaper,
-    faTags,
-    faCog,
-    faStore,
-    faUser,
-    faGift,
-    faMoneyBill,
+    faSignOutAlt,
+    faChevronDown,
     faBars,
-    faSignOutAlt
+    faTimes
 } from "@fortawesome/free-solid-svg-icons";
 import api from "../api";
 
 function AdminLayout() {
     const { user, logout } = useAuthStore();
     const navigate = useNavigate();
-    const [expandedMenu, setExpandedMenu] = useState({
-        content: false,
-        users: false,
-        services: false
-    });
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [expandedMenu, setExpandedMenu] = useState({});
 
-    const toggleMenu = (menuName) => {
+    const menuSections = [
+        {
+            id: "content",
+            title: "Quản lý Nội dung",
+            icon: faFileLines,
+            items: [
+                { path: "/admin/post-manager", label: "Quản lý bài viết" },
+                { path: "/admin/category-manager", label: "Quản lý phân loại" },
+                { path: "/admin/specification-manager", label: "Cấu hình phân loại" },
+                { path: "/admin/brand-manager", label: "Quản lý hãng" },
+                { path: "/admin/brand-category-manager", label: "Phân loại hãng" }
+            ]
+        },
+        {
+            id: "users",
+            title: "Quản lý Người dùng",
+            icon: faUsers,
+            items: [
+                { path: "/admin/user-manager", label: "Quản lý người dùng" },
+                { path: "/admin/user-subscriptions", label: "Quản lý gói dịch vụ" }
+            ]
+        },
+        {
+            id: "services",
+            title: "Quản lý Dịch vụ",
+            icon: faBox,
+            items: [
+                { path: "/admin/sub-manager", label: "Quản lý gói dịch vụ" },
+                { path: "/admin/transaction-manager", label: "Giao dịch trung gian" }
+            ]
+        }
+    ];
+
+    const toggleMenu = (menuId) => {
         setExpandedMenu(prev => ({
             ...prev,
-            [menuName]: !prev[menuName]
+            [menuId]: !prev[menuId]
         }));
     };
+
     const handleLogout = async () => {
-        try { await api.post("/account/revoke-token"); } catch { /* noop */ }
+        try {
+            await api.post("/account/revoke-token");
+        } catch {
+            // noop
+        }
         logout();
         navigate("/");
     };
+
+    const closeSidebar = () => {
+        setSidebarOpen(false);
+    };
+
     return (
-        <div className="admin-container">
+        <div className="admin-layout">
+            {/* MOBILE HEADER */}
+            <header className="mobile-header">
+                <button
+                    className="menu-toggle"
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    aria-label="Toggle menu"
+                >
+                    <FontAwesomeIcon icon={sidebarOpen ? faTimes : faBars} />
+                </button>
+                <Link to="/" className="mobile-logo">
+                    <img src="/logodenrmvbg.png" alt="Logo" />
+                </Link>
+                <div className="user-name-mobile">{user.fullName}</div>
+            </header>
+
+            {/* OVERLAY */}
+            {sidebarOpen && (
+                <div className="sidebar-overlay" onClick={closeSidebar} />
+            )}
+
             {/* SIDEBAR */}
-            <aside className="sidebar">
+            <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
                 {/* ADMIN INFO */}
                 <div className="admin-info">
-                    <Link to="/" className="header-logo desktop-only">
-                        <img
-                            src="/logodenrmvbg.png"
-                            alt="LogoChoRe"
-                            className="h-8 w-10 object-contain"
-                        />
+                    <Link to="/" className="logo-link">
+                        <img src="/logodenrmvbg.png" alt="Logo" />
                     </Link>
-
-                    <h3 className="admin-name">Hi, {user.fullName}</h3>
+                    <h3 className="admin-name">{user.fullName}</h3>
                 </div>
 
-                {/* MENU */}
-                <nav className="menu">
-                    {/* QUẢN LÝ NỘI DUNG */}
-                    <div className="menu-group">
-                        <button
-                            className="menu-group-toggle"
-                            onClick={() => toggleMenu("content")}
-                        >
-                            <span className="menu-label">
-                                <FontAwesomeIcon icon={faFileLines} />
-                                <span>Quản lý Nội dung</span>
-                            </span>
-                            <span className={`arrow ${expandedMenu.content ? "open" : ""}`}>
-                                <FontAwesomeIcon icon={expandedMenu.content ? faBars : faBars} style={{ transform: 'rotate(-90deg)' }} />
-                            </span>
-                        </button>
-                        <div className={`menu-submenu ${expandedMenu.content ? "show" : ""}`}>
-                            <Link to="/admin/post-manager" className="submenu-item">
-                                Quản lý bài viết
-                            </Link>
-                            <Link to="/admin/category-manager" className="submenu-item">
-                                Quản lý phân loại
-                            </Link>
-                            <Link to="/admin/specification-manager" className="submenu-item">
-                                Cấu hình phân loại
-                            </Link>
-                            <Link to="/admin/brand-manager" className="submenu-item">
-                                Quản lý hãng
-                            </Link>
-                            <Link to="/admin/brand-category-manager" className="submenu-item">
-                                Phân loại hãng
-                            </Link>
-                        </div>
-                    </div>
+                {/* NAVIGATION MENU */}
+                <nav className="navigation">
+                    {menuSections.map(section => (
+                        <div key={section.id} className="menu-section">
+                            <button
+                                className={`menu-toggle-btn ${expandedMenu[section.id] ? "expanded" : ""}`}
+                                onClick={() => toggleMenu(section.id)}
+                                aria-expanded={expandedMenu[section.id]}
+                            >
+                                <div className="menu-toggle-content">
+                                    <FontAwesomeIcon icon={section.icon} className="menu-icon" />
+                                    <span className="menu-title">{section.title}</span>
+                                </div>
+                                <FontAwesomeIcon
+                                    icon={faChevronDown}
+                                    className="chevron-icon"
+                                />
+                            </button>
 
-                    {/* QUẢN LÝ NGƯỜI DÙNG */}
-                    <div className="menu-group">
-                        <button
-                            className="menu-group-toggle"
-                            onClick={() => toggleMenu("users")}
-                        >
-                            <span className="menu-label">
-                                <FontAwesomeIcon icon={faUsers} />
-                                <span>Quản lý Người dùng</span>
-                            </span>
-                            <span className={`arrow ${expandedMenu.users ? "open" : ""}`}>
-                                <FontAwesomeIcon icon={faBars} style={{ transform: 'rotate(-90deg)' }} />
-                            </span>
-                        </button>
-                        <div className={`menu-submenu ${expandedMenu.users ? "show" : ""}`}>
-                            <Link to="/admin/user-manager" className="submenu-item">
-                                Quản lý người dùng
-                            </Link>
-                            <Link to="/admin/user-subscriptions" className="submenu-item">
-                                Quản lý gói dịch vụ
-                            </Link>
+                            {expandedMenu[section.id] && (
+                                <div className="submenu">
+                                    {section.items.map(item => (
+                                        <Link
+                                            key={item.path}
+                                            to={item.path}
+                                            className="submenu-link"
+                                            onClick={closeSidebar}
+                                        >
+                                            {item.label}
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    </div>
-
-                    {/* QUẢN LÝ DỊCH VỤ */}
-                    <div className="menu-group">
-                        <button
-                            className="menu-group-toggle"
-                            onClick={() => toggleMenu("services")}
-                        >
-                            <span className="menu-label">
-                                <FontAwesomeIcon icon={faBox} />
-                                <span>Quản lý Dịch vụ</span>
-                            </span>
-                            <span className={`arrow ${expandedMenu.services ? "open" : ""}`}>
-                                <FontAwesomeIcon icon={faBars} style={{ transform: 'rotate(-90deg)' }} />
-                            </span>
-                        </button>
-                        <div className={`menu-submenu ${expandedMenu.services ? "show" : ""}`}>
-                            <Link to="/admin/sub-manager" className="submenu-item">
-                                Quản lý gói dịch vụ
-                            </Link>
-                            <Link to="/admin/transaction-manager" className="submenu-item">
-                                Giao dịch trung gian
-                            </Link>
-                        </div>
-                    </div>
+                    ))}
                 </nav>
 
-                {/* FOOTER SECTION */}
+                {/* FOOTER */}
                 <div className="sidebar-footer">
-                    <button className="logout-btn" onClick={() => handleLogout()}>
+                    <button className="logout-btn" onClick={handleLogout}>
                         <FontAwesomeIcon icon={faSignOutAlt} />
                         <span>Đăng xuất</span>
                     </button>

@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faMapMarkerAlt, faChevronDown, faTimes,
   faLayerGroup, faChevronRight, faSearch,
+  faChevronLeft, faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 
 import api from "@/api";
@@ -43,9 +44,9 @@ function resolveLocationLabel(provinceCode, wardCode) {
   return provinceData[provinceCode]?.name ?? "";
 }
 
-// ─── Hero Category Dropdown ───────────────────────────────────────────────────
+// ─── Desktop Category Panel (hover) ──────────────────────────────────────────
 
-function HeroCategoryDropdown({ onClose }) {
+function DesktopCategoryPanel({ onClose }) {
   const navigate = useNavigate();
   const { data: categoryData } = useFetch("/api/categories/hierarchy");
   const [categories, setCategories] = useState([]);
@@ -61,14 +62,15 @@ function HeroCategoryDropdown({ onClose }) {
   const go = (path) => { navigate(path); onClose(); };
 
   return (
-    <div className="hero-cate-panel">
+    <div className="hero-cate-panel--desktop">
+      {/* Cột trái */}
       <div className="hero-cate-left">
         <div className="hero-cate-header">Danh mục</div>
         {categories.map(cate => (
           <button
             key={cate.cateId}
             className={`hero-cate-item ${activeCate?.cateId === cate.cateId ? "active" : ""}`}
-            onMouseEnter={() => setActiveCate(cate)}
+            onMouseEnter={() => setActiveCate(cate)}   // hover để xem sub
             onClick={() => go(`/search?cateId=${cate.cateId}`)}
           >
             <span>{cate.cateName}</span>
@@ -77,8 +79,16 @@ function HeroCategoryDropdown({ onClose }) {
         ))}
       </div>
 
+      {/* Cột phải */}
       {activeCate && (
         <div className="hero-cate-right">
+          {/* <button
+            className="hero-cate-parent-btn"
+            onClick={() => go(`/search?cateId=${activeCate.cateId}`)}
+          >
+            Xem tất cả "{activeCate.cateName}"
+          </button> */}
+
           {activeCate.subCategories?.length > 0 && (
             <div className="hero-cate-section">
               <div className="hero-cate-section-title">Danh mục con</div>
@@ -92,6 +102,7 @@ function HeroCategoryDropdown({ onClose }) {
               </div>
             </div>
           )}
+
           {activeCate.brands?.length > 0 && (
             <div className="hero-cate-section">
               <div className="hero-cate-section-title">Thương hiệu</div>
@@ -105,6 +116,7 @@ function HeroCategoryDropdown({ onClose }) {
               </div>
             </div>
           )}
+
           {!activeCate.subCategories?.length && !activeCate.brands?.length && (
             <p className="hero-cate-empty">Chưa có danh mục con hoặc thương hiệu</p>
           )}
@@ -114,7 +126,127 @@ function HeroCategoryDropdown({ onClose }) {
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Mobile Bottom Sheet ──────────────────────────────────────────────────────
+
+function MobileBottomSheet({ open, onClose }) {
+  const navigate = useNavigate();
+  const { data: categoryData } = useFetch("/api/categories/hierarchy");
+  const [categories,    setCategories]    = useState([]);
+  const [activeScreen,  setActiveScreen]  = useState(null); // null = list, object = detail
+
+  useEffect(() => {
+    if (categoryData) setCategories(categoryData);
+  }, [categoryData]);
+
+  // Reset về screen 1 mỗi lần mở
+  useEffect(() => {
+    if (open) setActiveScreen(null);
+  }, [open]);
+
+  const go = (path) => { navigate(path); onClose(); };
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className={`bs-overlay ${open ? "" : "bs-overlay--hidden"}`}
+        onClick={onClose}
+      />
+
+      {/* Sheet */}
+      <div className={`bs-sheet ${open ? "" : "bs-sheet--hidden"}`}>
+
+        {/* Drag handle */}
+        <div className="bs-handle">
+          <div className="bs-handle-bar" />
+        </div>
+
+        {/* Header */}
+        <div className="bs-header">
+          {activeScreen ? (
+            <button className="bs-back" onClick={() => setActiveScreen(null)}>
+              <FontAwesomeIcon icon={faChevronLeft} />
+            </button>
+          ) : (
+            <span style={{ width: 36 }} /> /* placeholder để title giữa */
+          )}
+
+          <span className="bs-title">
+            {activeScreen ? activeScreen.cateName : "Danh mục"}
+          </span>
+
+          <button className="bs-close" onClick={onClose}>
+            <FontAwesomeIcon icon={faXmark} />
+          </button>
+        </div>
+
+        {/* Screen 1: danh sách cha */}
+        {!activeScreen && (
+          <div className="bs-list">
+            {categories.map(cate => (
+              <button
+                key={cate.cateId}
+                className="bs-list-item"
+                onClick={() => setActiveScreen(cate)}
+              >
+                <span>{cate.cateName}</span>
+                <FontAwesomeIcon icon={faChevronRight} />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Screen 2: sub + brand */}
+        {activeScreen && (
+          <div className="bs-detail">
+            <button
+              className="hero-cate-parent-btn"
+              style={{ marginBottom: 16, width: "100%", justifyContent: "center" }}
+              onClick={() => go(`/search?cateId=${activeScreen.cateId}`)}
+            >
+              Xem tất cả {activeScreen.cateName}
+            </button>
+
+            {activeScreen.subCategories?.length > 0 && (
+              <div className="hero-cate-section">
+                <div className="hero-cate-section-title">Danh mục con</div>
+                <div className="hero-cate-chips">
+                  {activeScreen.subCategories.map(sub => (
+                    <button key={sub.cateId} className="hero-cate-chip"
+                      onClick={() => go(`/search?cateId=${sub.cateId}`)}>
+                      {sub.cateName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeScreen.brands?.length > 0 && (
+              <div className="hero-cate-section">
+                <div className="hero-cate-section-title">Thương hiệu</div>
+                <div className="hero-cate-chips">
+                  {activeScreen.brands.map(brand => (
+                    <button key={brand.brandId} className="hero-cate-chip"
+                      onClick={() => go(`/search?brandId=${brand.brandId}`)}>
+                      {brand.brandName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!activeScreen.subCategories?.length && !activeScreen.brands?.length && (
+              <p className="hero-cate-empty">Chưa có danh mục con hoặc thương hiệu</p>
+            )}
+          </div>
+        )}
+
+      </div>
+    </>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function Home() {
   const { user }    = useAuthStore();
@@ -122,25 +254,31 @@ export default function Home() {
   const locationRef = useRef(null);
   const cateRef     = useRef(null);
 
-  // Posts
   const [posts,    setPosts]    = useState([]);
   const [allPosts, setAllPosts] = useState([]);
-
-  // Search
   const [searchInput, setSearchInput] = useState("");
 
-  // Location picker
   const [locationOpen,         setLocationOpen]         = useState(false);
   const [selectedProvinceCode, setSelectedProvinceCode] = useState("");
   const [selectedWardCode,     setSelectedWardCode]     = useState("");
   const [selectedLocation,     setSelectedLocation]     = useState("");
 
-  // Category dropdown
-  const [cateOpen, setCateOpen] = useState(false);
+  // Desktop: click để toggle popup
+  // Mobile: bottom sheet
+  const [cateOpen,       setCateOpen]       = useState(false);
+  const [sheetOpen,      setSheetOpen]      = useState(false);
+  const [isMobile,       setIsMobile]       = useState(false);
 
-  // Filters & price ceiling
   const [maxPriceInDB, setMaxPriceInDB] = useState(0);
   const [filters,      setFilters]      = useState(INITIAL_FILTERS);
+
+  // Detect mobile
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 767);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   // ── Derived ──────────────────────────────────────────────────────────────────
 
@@ -172,7 +310,7 @@ export default function Home() {
 
   // ── Effects ───────────────────────────────────────────────────────────────────
 
-  // Click outside — location
+  // Click outside location
   useEffect(() => {
     const h = (e) => {
       if (locationRef.current && !locationRef.current.contains(e.target)) setLocationOpen(false);
@@ -181,7 +319,7 @@ export default function Home() {
     return () => document.removeEventListener("mousedown", h);
   }, []);
 
-  // Click outside — category
+  // Click outside desktop cate panel
   useEffect(() => {
     if (!cateOpen) return;
     const h = (e) => {
@@ -191,7 +329,7 @@ export default function Home() {
     return () => document.removeEventListener("mousedown", h);
   }, [cateOpen]);
 
-  // Initial load
+  // Load posts
   useEffect(() => {
     api.get("/api/posts/all", { params: { statusIds: [2], userId: user?.userId } })
       .then(res => {
@@ -204,7 +342,7 @@ export default function Home() {
       });
   }, []);
 
-  // Debounced filter fetch
+  // Debounced filter
   useEffect(() => {
     if (!maxPriceInDB) return;
     const timer = setTimeout(() => {
@@ -229,6 +367,14 @@ export default function Home() {
     e?.preventDefault();
     const q = searchInput.trim();
     navigate(q ? `/search?keyword=${encodeURIComponent(q)}` : "/search");
+  };
+
+  const handleCateBtnClick = () => {
+    if (isMobile) {
+      setSheetOpen(true);
+    } else {
+      setCateOpen(v => !v);
+    }
   };
 
   const applyLocation = () => {
@@ -261,32 +407,38 @@ export default function Home() {
 
           <form className="hero-search-bar" onSubmit={handleSearch}>
 
-            {/* Category button */}
+            {/* Category button — desktop popup / mobile bottom sheet */}
             <div className="hero-cate-wrap" ref={cateRef}>
               <button
                 type="button"
                 className={`hero-cate-btn ${cateOpen ? "open" : ""}`}
-                onClick={() => setCateOpen(v => !v)}
+                onClick={handleCateBtnClick}
               >
                 <FontAwesomeIcon icon={faLayerGroup} />
-                {/* <span>Danh mục</span> */}
+                <span className="hero-cate-btn-label">Danh mục</span>
                 <FontAwesomeIcon icon={faChevronDown} className="hero-cate-chevron" />
               </button>
-              {cateOpen && <HeroCategoryDropdown onClose={() => setCateOpen(false)} />}
+
+              {/* Desktop popup */}
+              {!isMobile && cateOpen && (
+                <div className="hero-cate-desktop-wrap">
+                  <DesktopCategoryPanel onClose={() => setCateOpen(false)} />
+                </div>
+              )}
             </div>
 
             <div className="hero-search-divider" />
 
-            {/* Keyword input */}
+            {/* Keyword */}
             <input
               type="text"
               className="hero-input"
-              placeholder="Tìm sản phẩm, danh mục, thương hiệu..."
+              placeholder="Tìm tin đăng, danh mục, thương hiệu..."
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
             />
 
-            {/* Location picker */}
+            {/* Location */}
             <div className="hero-location" ref={locationRef}>
               <button
                 type="button"
@@ -344,13 +496,16 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Mobile bottom sheet — render ngoài form để không bị overflow:hidden cắt */}
+      <div className="hero-cate-mobile-wrap">
+        <MobileBottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
+      </div>
+
       {/* ── Posts ── */}
       <main className="home-main">
         <div className="cards-panel">
-
           <div className="section-header">
             <h2 className="section-title">Tin đăng mới nhất</h2>
-            <span className="section-count">{filteredPosts.length} sản phẩm</span>
           </div>
 
           <FilterBar
@@ -364,7 +519,6 @@ export default function Home() {
             ? <div className="empty-state">Không có sản phẩm</div>
             : <PostGrid posts={filteredPosts} />
           }
-
         </div>
       </main>
 
