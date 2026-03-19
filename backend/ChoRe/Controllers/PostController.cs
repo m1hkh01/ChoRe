@@ -108,7 +108,7 @@ namespace ChoRe.Controllers
                 .Include(p => p.SavedPosts)
                 .Include(p => p.PostCates)
                     .ThenInclude(pc => pc.Category)
-                .Where(p => p.PostStatusId == 2);
+                .Where(p => p.PostStatusId == 2 && p.IsDeleted == false);
 
             // 🔍 keyword
             if (!string.IsNullOrWhiteSpace(keyword))
@@ -409,7 +409,7 @@ namespace ChoRe.Controllers
                 .Include(p => p.User)
                 .Include(p => p.PostImages)
                 .Include(p=>p.SavedPosts)
-                .Where(p => p.PostStatusId == 2); // ✅ chỉ approved
+                .Where(p => p.PostStatusId == 2 && p.IsDeleted == false); // ✅ chỉ approved và chưa bị xóa
 
             // 🔍 Optional filter theo statusIds (nếu cần)
             if (statusIds != null && statusIds.Length > 0)
