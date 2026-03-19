@@ -197,7 +197,7 @@ export default function ProfileRatings({ userId }) {
   const load = async (p, reset = false) => {
     setLoading(true);
     try {
-      const { data } = await api.get(`/api/profile/${userId}/ratings`, {
+      const { data } = await api.get(`/api/profile/users/${userId}/ratings`, {
         params: { page: p, pageSize: PAGE_SIZE },
       });
       setRatings(prev => reset ? data.items : [...prev, ...data.items]);

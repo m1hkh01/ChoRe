@@ -51,7 +51,7 @@ function Pay({ transaction, pkg, orderCode, post, onClose, paymentType }) {
                     return;
                 }
             } else{
-                const res = await api.post("/api/posts/pay",post.postId)
+                const res = await api.post(`/api/posts/pay/${post.postId}`);
                 Toast.fire({
                     icon: res.data.success ? "success" : "error",
                     text: res.data.success

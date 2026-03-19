@@ -876,11 +876,11 @@ function CreatePost() {
                     )}
 
                     {/* SUBMIT BUTTON */}
-                    <div className="flex gap-3" style={{ margin: 20 }}>
+                    <div className="flex justify-content-end gap-3" w-full style={{ margin: 20 }}>
                         <button style={{ borderRadius: 5 }}
                             type="button"
                             onClick={() => navigate("/")}
-                            className="flex-1 px-1 py-4 border-2 border-[var(--cancel)] text-[var(--cancel)] font-semibold rounded-lg hover:bg-[var(--cancel)] hover:text-white transition-all"
+                            className="px-0 py-3 border-2 w-1/4! border-[var(--cancel)] text-[var(--cancel)] font-semibold rounded-lg hover:bg-[var(--cancel)] hover:text-white transition-all"
                         >
                             Hủy bỏ
                         </button>
@@ -889,7 +889,7 @@ function CreatePost() {
                             style={{ borderRadius: 5 }}
                             type="submit"
                             disabled={uploading}
-                            className="flex-1 px-1 py-4 bg-[var(--primary-color)] text-[var(--primary-color-text)] font-semibold rounded-lg hover:bg-[var(--primary-color-hover)] transition-all shadow-lg hover:shadow-xl transform disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-0 py-3 w-1/4! bg-[var(--primary-color)] text-[var(--primary-color-text)] font-semibold rounded-lg hover:bg-[var(--primary-color-hover)] transition-all shadow-lg hover:shadow-xl transform disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {uploading ? "Đang tải lên..." : "Gửi tin ngay"}
                         </button>

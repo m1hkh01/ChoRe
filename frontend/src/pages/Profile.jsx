@@ -9,13 +9,12 @@ import ProfileComments from "@/components/Profile/ProfileComments";
 import EditProfileModal from "@/components/Profile/EditProfileModal";
 import ProfileManagePosts from "@/components/Profile/ProfileManagePosts";
 import "@/assets/Profile.css";
-import { icon } from "@fortawesome/fontawesome-svg-core";
 
 const TABS = [
-    { key: "posts", label: "Bài đăng", icon: "" },
-    { key: "ratings", label: "Đánh giá", icon: "" },
-    { key: "comments", label: "Lịch sử bình luận", icon: "" },
-    { key: "manage", label: "Quản lý tin đăng", icon: "" },
+    { key: "posts",    label: "Bài đăng"           },
+    { key: "ratings",  label: "Đánh giá"            },
+    { key: "comments", label: "Lịch sử bình luận"   },
+    { key: "manage",   label: "Quản lý tin đăng"    },
 ];
 
 export default function ProfilePage() {
@@ -24,18 +23,21 @@ export default function ProfilePage() {
     const navigate = useNavigate();
 
     const targetId = userId ? parseInt(userId) : me?.userId;
-    const isOwner = !userId || parseInt(userId) === me?.userId;
+    const isOwner  = !userId || parseInt(userId) === me?.userId;
 
-    const [profile, setProfile] = useState(null);
-    const [activeTab, setActiveTab] = useState("posts");
-    const [loading, setLoading] = useState(true);
-    const [postsTotal, setPostsTotal] = useState(0);
+    const [profile,       setProfile]       = useState(null);
+    const [activeTab,     setActiveTab]     = useState("posts");
+    const [loading,       setLoading]       = useState(true);
+    const [postsTotal,    setPostsTotal]    = useState(0);
     const [showEditModal, setShowEditModal] = useState(false);
+
+    // ── Load profile ──────────────────────────────────────────────────────
 
     const loadProfile = async () => {
         setLoading(true);
         try {
-            const res = await api.get(`/api/profile/${targetId}`);
+            // ✅ Route mới: /api/profile/users/{userId}
+            const res = await api.get(`/api/profile/users/${targetId}`);
             setProfile(res.data);
         } catch {
             navigate("/");
@@ -43,23 +45,30 @@ export default function ProfilePage() {
             setLoading(false);
         }
     };
+
+    // ── Load posts total (chỉ để hiển thị số đếm ở stats bar) ────────────
+
     const loadPostsTotal = async () => {
         try {
-            const res = await api.get(`/api/profile/${targetId}/posts`, {
-                params: { page: 1, pageSize: 1 }
+            // ✅ Route mới: /api/profile/users/{userId}/posts
+            const res = await api.get(`/api/profile/users/${targetId}/posts`, {
+                params: { page: 1, pageSize: 1 },
             });
-
-            setPostsTotal(res.data.total);
+            setPostsTotal(res.data.total ?? 0);
         } catch (err) {
             console.error("Load posts total error:", err);
         }
     };
+
+    // ── Effects ───────────────────────────────────────────────────────────
 
     useEffect(() => {
         if (!targetId) { navigate("/login"); return; }
         loadProfile();
         loadPostsTotal();
     }, [targetId]);
+
+    // ── Render ────────────────────────────────────────────────────────────
 
     if (loading) return (
         <div className="pf-loading">
@@ -72,7 +81,7 @@ export default function ProfilePage() {
     return (
         <div className="pf-page">
 
-            {/* ── Header ─────────────────────────────────────────── */}
+            {/* ── Header ── */}
             <ProfileHeader
                 profile={profile}
                 isOwner={isOwner}
@@ -80,7 +89,7 @@ export default function ProfilePage() {
                 onAvatarUpdated={loadProfile}
             />
 
-            {/* ── Stats Bar ──────────────────────────────────────── */}
+            {/* ── Stats Bar ── */}
             <div className="pf-stats">
                 <div className="pf-stat">
                     <span className="pf-stat-val">{postsTotal}</span>
@@ -100,33 +109,33 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            {/* ── Tabs Nav ───────────────────────────────────────── */}
+            {/* ── Tabs Nav ── */}
             <div className="pf-tabs-bar">
                 <div className="pf-tabs-inner">
-                    {TABS.map(t => (
-                        <button
-                            key={t.key}
-                            className={`pf-tab ${activeTab === t.key ? "pf-tab--active" : ""}`}
-                            onClick={() => setActiveTab(t.key)}
-                        >
-                            <span>{t.icon}</span>
-                            <span>{t.label}</span>
-                        </button>
-                    ))}
+                    {TABS
+                        .filter(t => t.key !== "manage" || isOwner)
+                        .map(t => (
+                            <button
+                                key={t.key}
+                                className={`pf-tab${activeTab === t.key ? " pf-tab--active" : ""}`}
+                                onClick={() => setActiveTab(t.key)}
+                            >
+                                {t.label}
+                            </button>
+                        ))
+                    }
                 </div>
             </div>
 
-            {/* ── Tab Content ────────────────────────────────────── */}
+            {/* ── Tab Content ── */}
             <div className="pf-content">
-                {activeTab === "posts" && <ProfilePosts userId={targetId} isOwner={isOwner} />}
-                {activeTab === "ratings" && <ProfileRatings userId={targetId} />}
+                {activeTab === "posts"    && <ProfilePosts    userId={targetId} isOwner={isOwner} />}
+                {activeTab === "ratings"  && <ProfileRatings  userId={targetId} />}
                 {activeTab === "comments" && <ProfileComments userId={targetId} />}
-                {activeTab === "manage" && isOwner && (
-                    <ProfileManagePosts userId={targetId} />
-                )}
+                {activeTab === "manage"   && isOwner && <ProfileManagePosts userId={targetId} />}
             </div>
 
-            {/* ── Edit Modal ─────────────────────────────────────── */}
+            {/* ── Edit Modal ── */}
             {showEditModal && (
                 <EditProfileModal
                     profile={profile}

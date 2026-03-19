@@ -218,7 +218,7 @@ export default function Header() {
 
   const dashboardLink = () => {
     if (!user) return null;
-    if (user.role === "Admin")  return { to: "/admin/post-manager",  icon: faGauge,        label: "Trang quản trị Admin" };
+    if (user.role === "Admin")  return { to: "/admin/dashboard",  icon: faGauge,        label: "Trang quản trị Admin" };
     if (user.role === "Censor") return { to: "/censor/post-censor",  icon: faShieldHalved, label: "Trang kiểm duyệt" };
     return null;
   };
