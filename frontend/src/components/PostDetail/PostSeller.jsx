@@ -73,10 +73,14 @@ function PostSeller({ user, postId }) {
 </Link>
             {/* Actions */}
             <div className="seller-actions">
-                <button className="action-btn action-btn-primary" onClick={CreateChat}>
-                    <FontAwesomeIcon icon={faComment} />
-                    <span>Chat ngay</span>
-                </button>
+                {
+                    buyer.userId != user.userId && (
+                        <button className="action-btn action-btn-primary" onClick={CreateChat}>
+                            <FontAwesomeIcon icon={faComment} />
+                            <span>Chat ngay</span>
+                        </button>
+                    )
+                }
 
                 {!showPhone ? (
                     <button

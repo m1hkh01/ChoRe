@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -14,6 +15,11 @@ public class ConversationController : ControllerBase
     {
         try
         {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            if(userId == dto.SellerId)
+            {
+                return BadRequest("Không thể chat với chính mình");
+            }
             await _convertationService.CreateConversationAsync(dto);
             return Ok();
         }
