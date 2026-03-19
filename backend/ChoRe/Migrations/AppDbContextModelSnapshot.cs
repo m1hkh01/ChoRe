@@ -828,10 +828,16 @@ namespace ChoRe.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETDATE()");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(5000)
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<decimal?>("MaxPrice")
                         .HasColumnType("decimal(18,2)");
@@ -931,6 +937,7 @@ namespace ChoRe.Migrations
                             BrandId = 1,
                             CreatedAt = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Máy zin, pin 85%",
+                            IsDeleted = false,
                             PostStatusId = 2,
                             Price = 2000000m,
                             PriceType = "FIXED",
@@ -950,6 +957,7 @@ namespace ChoRe.Migrations
                             BrandId = 1,
                             CreatedAt = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "16GB/512GB PCIE/VGA 4GB RTX3050",
+                            IsDeleted = false,
                             MaxPrice = 17990000m,
                             MinPrice = 17000000m,
                             PostStatusId = 2,
@@ -970,6 +978,7 @@ namespace ChoRe.Migrations
                             BrandId = 1,
                             CreatedAt = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Chính hãng Apple Việt Nam",
+                            IsDeleted = false,
                             PostStatusId = 2,
                             PriceType = "NEGOTIABLE",
                             RejectReason = "",
@@ -988,6 +997,7 @@ namespace ChoRe.Migrations
                             BrandId = 1,
                             CreatedAt = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "12GB 256GB",
+                            IsDeleted = false,
                             PostStatusId = 2,
                             Price = 21990000m,
                             PriceType = "FIXED",
@@ -1007,6 +1017,7 @@ namespace ChoRe.Migrations
                             BrandId = 1,
                             CreatedAt = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Chính hãng Apple Việt Nam",
+                            IsDeleted = false,
                             PostStatusId = 2,
                             Price = 21990000m,
                             PriceType = "FIXED",

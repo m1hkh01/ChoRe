@@ -29,7 +29,10 @@ public class ServicePackageController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllPackage()
     {
-        var packages = await _service.GetAllSubPlan();
+        var packages = await _context.SubscriptionPlans
+            .Where(p => p.IsActive)
+            .OrderBy(p => p.SubPlanPrice)
+            .ToListAsync();
         var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
         var user = await _context.Users.Include(u => u.UserSubscription).Where(u => u.UserId == userId).Select(u=>new { subPlanId = u.UserSubscription.SubPlanId }).FirstOrDefaultAsync();
         if (user is null)

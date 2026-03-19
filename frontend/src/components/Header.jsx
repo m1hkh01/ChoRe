@@ -24,7 +24,7 @@ const NOTIF_TABS = [
   { key: "Transaction", label: "Giao dịch" },
 ];
 
-const POST_NOTIF_TYPES = ["PostApproved", "PostRejected", "PostNeedPayment"];
+const POST_NOTIF_TYPES        = ["PostApproved", "PostRejected", "PostNeedPayment"];
 const TRANSACTION_NOTIF_TYPES = ["Transaction", "PendingPayment", "PaymentReceived", "AwaitingEvidence"];
 
 const AVATAR_BASE = "https://api.chore123.cloud/uploads/";
@@ -76,33 +76,27 @@ export default function Header() {
   const location         = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Dropdown states
-  const [cateOpen,       setCateOpen]       = useState(false);
-  const [notifOpen,      setNotifOpen]      = useState(false);
-  const [profileOpen,    setProfileOpen]    = useState(false);
-  const [drawerOpen,     setDrawerOpen]     = useState(false);
-  const [drawerCateOpen, setDrawerCateOpen] = useState(false);
-  const [drawerNotifOpen,setDrawerNotifOpen]= useState(false);
+  const [cateOpen,        setCateOpen]        = useState(false);
+  const [notifOpen,       setNotifOpen]        = useState(false);
+  const [profileOpen,     setProfileOpen]      = useState(false);
+  const [drawerOpen,      setDrawerOpen]       = useState(false);
+  const [drawerCateOpen,  setDrawerCateOpen]   = useState(false);
+  const [drawerNotifOpen, setDrawerNotifOpen]  = useState(false);
 
-  // Search
   const [searchKeyword, setSearchKeyword] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
 
-  // Category mega menu
   const { data: categoryData } = useFetch("/api/categories/hierarchy");
-  const [categories,        setCategories]        = useState([]);
-  const [activeCate,        setActiveCate]        = useState(null);
+  const [categories,         setCategories]         = useState([]);
+  const [activeCate,         setActiveCate]         = useState(null);
   const [mobileExpandedCate, setMobileExpandedCate] = useState(null);
 
-  // Notifications
   const { data: notifData } = useFetch(`/api/notifications/${user?.userId || 0}`);
   const [notifications, setNotifications] = useState([]);
   const [notifFilter,   setNotifFilter]   = useState("All");
 
-  // Review modal
   const [reviewChatRoomId, setReviewChatRoomId] = useState(null);
 
-  // Refs for click-outside
   const cateRef    = useRef(null);
   const notifRef   = useRef(null);
   const profileRef = useRef(null);
@@ -112,7 +106,7 @@ export default function Header() {
   const isHomePage   = location.pathname === "/";
   const isSearchPage = location.pathname === "/search";
 
-  // ── Init data ─────────────────────────────────────────────────────────────
+  // ── Init ──────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     if (categoryData) {
@@ -125,28 +119,23 @@ export default function Header() {
     if (notifData) setNotifications(notifData);
   }, [notifData]);
 
-  // SignalR real-time notifications
   useEffect(() => {
     const connection = connectionRef?.current;
     if (!connection) return;
-
     const handler = (notif) => {
       setNotifications(prev =>
         prev.some(n => n.id === notif.id) ? prev : [notif, ...prev]
       );
     };
-
     connection.off("ReceiveNotification");
     connection.on("ReceiveNotification", handler);
     return () => connection.off("ReceiveNotification", handler);
   }, [connectionRef?.current]);
 
-  // Sync search input on search page
   useEffect(() => {
     if (isSearchPage) setSearchKeyword(searchParams.get("keyword") || "");
   }, [isSearchPage]);
 
-  // Close dropdowns on outside click / Escape
   useEffect(() => {
     const onMouseDown = (e) => {
       if (cateRef.current    && !cateRef.current.contains(e.target))    setCateOpen(false);
@@ -155,10 +144,8 @@ export default function Header() {
     };
     const onEsc = (e) => {
       if (e.key === "Escape") {
-        setCateOpen(false);
-        setNotifOpen(false);
-        setProfileOpen(false);
-        setDrawerOpen(false);
+        setCateOpen(false); setNotifOpen(false);
+        setProfileOpen(false); setDrawerOpen(false);
       }
     };
     document.addEventListener("mousedown", onMouseDown);
@@ -169,7 +156,6 @@ export default function Header() {
     };
   }, []);
 
-  // Lock body scroll when drawer is open
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -200,18 +186,16 @@ export default function Header() {
     await api.post(`/api/notifications/${notif.id}/read`);
     setNotifOpen(false);
     setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n));
-
     const routes = {
-      Transaction:          `/pay/transaction/${notif.relatedId}`,
-      PendingPayment:       `/pay/transaction/${notif.relatedId}`,
-      PendingPaymentPackage:`/pay/package/${notif.relatedId}`,
-      PostApproved:         "/profile",
-      PostRejected:         "/profile",
-      PostNeedPayment:      `/pay/post/${notif.relatedId}`,
-      Confirming:           "/user-transactions",
-      AwaitingEvidence:     "/user-transactions",
+      Transaction:           `/pay/transaction/${notif.relatedId}`,
+      PendingPayment:        `/pay/transaction/${notif.relatedId}`,
+      PendingPaymentPackage: `/pay/package/${notif.relatedId}`,
+      PostApproved:          "/profile",
+      PostRejected:          "/profile",
+      PostNeedPayment:       `/pay/post/${notif.relatedId}`,
+      Confirming:            "/user-transactions",
+      AwaitingEvidence:      "/user-transactions",
     };
-
     if (notif.type === "ReviewReminder") {
       setReviewChatRoomId(notif.relatedId);
     } else {
@@ -219,15 +203,8 @@ export default function Header() {
     }
   };
 
-  const closeAll = () => {
-    setProfileOpen(false);
-    setDrawerOpen(false);
-  };
-
-  const navigateTo = (path) => {
-    closeAll();
-    navigate(path);
-  };
+  const closeAll   = () => { setProfileOpen(false); setDrawerOpen(false); };
+  const navigateTo = (path) => { closeAll(); navigate(path); };
 
   // ── Derived ───────────────────────────────────────────────────────────────
 
@@ -241,7 +218,7 @@ export default function Header() {
 
   const dashboardLink = () => {
     if (!user) return null;
-    if (user.role === "Admin")  return { to: "/admin/post-manager",  icon: faGauge,        label: "Trang quản trị Admin" };
+    if (user.role === "Admin")  return { to: "/admin/dashboard",  icon: faGauge,        label: "Trang quản trị Admin" };
     if (user.role === "Censor") return { to: "/censor/post-censor",  icon: faShieldHalved, label: "Trang kiểm duyệt" };
     return null;
   };
@@ -273,7 +250,6 @@ export default function Header() {
 
             {cateOpen && (
               <div className="hdr-cat-panel hdr-cat-panel--mega">
-                {/* Left: parent categories */}
                 <div className="hdr-mega-left">
                   <div className="hdr-cat-panel-header">Danh mục</div>
                   {categories.map(cate => (
@@ -289,7 +265,6 @@ export default function Header() {
                   ))}
                 </div>
 
-                {/* Right: sub-categories + brands */}
                 {activeCate && (
                   <div className="hdr-mega-right">
                     {activeCate.subCategories?.length > 0 && (
@@ -297,37 +272,27 @@ export default function Header() {
                         <div className="hdr-mega-section-title">Danh mục con</div>
                         <div className="hdr-mega-chips">
                           {activeCate.subCategories.map(sub => (
-                            <button
-                              key={sub.cateId}
-                              className="hdr-mega-chip"
-                              onClick={() => { setCateOpen(false); navigate(`/search?cateId=${sub.cateId}`); }}
-                            >
+                            <button key={sub.cateId} className="hdr-mega-chip"
+                              onClick={() => { setCateOpen(false); navigate(`/search?cateId=${sub.cateId}`); }}>
                               {sub.cateName}
                             </button>
                           ))}
                         </div>
                       </div>
                     )}
-
                     {activeCate.brands?.length > 0 && (
                       <div className="hdr-mega-section">
                         <div className="hdr-mega-section-title">Thương hiệu</div>
                         <div className="hdr-mega-brands">
                           {activeCate.brands.map(brand => (
-                            <button
-                              key={brand.brandId}
-                              className="hdr-mega-brand-card"
-                              onClick={() => { setCateOpen(false); navigate(`/search?brandId=${brand.brandId}`); }}
-                            >
+                            <button key={brand.brandId} className="hdr-mega-brand-card"
+                              onClick={() => { setCateOpen(false); navigate(`/search?brandId=${brand.brandId}`); }}>
                               <span>{brand.brandName}</span>
                               {brand.subBrands?.length > 0 && (
                                 <div className="hdr-mega-subbrand-list">
                                   {brand.subBrands.map(sb => (
-                                    <button
-                                      key={sb.brandId}
-                                      className="hdr-mega-subbrand"
-                                      onClick={(e) => { e.stopPropagation(); setCateOpen(false); navigate(`/search?brandId=${sb.brandId}`); }}
-                                    >
+                                    <button key={sb.brandId} className="hdr-mega-subbrand"
+                                      onClick={(e) => { e.stopPropagation(); setCateOpen(false); navigate(`/search?brandId=${sb.brandId}`); }}>
                                       {sb.brandName}
                                     </button>
                                   ))}
@@ -338,7 +303,6 @@ export default function Header() {
                         </div>
                       </div>
                     )}
-
                     {!activeCate.subCategories?.length && !activeCate.brands?.length && (
                       <div className="hdr-mega-empty">Chưa có danh mục con hoặc thương hiệu</div>
                     )}
@@ -348,7 +312,7 @@ export default function Header() {
             )}
           </div>
 
-          {/* Search — hidden on home page */}
+          {/* Search */}
           {!isHomePage && (
             <div className={`hdr-search ${searchFocused ? "hdr-search--focused" : ""}`}>
               <button className="hdr-search-icon-btn" onClick={doSearch} aria-label="Tìm kiếm">
@@ -364,11 +328,9 @@ export default function Header() {
                 onBlur={() => setSearchFocused(false)}
               />
               {searchKeyword && (
-                <button
-                  className="hdr-search-clear"
+                <button className="hdr-search-clear"
                   onClick={() => { setSearchKeyword(""); if (isSearchPage) setSearchParams({}); }}
-                  aria-label="Xóa"
-                >
+                  aria-label="Xóa">
                   <FontAwesomeIcon icon={faTimes} />
                 </button>
               )}
@@ -379,16 +341,12 @@ export default function Header() {
           {/* Right actions */}
           <div className="hdr-actions">
             <NavIconBtn to="/chat"      icon={faComment} title="Nhắn tin" />
-            <NavIconBtn to="/favorites" icon={faHeart}   title="Yêu thích" className="hdr-icon-btn--heart" />
+            <NavIconBtn to="/favorites" icon={faHeart}   title="Yêu thích" />
 
             {/* Notifications */}
             <div className="hdr-notif-wrap" ref={notifRef}>
-              <NavIconBtn
-                icon={faBell}
-                title="Thông báo"
-                active={notifOpen}
-                onClick={() => setNotifOpen(v => !v)}
-              >
+              <NavIconBtn icon={faBell} title="Thông báo" active={notifOpen}
+                onClick={() => setNotifOpen(v => !v)}>
                 {unreadCount > 0 && (
                   <span className="hdr-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
                 )}
@@ -400,19 +358,15 @@ export default function Header() {
                     <span className="hdr-notif-title">Thông báo</span>
                     {unreadCount > 0 && <span className="hdr-notif-count">{unreadCount} chưa đọc</span>}
                   </div>
-
                   <div className="hdr-notif-tabs">
                     {NOTIF_TABS.map(tab => (
-                      <button
-                        key={tab.key}
+                      <button key={tab.key}
                         className={`hdr-notif-tab ${notifFilter === tab.key ? "hdr-notif-tab--active" : ""}`}
-                        onClick={() => setNotifFilter(tab.key)}
-                      >
+                        onClick={() => setNotifFilter(tab.key)}>
                         {tab.label}
                       </button>
                     ))}
                   </div>
-
                   <div className="hdr-notif-list">
                     {filteredNotifs.length === 0 ? (
                       <div className="hdr-notif-empty">
@@ -420,11 +374,9 @@ export default function Header() {
                         <p>Không có thông báo</p>
                       </div>
                     ) : filteredNotifs.map(item => (
-                      <button
-                        key={item.id}
+                      <button key={item.id}
                         className={`hdr-notif-item ${!item.isRead ? "hdr-notif-item--unread" : ""}`}
-                        onClick={() => handleNotifClick(item)}
-                      >
+                        onClick={() => handleNotifClick(item)}>
                         {!item.isRead && <span className="hdr-notif-dot" />}
                         <div className="hdr-notif-body">
                           <div className="hdr-notif-row">
@@ -451,7 +403,6 @@ export default function Header() {
               <span>Đăng tin</span>
             </button>
 
-            {/* Auth */}
             {!user ? (
               <Link to="/login" className="hdr-login-btn">Đăng nhập</Link>
             ) : (
@@ -474,12 +425,11 @@ export default function Header() {
                         <div className="hdr-profile-role">{user.email}</div>
                       </div>
                     </div>
-
                     <div className="hdr-profile-links">
                       {[
-                        { to: "/profile",                  icon: faUser,            label: "Trang cá nhân" },
-                        { to: "/service-package-manager",  icon: faLayerGroup,      label: "Quản lý Gói" },
-                        { to: "/user-transactions",        icon: faClockRotateLeft, label: "Quản lý giao dịch" },
+                        { to: "/profile",                 icon: faUser,            label: "Trang cá nhân" },
+                        { to: "/service-package-manager", icon: faLayerGroup,      label: "Quản lý Gói" },
+                        { to: "/user-transactions",       icon: faClockRotateLeft, label: "Quản lý giao dịch" },
                         ...(dash ? [dash] : []),
                       ].map(item => (
                         <Link key={item.to} to={item.to} className="hdr-profile-item" onClick={closeAll}>
@@ -488,7 +438,6 @@ export default function Header() {
                         </Link>
                       ))}
                     </div>
-
                     <div className="hdr-profile-footer">
                       <button onClick={handleLogout} className="hdr-logout-btn">
                         <FontAwesomeIcon icon={faRightFromBracket} />
@@ -501,17 +450,7 @@ export default function Header() {
             )}
           </div>
 
-          {/* Mobile: login button + hamburger */}
-          {/* {!user && (
-            <Link to="/login" className="hdr-mobile-login-btn">
-              Đăng nhập
-            </Link>
-          )} */}
-          <button
-            className="hdr-mobile-menu-btn"
-            onClick={() => setDrawerOpen(v => !v)}
-            aria-label="Menu"
-          >
+          <button className="hdr-mobile-menu-btn" onClick={() => setDrawerOpen(v => !v)} aria-label="Menu">
             <FontAwesomeIcon icon={drawerOpen ? faTimes : faBars} />
           </button>
         </div>
@@ -542,13 +481,6 @@ export default function Header() {
           </div>
         )}
 
-        {/* Mobile top bar — login + create (hiện khi ở homepage hoặc cần auth) */}
-        {/* {isHomePage && !user && (
-          <div className="hdr-mobile-auth-bar">
-            <Link to="/login" className="hdr-mobile-login-btn">Đăng nhập</Link>
-          </div>
-        )} */}
-
         {/* Mobile category panel */}
         {cateOpen && (
           <>
@@ -562,11 +494,8 @@ export default function Header() {
                     onClick={() => setMobileExpandedCate(id => id === cate.cateId ? null : cate.cateId)}
                   >
                     <span className="hdr-cat-label">{cate.cateName}</span>
-                    <FontAwesomeIcon
-                      icon={faChevronRight}
-                      className="hdr-cat-arrow"
-                      style={{ transform: mobileExpandedCate === cate.cateId ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}
-                    />
+                    <FontAwesomeIcon icon={faChevronRight} className="hdr-cat-arrow"
+                      style={{ transform: mobileExpandedCate === cate.cateId ? "rotate(90deg)" : "none", transition: "transform 0.2s" }} />
                   </button>
 
                   {mobileExpandedCate === cate.cateId && (
@@ -575,37 +504,30 @@ export default function Header() {
                         <>
                           <div className="hdr-mega-section-title hdr-mobile-section-title">Danh mục con</div>
                           {cate.subCategories.map(sub => (
-                            <button
-                              key={sub.cateId}
-                              className="hdr-mobile-sub-item"
-                              onClick={() => { setCateOpen(false); navigate(`/search?cateId=${sub.cateId}`); }}
-                            >
+                            <button key={sub.cateId} className="hdr-mobile-sub-item"
+                              onClick={() => { setCateOpen(false); navigate(`/search?cateId=${sub.cateId}`); }}>
                               <FontAwesomeIcon icon={faAngleRight} className="hdr-mobile-sub-icon" />
                               {sub.cateName}
                             </button>
                           ))}
                         </>
                       )}
+                      {/* ✅ FIX: thêm wrapper hdr-mobile-brand-chips */}
                       {cate.brands?.length > 0 && (
                         <>
                           <div className="hdr-mega-section-title hdr-mobile-section-title">Thương hiệu</div>
                           <div className="hdr-mobile-brand-chips">
                             {cate.brands.map(brand => (
-                              <button
-                                key={brand.brandId}
-                                className="hdr-mega-chip"
-                                onClick={() => { setCateOpen(false); navigate(`/search?brandId=${brand.brandId}`); }}
-                              >
+                              <button key={brand.brandId} className="hdr-mega-chip"
+                                onClick={() => { setCateOpen(false); navigate(`/search?brandId=${brand.brandId}`); }}>
                                 {brand.brandName}
                               </button>
                             ))}
                           </div>
                         </>
                       )}
-                      <button
-                        className="hdr-mobile-sub-item hdr-mobile-sub-item--all"
-                        onClick={() => { setCateOpen(false); navigate(`/search?cateId=${cate.cateId}`); }}
-                      >
+                      <button className="hdr-mobile-sub-item hdr-mobile-sub-item--all"
+                        onClick={() => { setCateOpen(false); navigate(`/search?cateId=${cate.cateId}`); }}>
                         Xem tất cả {cate.cateName}
                       </button>
                     </div>
@@ -622,7 +544,6 @@ export default function Header() {
             <button className="hdr-drawer-backdrop" onClick={() => setDrawerOpen(false)} />
             <div className="hdr-drawer">
 
-              {/* User info */}
               <div className="hdr-drawer-header">
                 {user ? (
                   <div className="hdr-drawer-user">
@@ -638,18 +559,10 @@ export default function Header() {
                       Đăng nhập để sử dụng các tính năng và nhận thông báo nhanh chóng!
                     </p>
                     <div className="hdr-drawer-guest-btns">
-                      <Link
-                        to="/login"
-                        className="hdr-drawer-login-btn"
-                        onClick={() => setDrawerOpen(false)}
-                      >
+                      <Link to="/login" className="hdr-drawer-login-btn" onClick={() => setDrawerOpen(false)}>
                         Đăng nhập
                       </Link>
-                      <Link
-                        to="/register"
-                        className="hdr-drawer-register-btn"
-                        onClick={() => setDrawerOpen(false)}
-                      >
+                      <Link to="/register" className="hdr-drawer-register-btn" onClick={() => setDrawerOpen(false)}>
                         Đăng ký
                       </Link>
                     </div>
@@ -658,8 +571,6 @@ export default function Header() {
               </div>
 
               <div className="hdr-drawer-body">
-
-                {/* Đăng tin */}
                 <button onClick={() => { setDrawerOpen(false); handleCreatePost(); }} className="hdr-drawer-create">
                   <FontAwesomeIcon icon={faPlus} />
                   Đăng tin
@@ -667,7 +578,7 @@ export default function Header() {
 
                 <div className="hdr-drawer-divider" />
 
-                {/* Danh mục — accordion */}
+                {/* Danh mục accordion */}
                 <div className="hdr-drawer-accordion">
                   <button
                     className={`hdr-drawer-acc-btn ${drawerCateOpen ? "open" : ""}`}
@@ -694,18 +605,33 @@ export default function Header() {
 
                           {mobileExpandedCate === cate.cateId && (
                             <div className="hdr-drawer-sub-list">
-                              {cate.subCategories?.map(sub => (
-                                <button key={sub.cateId} className="hdr-drawer-sub-item"
-                                  onClick={() => { setDrawerOpen(false); navigate(`/search?cateId=${sub.cateId}`); }}>
-                                  <FontAwesomeIcon icon={faAngleRight} /> {sub.cateName}
-                                </button>
-                              ))}
-                              {cate.brands?.map(brand => (
-                                <button key={brand.brandId} className="hdr-drawer-sub-item hdr-drawer-sub-item--brand"
-                                  onClick={() => { setDrawerOpen(false); navigate(`/search?brandId=${brand.brandId}`); }}>
-                                  <FontAwesomeIcon icon={faAngleRight} /> {brand.brandName}
-                                </button>
-                              ))}
+                              {cate.subCategories?.length > 0 && (
+                                <>
+                                  <div className="hdr-drawer-sub-section-title">Danh mục con</div>
+                                  {cate.subCategories.map(sub => (
+                                    <button key={sub.cateId} className="hdr-drawer-sub-item"
+                                      onClick={() => { setDrawerOpen(false); navigate(`/search?cateId=${sub.cateId}`); }}>
+                                      <FontAwesomeIcon icon={faAngleRight} /> {sub.cateName}
+                                    </button>
+                                  ))}
+                                </>
+                              )}
+
+                              {/* ✅ FIX: thêm wrapper + section title cho brands trong drawer */}
+                              {cate.brands?.length > 0 && (
+                                <>
+                                  <div className="hdr-drawer-sub-section-title">Thương hiệu</div>
+                                  <div className="hdr-drawer-brand-chips">
+                                    {cate.brands.map(brand => (
+                                      <button key={brand.brandId} className="hdr-mega-chip"
+                                        onClick={() => { setDrawerOpen(false); navigate(`/search?brandId=${brand.brandId}`); }}>
+                                        {brand.brandName}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </>
+                              )}
+
                               <button className="hdr-drawer-sub-item hdr-drawer-sub-item--all"
                                 onClick={() => { setDrawerOpen(false); navigate(`/search?cateId=${cate.cateId}`); }}>
                                 Xem tất cả {cate.cateName}
@@ -718,7 +644,7 @@ export default function Header() {
                   )}
                 </div>
 
-                {/* Thông báo — accordion */}
+                {/* Thông báo accordion */}
                 <div className="hdr-drawer-accordion">
                   <button
                     className={`hdr-drawer-acc-btn ${drawerNotifOpen ? "open" : ""}`}
@@ -769,7 +695,6 @@ export default function Header() {
 
                 <div className="hdr-drawer-divider" />
 
-                {/* Nav links */}
                 <nav className="hdr-drawer-nav">
                   {[
                     { to: "/chat",            icon: faComment,    label: "Nhắn tin" },
@@ -793,7 +718,6 @@ export default function Header() {
                     </Link>
                   ))}
                 </nav>
-
               </div>
 
               {user && (
@@ -808,7 +732,6 @@ export default function Header() {
         )}
       </header>
 
-      {/* Review modal */}
       {reviewChatRoomId && (
         <ReviewForm
           chatRoomId={reviewChatRoomId}

@@ -25,8 +25,7 @@
 }
 
 .pc:hover {
-  box-shadow: 0 6px 20px rgba(0,0,0,0.10);
-  transform:  translateY(-2px);
+  box-shadow: var(--pc-shadow);
 }
 
 .pc:focus-visible {
@@ -36,12 +35,12 @@
 
 /* ── Image ───────────────────────────────────────────────────────────────── */
 .pc-img-wrap {
-  position:   relative;
-  width:      100%;
+  position:     relative;
+  width:        100%;
   aspect-ratio: 4 / 3;
-  background: var(--pc-surface);
-  overflow:   hidden;
-  flex-shrink: 0;
+  background:   var(--pc-surface);
+  overflow:     hidden;
+  flex-shrink:  0;
 }
 
 .pc-img {
@@ -49,22 +48,21 @@
   height:     100%;
   object-fit: contain;
   display:    block;
-  transition: transform 0.3s ease;
 }
 
-.pc:hover .pc-img { transform: scale(1.03); }
+
 
 /* ── Status badge ────────────────────────────────────────────────────────── */
 .pc-status {
-  position:      absolute;
-  top:           8px;
-  left:          8px;
-  padding:       3px 9px;
-  font-size:     11px;
-  font-weight:   700;
-  border-radius: 6px;
-  color:         #fff;
-  z-index:       5;
+  position:       absolute;
+  top:            8px;
+  left:           8px;
+  padding:        3px 9px;
+  font-size:      11px;
+  font-weight:    700;
+  border-radius:  6px;
+  color:          #fff;
+  z-index:        5;
   letter-spacing: 0.02em;
 }
 
@@ -96,8 +94,41 @@
   color:           var(--pc-soft);
 }
 
-.pc-fav:hover       { background: #fff; transform: scale(1.1); }
-.pc-fav--active     { color: #ef4444; }
+.pc-fav:hover        { background: #fff; }
+.pc-fav--active      { color: #ef4444; }
+.pc-fav--loading     { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Admin delete button ─────────────────────────────────────────────────── */
+.pc-delete {
+  position:        absolute;
+  top:             8px;
+  right:           50px;
+  width:           34px;
+  height:          34px;
+  background:      rgba(255,255,255,0.92);
+  border:          none;
+  border-radius:   50%;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  cursor:          pointer;
+  box-shadow:      0 2px 8px rgba(0,0,0,0.12);
+  z-index:         10;
+  font-size:       14px;
+  color:           #ef4444;
+  transition:      background 0.15s, color 0.15s;
+}
+
+.pc-delete:hover {
+  background: #ef4444;
+  color:      #fff;
+}
+
+.pc-delete--loading {
+  opacity:    0.6;
+  cursor:     not-allowed;
+  transform:  none;
+}
 
 /* ── Body ────────────────────────────────────────────────────────────────── */
 .pc-body {
@@ -126,8 +157,8 @@
 .pc-price-row { display: flex; align-items: center; }
 
 .pc-price {
-  font-size:   16px;
-  font-weight: 700;
+  font-size:      16px;
+  font-weight:    700;
   letter-spacing: -0.01em;
 }
 
@@ -148,7 +179,6 @@
   overflow:           hidden;
 }
 
-/* Strip inner element styles from rich text */
 .pc-desc * {
   margin:      0 !important;
   padding:     0 !important;
@@ -198,15 +228,11 @@
 @media (max-width: 480px) {
   .pc { border-radius: 10px; }
 
-  .pc-body { padding: 10px 10px 8px; gap: 5px; }
-
+  .pc-body  { padding: 10px 10px 8px; gap: 5px; }
   .pc-title { font-size: 13px; }
-
   .pc-price { font-size: 14px; }
-
   .pc-desc  { font-size: 11px; -webkit-line-clamp: 1; }
-
-  .pc-fav   { width: 30px; height: 30px; font-size: 13px; }
-
+  .pc-fav,
+  .pc-delete { width: 30px; height: 30px; font-size: 13px; }
   .pc-meta  { font-size: 10px; }
 }

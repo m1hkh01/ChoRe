@@ -40,3 +40,5 @@ select * from poststatuses
 select * from EscrowTransations
 
 select * from savedposts
+
+DELETE FROM savedposts WHERE userid = 1;

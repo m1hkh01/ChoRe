@@ -57,4 +57,6 @@ public class PostCensorController : ControllerBase
             return BadRequest(new { Error = "Có lỗi xảy ra khi từ chối tin: ", err.Message });
         }
     }
+
+    
 }

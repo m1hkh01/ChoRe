@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMapMarkerAlt, faUser, faEye, faHeart } from "@fortawesome/free-solid-svg-icons";
+import { faMapMarkerAlt, faUser, faEye, faHeart, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faHeartOutline } from "@fortawesome/free-regular-svg-icons";
 
 import "./PostCard.css";
@@ -12,15 +12,15 @@ import { Toast } from "../../utils/toast";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const STATUS_LABEL = {
-  1: { label: "Chờ duyệt",  cls: "pending"  },
-  2: { label: "Đã duyệt",   cls: "approved" },
-  3: { label: "Từ chối",    cls: "rejected" },
-  4: { label: "Đang bán",   cls: "selling"  },
-  5: { label: "Đã bán",     cls: "sold"     },
-  6: { label: "Đã ẩn",      cls: "hidden"   },
+  1: { label: "Chờ duyệt", cls: "pending" },
+  2: { label: "Đã duyệt", cls: "approved" },
+  3: { label: "Từ chối", cls: "rejected" },
+  4: { label: "Đang bán", cls: "selling" },
+  5: { label: "Đã bán", cls: "sold" },
+  6: { label: "Đã ẩn", cls: "hidden" },
 };
 
-const IMG_BASE  = "https://api.chore123.cloud/uploads/";
+const IMG_BASE = "https://api.chore123.cloud/uploads/";
 const IMG_LOCAL = "http://localhost:5121/uploads/";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -46,15 +46,39 @@ function renderPrice(post) {
   }
 }
 
+// ─── Delete endpoint theo role ────────────────────────────────────────────────
+// Admin  → DELETE /api/admin/posts/{id}
+// Censor → DELETE /api/censor/posts/{id}
+// User   → DELETE /api/posts/{id}  (chỉ bài của mình)
+
+function deleteUrl(role, postId) {
+  if (role === "Admin") return `api/admin/posts/${postId}`;
+  if (role === "Censor") return `api/censor/posts/${postId}`;
+  return `api/posts/${postId}`;
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function PostCard({ post }) {
+export default function PostCard({ post, onDeleted }) {
   const { user } = useAuthStore();
-  const [isFav, setIsFav] = useState(false);
+  const [isFav, setIsFav] = useState(post.isSaved ?? false);
+  const [favLoad, setFavLoad] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+
+  const role = user?.role;
+  const isAdmin = role === "Admin";
+  const isCensor = role === "Censor";
+  const isOwner = !!user && Number(user.userId) === Number(post.userId);
+
+  // Hiện nút xóa khi: Admin / Censor (bất kỳ bài) hoặc User (bài của mình)
+  const canDelete = isAdmin || isCensor || isOwner;
 
   useEffect(() => {
-    setIsFav(user ? (post.isSaved ?? false) : false);
-  }, [post.postId, user]);
+    setIsFav(post.isSaved ?? false);
+  }, [post.postId, post.isSaved]);
+
+  // ── Favourite ───────────────────────────────────────────────────────────────
 
   const handleFavClick = async (e) => {
     e.preventDefault();
@@ -64,28 +88,53 @@ export default function PostCard({ post }) {
       alert("Vui lòng đăng nhập để thêm yêu thích");
       return;
     }
+    if (favLoad) return;
 
-    const key = `favorites_${user.userId}`;
-    let saved = JSON.parse(localStorage.getItem(key)) || [];
+    const prev = isFav;
+    setIsFav(!prev);
+    setFavLoad(true);
 
     try {
-      if (isFav) {
+      if (prev) {
         const res = await api.delete(`api/save-posts/${post.postId}`);
         Toast.fire({ icon: "success", title: res.data?.message || "Đã xóa khỏi yêu thích!" });
-        saved = saved.filter(id => id !== post.postId);
-        setIsFav(false);
       } else {
         const res = await api.post("api/save-posts", { PostId: post.postId });
         Toast.fire({ icon: "success", title: res.data?.message || "Đã thêm vào yêu thích!" });
-        saved.unshift(post.postId);
-        setIsFav(true);
       }
-      localStorage.setItem(key, JSON.stringify(saved));
       window.dispatchEvent(new Event("favoritesUpdated"));
     } catch {
-      Toast.fire({ icon: "error", title: isFav ? "Lỗi khi xóa yêu thích!" : "Lỗi khi thêm yêu thích!" });
+      setIsFav(prev);
+      Toast.fire({ icon: "error", title: prev ? "Lỗi khi xóa yêu thích!" : "Lỗi khi thêm yêu thích!" });
+    } finally {
+      setFavLoad(false);
     }
   };
+
+  // ── Delete ──────────────────────────────────────────────────────────────────
+
+  // const handleDelete = async (e) => {
+  //   e.preventDefault();
+  //   e.stopPropagation();
+
+  //   console.log("role:", role, "| url:", deleteUrl(role, post.postId));
+
+  //   if (!window.confirm(`Xóa bài "${post.title}"? Hành động này không thể hoàn tác.`)) return;
+
+  //   setDeleting(true);
+  //   try {
+  //     const res = await api.delete(deleteUrl(role, post.postId));
+  //     Toast.fire({ icon: "success", title: res.data?.message || "Đã xóa bài đăng!" });
+  //     setDeleted(true);
+  //     onDeleted?.(post.postId);
+  //   } catch (err) {
+  //     Toast.fire({ icon: "error", title: err.response?.data?.message || err.response?.data?.Error || "Lỗi khi xóa bài!" });
+  //   } finally {
+  //     setDeleting(false);
+  //   }
+  // };
+
+  if (deleted) return null;
 
   const status = STATUS_LABEL[post.postStatusId];
 
@@ -111,9 +160,32 @@ export default function PostCard({ post }) {
           <span className={`pc-status pc-status--${status.cls}`}>{status.label}</span>
         )}
 
-        <button className={`pc-fav ${isFav ? "pc-fav--active" : ""}`} onClick={handleFavClick} aria-label="Yêu thích">
+        {/* Nút yêu thích — luôn hiện */}
+        <button
+          className={`pc-fav ${isFav ? "pc-fav--active" : ""} ${favLoad ? "pc-fav--loading" : ""}`}
+          onClick={handleFavClick}
+          disabled={favLoad}
+          aria-label={isFav ? "Bỏ yêu thích" : "Thêm yêu thích"}
+        >
           <FontAwesomeIcon icon={isFav ? faHeart : faHeartOutline} />
         </button>
+
+        {/* Nút xóa — Admin/Censor: bất kỳ bài | User: bài của mình */}
+        {/* {canDelete && (
+          <button
+            className={`pc-delete ${deleting ? "pc-delete--loading" : ""}`}
+            onClick={handleDelete}
+            disabled={deleting}
+            aria-label="Xóa bài đăng"
+            title={
+              isAdmin ? "Xóa bài (Admin)" :
+                isCensor ? "Xóa bài (Censor)" :
+                  "Xóa bài của tôi"
+            }
+          >
+            <FontAwesomeIcon icon={faTrash} />
+          </button>
+        )} */}
       </div>
 
       {/* Body */}

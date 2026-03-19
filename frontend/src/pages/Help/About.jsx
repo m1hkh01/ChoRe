@@ -35,7 +35,7 @@ const CSS = `
   }
 
   .ab-section-desc {
-    font-size: 14px;
+    font-size: 15px;
     color: #64748b;
     margin: 0 0 20px;
     line-height: 1.7;
@@ -58,8 +58,8 @@ const CSS = `
   }
   .ab-card:hover { border-color: #22c55e; box-shadow: 0 2px 8px rgba(34,197,94,0.1); }
 
-  .ab-name { font-size: 14px; font-weight: 600; color: #111827; }
-  .ab-role { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+  .ab-name { font-size: 15px; font-weight: 600; color: #111827; }
+  .ab-role { font-size: 13px; color: #94a3b8; margin-top: 4px; }
 
   /* ── Responsive ── */
   @media (max-width: 640px) {

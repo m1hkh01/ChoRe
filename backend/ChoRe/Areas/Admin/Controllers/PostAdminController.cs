@@ -10,6 +10,7 @@ namespace ChoRe.Areas.Admin.Controllers
     public class PostAdminController : ControllerBase
     {
         private readonly IPostService _service;
+
         public PostAdminController(IPostService service)
         {
             _service = service;
@@ -21,6 +22,7 @@ namespace ChoRe.Areas.Admin.Controllers
             var posts = await _service.GetPostsByAsync();
             return Ok(posts);
         }
+
         [HttpPost("{id}/accept")]
         public async Task<IActionResult> AcceptPost(int id)
         {
@@ -32,13 +34,13 @@ namespace ChoRe.Areas.Admin.Controllers
             catch (KeyNotFoundException err)
             {
                 return NotFound(new { Error = err.Message });
-
             }
             catch (Exception err)
             {
                 return BadRequest(new { Error = "Có lỗi xảy ra khi duyệt tin: ", err.Message });
             }
         }
+
         [HttpPost("{id}/reject")]
         public async Task<IActionResult> CancelPost(int id, [FromBody] string rejectReason)
         {
@@ -50,12 +52,13 @@ namespace ChoRe.Areas.Admin.Controllers
             catch (KeyNotFoundException err)
             {
                 return NotFound(new { Error = err.Message });
-
             }
             catch (Exception err)
             {
-                return BadRequest(new { Error = "Có lỗi xảy ra khi từ chối tin tin: ", err.Message });
+                return BadRequest(new { Error = "Có lỗi xảy ra khi từ chối tin: ", err.Message });
             }
         }
+
+        
     }
 }

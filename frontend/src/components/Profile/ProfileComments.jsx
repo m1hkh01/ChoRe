@@ -272,7 +272,7 @@ export default function ProfileComments({ userId }) {
   const load = async (p, reset = false) => {
     setLoading(true);
     try {
-      const { data } = await api.get(`/api/profile/${userId}/comments`, {
+      const { data } = await api.get(`/api/profile/users/${userId}/comments`, {
         params: { page: p, pageSize: PAGE_SIZE },
       });
       setComments(prev => reset ? data.items : [...prev, ...data.items]);

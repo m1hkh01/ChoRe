@@ -70,6 +70,10 @@ namespace ChoRe.Models
         [ForeignKey("Brand")]
         public int? BrandId { get; set; }
 
+        // Soft delete(Xóa mềm)
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
+
         // Navigation properties
         public virtual User User { get; set; }
         public virtual User ApprovedByUser { get; set; }

@@ -275,7 +275,7 @@ function EditPost() {
             console.log("Final images to send:", allImages);
 
             // Update post
-            await api.put(`/api/profile/${postId}`, {
+            await api.post(`/api/profile/posts/update/${postId}`, {
                 title: form.title,
                 description: form.description,
                 priceType: form.priceType,

@@ -52,6 +52,7 @@ public class AccountController : ControllerBase
             await _service.ResetPassword(dto.Email, dto.NewPassword);
             return Ok(new { message = "Đặt lại mật khẩu thành công" });
         }
+        
         catch (Exception ex)
         {
             return BadRequest(new { Error = ex.Message });

@@ -67,7 +67,6 @@ const CSS = `
     color: #f8fafc;
     margin: 0 0 18px;
     letter-spacing: 0.06em;
-    text-transform: uppercase;
   }
   .ft-list {
     list-style: none;
@@ -82,11 +81,9 @@ const CSS = `
     text-decoration: none;
     font-size: 13px;
     display: inline-block;
-    transition: color 0.18s, padding-left 0.18s;
   }
   .ft-link:hover {
     color: #22c55e;
-    padding-left: 4px;
   }
   .ft-contact {
     list-style: none;
@@ -207,7 +204,6 @@ export default function Footer() {
               <ul className="ft-contact">
                 {CONTACT_ITEMS.map((item, i) => (
                   <li key={i} className="ft-contact-item">
-                    <i className={item.icon} />
                     <span>{item.text}</span>
                   </li>
                 ))}
