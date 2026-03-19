@@ -41,11 +41,11 @@ public class PostCensorController : ControllerBase
     }
 
     [HttpPost("{id}/reject")]
-    public async Task<IActionResult> CancelPost(int id, [FromBody] RejectPostDto dto)
+    public async Task<IActionResult> CancelPost(int id, [FromBody] string rejectReason)
     {
         try
         {
-            await _service.RejectPostAsync(id, dto.RejectReason);
+            await _service.RejectPostAsync(id, rejectReason);
             return NoContent();
         }
         catch (KeyNotFoundException err)

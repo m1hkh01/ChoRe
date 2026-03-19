@@ -14,7 +14,6 @@ public class ReviewReminderStrategy : IReminderStrategy
             serviceProvider.GetRequiredService<INotificationService>();
 
         var now = DateTime.UtcNow;
-
         // Lấy các chatRoom đã tạo hơn 1 tiếng
         var chatRooms = await context.ChatRooms
             .Include(c => c.ChatMessages)
@@ -29,7 +28,10 @@ public class ReviewReminderStrategy : IReminderStrategy
         {
             // Điều kiện 1: ít nhất 20 tin nhắn
             if (room.ChatMessages == null || room.ChatMessages.Count < 20)
+            {
                 continue;
+                
+            }
 
             // Điều kiện 2: phải có tin nhắn từ cả 2 bên
             var distinctUsers = room.ChatMessages
@@ -39,7 +41,6 @@ public class ReviewReminderStrategy : IReminderStrategy
 
             if (distinctUsers < 2)
                 continue;
-
             // var transaction = room.CurrentEscrow;
             // if (transaction == null)
             //     continue;
@@ -64,7 +65,6 @@ public class ReviewReminderStrategy : IReminderStrategy
 
             if (alreadyNotified)
                 continue;
-
             //Gửi notification cho người mua (hoặc cả 2 nếu muốn)
             await notificationService.CreateNotificationAsync(new NotificationDto
             {
