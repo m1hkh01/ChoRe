@@ -341,31 +341,55 @@ namespace ChoRe.Controllers
         [HttpGet("users/{userId:int}/ratings")]
         public async Task<IActionResult> GetRatings(
             int userId,
+            [FromQuery] int? rating, // filter 5 sao
+            [FromQuery] bool? hasImage, // filter có ảnh
+            [FromQuery] int? reviewType, // filter loại review (1 = CompletedOrder)
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
         {
-            var query = _context.Reviews
+            IQueryable<Review> query = _context.Reviews
                 .Where(r => r.SellerId == userId)
-                .Include(r => r.Reviewer);
+                .Include(r => r.Reviewer)
+                .Include(r => r.ReviewImages)
+                .Include(r => r.ReviewTags);
 
-            var total = await query.CountAsync();
+            // Apply filters
+            if (rating.HasValue)
+                query = query.Where(r => r.Rating == rating.Value);
+            if (hasImage == true)
+                query = query.Where(r => r.ReviewImages.Any());
+            if (reviewType.HasValue)
+                query = query.Where(r => (int)r.ReviewType == reviewType.Value);
+
+            var total = query.Count();
             var items = await query
                 .OrderByDescending(r => r.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(r => new RatingDto
+                .Select(r => new ReviewDto
                 {
-                    RatingId = r.ReviewId,
-                    Stars = r.Rating,
+                    ReviewId = r.ReviewId,
+                    Rating = r.Rating,
                     Comment = r.Comment,
-                    CreateAt = r.CreatedAt,
-                    RaterUserId = r.Reviewer!.UserId,
-                    RaterFullName = r.Reviewer.FullName,
-                    RaterAvatar = r.Reviewer.Avatar,
-                })
-                .ToListAsync();
+                    CreatedAt = r.CreatedAt,
+                    ReviewType = r.ReviewType,
+                    Reviewer = new ReviewerDto
+                    {
+                        FullName = r.Reviewer!.FullName,
+                        Avatar = r.Reviewer.Avatar
+                    },
+                    ReviewImages = r.ReviewImages.Select(ri => new ReviewImageDto
+                    {
+                        FileUrl = ri.FileUrl,
+                        Type = ri.FileType
+                    }).ToList(),
+                    ReviewTags = r.ReviewTags.Select(rt => new ReviewTagDto
+                    {
+                        Tag = rt.Tag
+                    }).ToList()
+                }).ToListAsync();
 
-            return Ok(new PagedDto<RatingDto>(items, total, page, pageSize));
+            return Ok(new PagedDto<ReviewDto>(items, total, page, pageSize));
         }
 
         // GET /api/profile/users/{userId}/comments

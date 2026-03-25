@@ -108,7 +108,7 @@ function App() {
           <Route path="/pay/transaction/:transactionId" element={<ProtectedRoute><TransactionPayPage /></ProtectedRoute>} />
           <Route path="/pay/post/:postId"               element={<ProtectedRoute><PostPayPage /></ProtectedRoute>} />
           <Route path="/pay/package/:orderId"           element={<ProtectedRoute><PackagePayPage /></ProtectedRoute>} />
-          <Route path="/service-package"                element={<ProtectedRoute><ServicePackage /></ProtectedRoute>} />
+          <Route path="/service-package"                element={<ServicePackage />} />
           <Route path="/user-transactions"              element={<ProtectedRoute><TransactionManagementPage /></ProtectedRoute>} />
           <Route path="/service-package-manager"        element={<ProtectedRoute><ServicePackageManager /></ProtectedRoute>} />
 

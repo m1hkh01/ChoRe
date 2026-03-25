@@ -1,107 +1,103 @@
 import axios from "axios";
 import { useAuthStore } from "./store/auth";
 
-export const API_BASE_URL = "https://api.chore123.cloud";
-// export const API_BASE_URL = "http://localhost:5121";
+// export const API_BASE_URL = "https://api.chore123.cloud";
+export const API_BASE_URL = "http://localhost:5121";
 
 let navigateHandler = null;
-
 export const setNavigate = (navigate) => {
   navigateHandler = navigate;
 };
-
+// API chính
 const api = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true, // Enable sending/receiving cookies
+  withCredentials: true,
 });
 
+// API riêng cho refresh (QUAN TRỌNG)
+const refreshApi = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+});
 
-// Request interceptor: Add AccessToken from store to Authorization header
+// ───────── REQUEST ─────────
 api.interceptors.request.use(config => {
   const token = useAuthStore.getState().token;
 
-  if (!config.headers) {
-    config.headers = {};
-  }
-
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers = {
+      ...config.headers,
+      Authorization: `Bearer ${token}`,
+    };
   }
 
   return config;
 });
 
-
+// ───────── REFRESH CONTROL ─────────
 let isRefreshing = false;
-let refreshSubscribers = [];
+let failedQueue = [];   // thay vì subscribers = []
 
-function subscribeTokenRefresh(cb) {
-  refreshSubscribers.push(cb);
-}
-
-function onRefreshed(token) {
-  refreshSubscribers.forEach(cb => cb(token));
-  refreshSubscribers = [];
-}
-
-// Response interceptor: Handle 401 + automatic refresh
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+// ───────── RESPONSE INTERCEPTOR ─────────
 api.interceptors.response.use(
-  response => response,
-  async error => {
-    const originalConfig = error.config;
+  res => res,
+  async (error) => {
+    const originalRequest = error.config;
 
-    if (originalConfig.url.includes("/account/refresh-token")) {
+    if (originalRequest.url.includes("/account/refresh-token")) {
       return Promise.reject(error);
     }
 
-    if (error.response?.status === 401 && !originalConfig._retry) {
-      originalConfig._retry = true;
-
-      if (!isRefreshing) {
-        isRefreshing = true;
-
-        try {
-          const res = await api.post("/account/refresh-token");
-          const newToken = res.data.token;
-
-          useAuthStore.getState().setToken(newToken);
-
-          isRefreshing = false;
-          onRefreshed(newToken);
-
-        } catch (err) {
-          isRefreshing = false;
-
-          const auth = useAuthStore.getState();
-          auth.logout();
-
-          if (navigateHandler) {
-            navigateHandler("/login");
-          } else {
-            window.location.href = "/login";
-          }
-
-          return Promise.reject(err);
-        }
-      }
-
-      return new Promise(resolve => {
-        subscribeTokenRefresh(token => {
-          resolve(
-            api({
-              ...originalConfig,
-              headers: {
-                ...originalConfig.headers,
-                Authorization: `Bearer ${token}`
-              }
-            })
-          );
-        });
-      });
+    if (error.response?.status !== 401) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
+    if (originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    originalRequest._retry = true;
+
+    if (!isRefreshing) {
+      isRefreshing = true;
+
+      try {
+        const res = await refreshApi.post("/account/refresh-token");
+        const newToken = res.data.token;
+
+        useAuthStore.getState().setToken(newToken);
+        processQueue(null, newToken);   // thành công → resolve tất cả queue
+        return api(originalRequest);    // retry request hiện tại
+      } catch (err) {
+        processQueue(err, null);        // thất bại → reject tất cả queue
+        useAuthStore.getState().logout();
+        if (navigateHandler) navigateHandler("/login");
+        else window.location.href = "/login";
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    // Đang refresh → cho vào queue
+    return new Promise((resolve, reject) => {
+      failedQueue.push({ resolve, reject });
+    }).then((token) => {
+      originalRequest.headers.Authorization = `Bearer ${token}`;
+      return api(originalRequest);
+    }).catch(err => {
+      return Promise.reject(err);
+    });
   }
 );
-
 export default api;

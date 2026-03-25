@@ -6,6 +6,8 @@ public class ReviewDto
     public int Rating { get; set; }
     public string? Comment { get; set; }
     public ReviewType ReviewType { get; set; }
-    public List<string> Tags { get; set; } = new List<string>();
+    public List<ReviewTagDto> ReviewTags { get; set; } = new List<ReviewTagDto>();
+    public DateTime? CreatedAt { get; set; }
     public List<ReviewImageDto> ReviewImages { get; set; } = new List<ReviewImageDto>();
+    public ReviewerDto Reviewer { get; set; } = new ReviewerDto();
 }

@@ -236,9 +236,12 @@ public class EscrowTransactionService : IEscrowTransactionService
                     ReviewId = x.Review.ReviewId,
                     Rating = x.Review.Rating,
                     Comment = x.Review.Comment,
-                    Tags = x.Review.ReviewTags != null ? x.Review.ReviewTags
-                        .Select(t => t.Tag)
-                        .ToList() : new List<string>(),
+                    ReviewTags = x.Review.ReviewTags != null ? x.Review.ReviewTags
+                        .Select(t =>new ReviewTagDto
+                        {
+                            Tag = t.Tag   
+                        })
+                        .ToList() : new List<ReviewTagDto>(),
                     ReviewImages = x.Review.ReviewImages != null ? x.Review.ReviewImages
                         .Select(ri => new ReviewImageDto
                         {

@@ -10,6 +10,8 @@ import api from "@/api";
 import Pay from "../Pay/Pay";
 import { useSignalR } from "../../signalr/SignalRContext";
 import { Toast } from "../../utils/toast";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../store/auth";
 function ServicePackage() {
     const swiperRef = useRef(null);
     const [isPay, setIsPay] = useState(false);
@@ -17,29 +19,31 @@ function ServicePackage() {
     const [selectPackage, setSelectPackage] = useState(null);
     const [orderCode, setOrderCode] = useState("");
     const [currentUserSubPlan, setCurrentUserSubPlan] = useState("");
-
+    const { user } = useAuthStore();
+    const navigate = useNavigate();
     const displayPackages =
         packages.length < 6 && packages.length > 0
             ? [...packages, ...packages]
             : packages;
     
     const handlePay = async (pkg) => {
-        setIsPay(true);
-        setSelectPackage(pkg);
+        // setIsPay(true);
+        // setSelectPackage(pkg);
         const res = await api.post("/api/package/order", pkg);
-        console.log("Order Code: ",res.data.orderCode)
-        setOrderCode(res.data.orderCode);
+        // console.log("Order Code: ",res.data.orderCode)
+        // setOrderCode(res.data.orderCode);
+        navigate(`/pay/package/${res.data.orderId}`);
     }
     useEffect(() => {
         const fetchData = async () => {
             console.log("Fetching package data...");
             try {
-                const res = await api.get("/api/package");
+                const res = await api.get(`/api/package/all/${user?.userId || 0}`);
 
                 let packages = res.data.package;
                 const currentPlan = res.data.currentPackage;
                 // nếu current plan = 1 thì bỏ package id = 1
-                if (currentPlan !== 1) {
+                if (currentPlan !== 1 && currentPlan != 0) {
                     packages = packages.filter(p => p.subPlanId !== 1);
                 }
                 setPackages(packages);

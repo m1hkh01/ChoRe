@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/auth";
 import api from "@/api";
@@ -22,7 +22,9 @@ export default function ProfilePage() {
     const { user: me } = useAuthStore();
     const navigate = useNavigate();
 
-    const targetId = userId ? parseInt(userId) : me?.userId;
+    const targetId = useMemo(() => {
+        return userId ? parseInt(userId) : me?.userId;
+    }, [userId, me?.userId]);
     const isOwner  = !userId || parseInt(userId) === me?.userId;
 
     const [profile,       setProfile]       = useState(null);
@@ -37,8 +39,11 @@ export default function ProfilePage() {
         setLoading(true);
         try {
             // ✅ Route mới: /api/profile/users/{userId}
+            console.log("ProfilePage render", loading);
             const res = await api.get(`/api/profile/users/${targetId}`);
             setProfile(res.data);
+            console.log("ProfilePage render", loading);
+
         } catch {
             navigate("/");
         } finally {

@@ -2,10 +2,12 @@ using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using ChoRe.Data;
 using ChoRe.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 [ApiController]
+[Authorize]
 [Route("/api/package")]
 public class ServicePackageController : ControllerBase
 {
@@ -26,20 +28,20 @@ public class ServicePackageController : ControllerBase
         }
         return Ok(package);
     }
-    [HttpGet]
-    public async Task<IActionResult> GetAllPackage()
+    [HttpGet("all/{id:int}")]
+    public async Task<IActionResult> GetAllPackage(int id)
     {
         var packages = await _context.SubscriptionPlans
             .Where(p => p.IsActive)
             .OrderBy(p => p.SubPlanPrice)
             .ToListAsync();
-        var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+        var userId = id;
         var user = await _context.Users.Include(u => u.UserSubscription).Where(u => u.UserId == userId).Select(u=>new { subPlanId = u.UserSubscription.SubPlanId }).FirstOrDefaultAsync();
-        if (user is null)
-        {
-            return NotFound("Không tìm thấy người dùng");
-        }
-        var currentPackage = user.subPlanId;
+        // if (user is null)
+        // {
+        //     return NotFound("Không tìm thấy người dùng");
+        // }
+        var currentPackage =user != null ? user.subPlanId : 0;
         return Ok(new {package = packages, currentPackage });
     }
     [HttpPost("order")]
@@ -47,7 +49,7 @@ public class ServicePackageController : ControllerBase
     {
         var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
         var order = await _service.CreateSubPlanOrder(userId, subscription);
-        return Ok(new { OrderCode = order.ServiceCode});
+        return Ok(new { OrderCode = order.ServiceCode, OrderId = order.OrderId});
     }
 
     [HttpGet("service-order/{id:int}")]

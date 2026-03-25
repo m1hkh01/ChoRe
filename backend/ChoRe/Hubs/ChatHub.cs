@@ -259,13 +259,20 @@ public class ChatHub : Hub
             // Tạo giao dịch trung gian nếu có
             if (isTransation && transactionDto != null)
             {
-
+                var usage = await _context.UserSubUsages.FirstOrDefaultAsync(u => u.UserId == senderId);
+                
                 // Phí sàn tối thiểu là 20000 và tối đa là 500000
                 var platformFee = Math.Min(
                                     Math.Max(
                                         Math.Round(transactionDto.Amount * 0.03M),
                                     20000),
                                 500000);
+                // Kiểm tra nếu có lượt giao dịch trung gian miễn phí
+                if(usage != null && usage.RemainingSubFPF > 0)
+                {
+                    platformFee = 0;
+                    usage.RemainingSubFPF -= 1;
+                }
 
                 var datePart = DateTime.Now.ToString("yyyyMMddHHmmss");
                 var randomPart = Guid.NewGuid().ToString("N")[..4].ToUpper();
