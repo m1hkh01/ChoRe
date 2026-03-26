@@ -87,7 +87,58 @@ namespace ChoRe.Controllers
                 }
             });
         }
+        private async Task<List<int>> GetAllSubCateIdsAsync(int parentCateId)
+        {
+            // Load toàn bộ 1 lần, filter ở memory — tránh nhiều round-trip
+            var allCates = await _context.Categories
+                .Select(c => new { c.CateId, c.ParentCateId })
+                .ToListAsync();
 
+            var result = new List<int> { parentCateId };
+            var queue = new Queue<int>();
+            queue.Enqueue(parentCateId);
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                var children = allCates
+                    .Where(c => c.ParentCateId == current)
+                    .Select(c => c.CateId);
+                foreach (var childId in children)
+                {
+                    result.Add(childId);
+                    queue.Enqueue(childId);
+                }
+            }
+
+            return result;
+        }
+
+        private async Task<List<int>> GetAllSubBrandIdsAsync(int parentBrandId)
+        {
+            var allBrands = await _context.Brands
+                .Select(b => new { b.BrandId, b.ParentBrandId })
+                .ToListAsync();
+
+            var result = new List<int> { parentBrandId };
+            var queue = new Queue<int>();
+            queue.Enqueue(parentBrandId);
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                var children = allBrands
+                    .Where(b => b.ParentBrandId == current)
+                    .Select(b => b.BrandId);
+                foreach (var childId in children)
+                {
+                    result.Add(childId);
+                    queue.Enqueue(childId);
+                }
+            }
+
+            return result;
+        }
         [AllowAnonymous]
         [HttpGet("home")]
         public async Task<IActionResult> GetPostsForHome(
@@ -118,16 +169,22 @@ namespace ChoRe.Controllers
             }
 
             // 🏷️ brandId
+            // Bằng đoạn mới:
             if (brandId.HasValue && brandId > 0)
             {
-                query = query.Where(p => p.BrandId == brandId.Value);
+                var allBrandIds = await GetAllSubBrandIdsAsync(brandId.Value);
+                query = query.Where(p => p.BrandId.HasValue && allBrandIds.Contains(p.BrandId.Value));
             }
 
             // 📂 categoryId
+            // Trong GetPostsForHome, thay đoạn filter categoryId:
             if (categoryId.HasValue && categoryId > 0)
             {
+                var allCateIds = await GetAllSubCateIdsAsync(categoryId.Value);
+                Console.WriteLine($"[DEBUG] categoryId={categoryId.Value}, allCateIds=[{string.Join(",", allCateIds)}]");
+
                 query = query.Where(p =>
-                    p.PostCates.Any(pc => pc.CateId == categoryId.Value)
+                    _context.PostCates.Any(pc => pc.PostId == p.PostId && allCateIds.Contains(pc.CateId))
                 );
             }
 

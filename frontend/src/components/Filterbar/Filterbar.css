@@ -135,7 +135,7 @@
 .fb-chip.active {
   background:   var(--fb-accent);
   border-color: var(--fb-accent);
-  color:        var(--fb-ink);
+  color:        white;
   font-weight:  600;
 }
 

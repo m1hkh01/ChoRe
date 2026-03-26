@@ -15,7 +15,7 @@ select * from PostStatuses
 
 select * from reviews
 
-select * from ratings
+select * from reviewtags
 
 select * from reportreviews
 
