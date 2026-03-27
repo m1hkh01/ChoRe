@@ -6,6 +6,7 @@ public class ConversationMessageDto
     public string? SenderAvatar { get; set; }
     public int BuyerId { get; set; }
     public int SellerId { get; set; }
+    public bool IsActive { get; set; }
     public PostConvertationDto? PostInfo { get; set; }
     public IEnumerable<MessageDto>? ChatMessages { set; get; }
 }

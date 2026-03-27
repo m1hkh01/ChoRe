@@ -1,12 +1,14 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCheck, faXmark, faEye, faSearch,
-  faSpinner, faInbox, faTriangleExclamation,
+  faSpinner, faInbox, faTriangleExclamation, faFilter,faArrowsRotate
 } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState, useCallback, useRef } from "react";
 import PostPreviewModal from "./PostPreviewModal";
 import { useAuthStore } from "@/store/auth";
 import api from "@/api";
+import Swal from "sweetalert2";
+import {Toast} from "@/utils/toast";
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
@@ -57,14 +59,18 @@ const CSS = `
     font-size: 17px; font-weight: 700; color: var(--text);
     display: flex; align-items: center; gap: 8px;
   }
-//   .pm-title-dot {
-//     width: 8px; height: 8px; border-radius: 50%;
-//     background: var(--accent); flex-shrink: 0;
-//   }
   .pm-count {
     font-size: 12px; font-weight: 600; padding: 2px 9px;
     background: #f3f4f6; border: 1px solid var(--border);
     border-radius: 999px; color: var(--text-sub);
+  }
+
+  /* ── Controls (search + filter) ── */
+  .pm-controls {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  @media (max-width: 600px) {
+    .pm-controls { width: 100%; }
   }
 
   /* ── Search ── */
@@ -92,6 +98,60 @@ const CSS = `
     .pm-search { width: 100%; }
     .pm-search-wrap { width: 100%; }
   }
+
+  /* ── Filter ── */
+  .pm-filter-wrap {
+    position: relative; flex-shrink: 0;
+  }
+  .pm-filter-icon {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    color: var(--text-xs); font-size: 12px; pointer-events: none;
+  }
+  .pm-filter-select {
+    padding: 7px 30px 7px 28px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 13px; font-family: var(--font);
+    background: #f9fafb; color: var(--text);
+    outline: none; cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    min-width: 150px;
+  }
+  .pm-filter-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(4,153,71,0.12);
+    background-color: #fff;
+  }
+  /* Khi đang lọc → highlight viền */
+  .pm-filter-select.pm-filter-active {
+    border-color: var(--accent);
+    background-color: #f0fdf4;
+    color: #15803d;
+    font-weight: 600;
+  }
+  @media (max-width: 600px) {
+    .pm-filter-select { width: 100%; }
+    .pm-filter-wrap { width: 100%; }
+  }
+
+  /* ── Status badge in table ── */
+  .pm-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 600; padding: 3px 9px;
+    border-radius: 999px; white-space: nowrap;
+  }
+  .pm-status-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  }
+  .pm-status-pending  { background: #fef9c3; color: #a16207; }
+  .pm-status-pending .pm-status-dot  { background: #ca8a04; }
+  .pm-status-approved  { background: oklch(79.2% 0.209 151.711); color: white; }
+  .pm-status-approved .pm-status-dot  { background: oklch(62.7% 0.194 149.214); }
+  .pm-status-rejected { background: #fee2e2; color: #b91c1c; }
+  .pm-status-rejected .pm-status-dot { background: #dc2626; }
 
   /* ── Table ── */
   .pm-table-wrap { overflow-x: auto; }
@@ -135,13 +195,6 @@ const CSS = `
   /* User cell */
   .pm-username {
     display: flex; align-items: center; gap: 8px;
-  }
-  .pm-username-avatar {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), #4ade80);
-    color: #fff; font-size: 11px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
   }
 
   /* Date cell */
@@ -311,6 +364,19 @@ const CSS = `
   }
 `;
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const STATUS_PENDING = "Pending";
+const STATUS_REJECTED = "Reject";
+const STATUS_APPROVED = "Approved";
+
+const STATUS_OPTIONS = [
+  { value: "", label: "Tất cả trạng thái" },
+  { value: STATUS_PENDING, label: "Chờ duyệt" },
+  { value: STATUS_APPROVED, label: "Đã duyệt" },
+  { value: STATUS_REJECTED, label: "Đã từ chối" },
+];
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function useDebounce(fn, delay = 300) {
@@ -333,11 +399,35 @@ const formatPrice = (price) =>
 const getInitials = (name = "") =>
   name.trim().split(/\s+/).slice(-2).map((w) => w[0]).join("").toUpperCase() || "?";
 
+// ─── StatusBadge ──────────────────────────────────────────────────────────────
+
+function StatusBadge({ status }) {
+  const isPending = status === STATUS_PENDING;
+  const isRejected = status === STATUS_REJECTED;
+  const isApproved = status === STATUS_APPROVED;
+  const cls = isPending
+    ? "pm-status pm-status-pending"
+    : isRejected
+      ? "pm-status pm-status-rejected":
+      isApproved ? "pm-status pm-status-approved"
+      : "pm-status";
+  const label = isPending ? "Chờ duyệt" : isRejected ? "Đã từ chối" : isApproved ? "Đã duyệt" : "—";
+  return (
+    <span className={cls}>
+      <span className="pm-status-dot" />
+      {label}
+    </span>
+  );
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function ActionButtons({ post, onPreview, onAccept, onReject }) {
+function ActionButtons({ post, onPreview, onAccept, onReject, onReset }) {
+  const status = post.postStatus;
+
   return (
     <div className="pm-actions">
+      {/* Preview luôn có */}
       <button
         className="pm-btn pm-btn-preview"
         title="Xem trước"
@@ -345,25 +435,43 @@ function ActionButtons({ post, onPreview, onAccept, onReject }) {
       >
         <FontAwesomeIcon icon={faEye} />
       </button>
-      <button
-        className="pm-btn pm-btn-accept"
-        title="Duyệt"
-        onClick={() => onAccept(post.postId)}
-      >
-        <FontAwesomeIcon icon={faCheck} />
-      </button>
-      <button
-        className="pm-btn pm-btn-reject"
-        title="Từ chối"
-        onClick={() => onReject(post.postId)}
-      >
-        <FontAwesomeIcon icon={faXmark} />
-      </button>
+
+      {/* Chờ duyệt */}
+      {status === "Pending" && (
+        <>
+          <button
+            className="pm-btn pm-btn-accept"
+            title="Duyệt"
+            onClick={() => onAccept(post.postId)}
+          >
+            <FontAwesomeIcon icon={faCheck} />
+          </button>
+
+          <button
+            className="pm-btn pm-btn-reject"
+            title="Từ chối"
+            onClick={() => onReject(post.postId)}
+          >
+            <FontAwesomeIcon icon={faXmark} />
+          </button>
+        </>
+      )}
+
+      {/* Đã duyệt hoặc bị từ chối → cho reset */}
+      {(status === "Approved" || status === "Reject") && (
+        <button
+          className="pm-btn pm-btn-reject"
+          title="Đặt lại trạng thái"
+          onClick={() => onReset(post.postId)}
+        >
+          <FontAwesomeIcon icon={faArrowsRotate} />
+        </button>
+      )}
     </div>
   );
 }
 
-function PostRow({ post, onPreview, onAccept, onReject, index }) {
+function PostRow({ post, onPreview, onAccept, onReject, index , onReset}) {
   return (
     <tr>
       <td className="pm-id">{index + 1}</td>
@@ -372,18 +480,19 @@ function PostRow({ post, onPreview, onAccept, onReject, index }) {
       </td>
       <td>
         <div className="pm-username">
-          {/* <div className="pm-username-avatar">{getInitials(post.user?.userName)}</div> */}
           {post.user?.userName}
         </div>
       </td>
       <td className="pm-date">{formatDate(post.createdAt)}</td>
       <td className="pm-price">{formatPrice(post.price)}</td>
+      <td><StatusBadge status={post.postStatus} /></td>
       <td>
         <ActionButtons
           post={post}
           onPreview={onPreview}
           onAccept={onAccept}
           onReject={onReject}
+          onReset={onReset}
         />
       </td>
     </tr>
@@ -401,6 +510,8 @@ function PostCard({ post, onPreview, onAccept, onReject }) {
         <span>{post.user?.userName}</span>
         <span>·</span>
         <span>{formatDate(post.createdAt)}</span>
+        <span>·</span>
+        <StatusBadge status={post.status} />
       </div>
       <div className="pm-card-actions">
         <ActionButtons
@@ -468,11 +579,15 @@ export default function PostManager() {
   const { user } = useAuthStore();
   const role = user?.role?.toLowerCase() ?? "";
 
-  const [posts,        setPosts]        = useState([]);
-  const [filtered,     setFiltered]     = useState([]);
-  const [loading,      setLoading]      = useState(true);
+  const [posts, setPosts] = useState([]);
+  const [filtered, setFiltered] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null);
-  const [rejectId,     setRejectId]     = useState(null);
+  const [rejectId, setRejectId] = useState(null);
+
+  // search & filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
 
@@ -490,13 +605,35 @@ export default function PostManager() {
     })();
   }, [role]);
 
-  // ── Search ────────────────────────────────────────────────────────────────
+  // ── Combined filter (search + status) ────────────────────────────────────
 
-  const handleSearch = useCallback(
-    (q) => setFiltered(posts.filter((p) => p.user?.userName?.includes(q))),
+  const applyFilters = useCallback(
+    (query, status, source = posts) => {
+      let result = source;
+      console.log("result: ", result);
+      if (query) result = result.filter((p) => p.user?.userName?.includes(query));
+      if (status) result = result.filter((p) => p.postStatus === status);
+      setFiltered(result);
+    },
     [posts]
   );
-  const debouncedSearch = useDebounce(handleSearch, 400);
+
+  // debounced search — only text changes
+  const debouncedSearch = useDebounce(
+    (q) => applyFilters(q, statusFilter),
+    400
+  );
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    debouncedSearch(e.target.value);
+  };
+
+  const handleStatusChange = (e) => {
+    const val = e.target.value;
+    setStatusFilter(val);
+    applyFilters(searchQuery, val); // instant — no debounce needed
+  };
 
   // ── Actions ───────────────────────────────────────────────────────────────
 
@@ -534,6 +671,54 @@ export default function PostManager() {
     }
   };
 
+  const handleReset = async (id) => {
+
+    Swal.fire({
+        title: "Bạn có chắc muốn đặt lại trạng thái tin đăng?",
+        // text: "Lưu ý : Người mua cần thanh toán cả phí giao dịch và sản phẩm",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Xác nhận",
+        cancelButtonText: "Huỷ",
+        buttonsStyling: false,
+        customClass: {
+            confirmButton:
+                "bg-green-600 text-white text-md me-2 px-4 py-2 rounded mr-2 hover:bg-green-700",
+            cancelButton:
+                "bg-red-500 text-white text-md px-4 py-2 rounded hover:bg-red-700",
+        },
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            await api.post(`/api/${role}/posts/${id}/reset`);
+
+            // update lại UI (set về Pending)
+            setPosts(prev =>
+              prev.map(p =>
+                p.postId === id ? { ...p, postStatus: "Pending" } : p
+              )
+            );
+            Toast.fire({
+              icon: "success",
+              title: "Đặt lại trạng thái thành công"
+            });
+            const res = await api.get(`/api/${role}/posts`);
+            setPosts(res.data);
+            setFiltered(res.data);
+          } catch (err) {
+            console.error(err);
+            Toast.fire({
+              icon: "error",
+              title: "Lỗi reset trạng thái"
+            });
+          }
+        }
+        else {
+            return;
+        }
+    });
+  };
+
   const openReject = (id) => {
     setRejectId(id);
     setSelectedPost(null);
@@ -557,14 +742,33 @@ export default function PostManager() {
             )}
           </div>
 
-          <div className="pm-search-wrap">
-            <FontAwesomeIcon icon={faSearch} className="pm-search-icon" />
-            <input
-              className="pm-search"
-              type="text"
-              placeholder="Tìm theo tên người dùng…"
-              onChange={(e) => debouncedSearch(e.target.value)}
-            />
+          {/* Controls: search + filter */}
+          <div className="pm-controls">
+            {/* Search */}
+            <div className="pm-search-wrap">
+              <FontAwesomeIcon icon={faSearch} className="pm-search-icon" />
+              <input
+                className="pm-search"
+                type="text"
+                placeholder="Tìm theo tên người dùng…"
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+            </div>
+
+            {/* Status filter */}
+            <div className="pm-filter-wrap">
+              <FontAwesomeIcon icon={faFilter} className="pm-filter-icon" />
+              <select
+                className={`pm-filter-select${statusFilter ? " pm-filter-active" : ""}`}
+                value={statusFilter}
+                onChange={handleStatusChange}
+              >
+                {STATUS_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -591,6 +795,7 @@ export default function PostManager() {
                     <th>Người đăng</th>
                     <th>Ngày đăng</th>
                     <th>Giá</th>
+                    <th>Trạng thái</th>
                     <th>Hành động</th>
                   </tr>
                 </thead>
@@ -603,6 +808,7 @@ export default function PostManager() {
                       onPreview={setSelectedPost}
                       onAccept={handleAccept}
                       onReject={openReject}
+                      onReset={handleReset}
                     />
                   ))}
                 </tbody>

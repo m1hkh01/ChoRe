@@ -1,4 +1,5 @@
 using ChoRe.Data;
+using ChoRe.DTOs;
 using ChoRe.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ public interface IPostService
     Task ApprovePostAsync(int id);
     Task RejectPostAsync(int id, string rejectReason);
     Task DeletePostAsync(int id);
+    Task ResetPostAsync(int id);
 }
 
 public class PostService : IPostService
@@ -55,7 +57,7 @@ public class PostService : IPostService
     public async Task<List<PostResponseDto>> GetPostsByAsync()
     {
         var posts = await _context.Posts
-            .Where(p => p.PostStatusId == 1)
+            .Where(p => p.PostStatusId == 1 || p.PostStatusId == 2 || p.PostStatusId == 3)
             .Include(p => p.User)
                 .ThenInclude(u => u.Role)
             .Include(p => p.Brand)
@@ -63,12 +65,15 @@ public class PostService : IPostService
             .Include(p => p.PostImages)
             .Include(p => p.PostSpecifications)
                 .ThenInclude(ps => ps.Specification)
+            .OrderBy(p => p.PostStatusId) // Pending trước
+            .ThenByDescending(p => p.CreatedAt)
             .Select(p => new PostResponseDto
             {
                 PostId = p.PostId,
                 Title = p.Title,
                 Description = p.Description,
                 Price = p.Price,
+                PostStatus = p.PostStatusNavigation.PostStatusName,
                 Address = p.Address,
                 CreatedAt = p.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss.fff"),
 
@@ -81,7 +86,11 @@ public class PostService : IPostService
                     Role = p.User.Role != null ? p.User.Role.RoleName : null
                 },
 
-                Brand = p.Brand,
+                Brand = p.Brand == null ? null : new BrandDto
+                {
+                    BrandId = p.Brand.BrandId,
+                    BrandName = p.Brand.BrandName
+                },
                 PostCates = p.PostCates,
                 PostImages = p.PostImages,
                 PostSpecificationsDto = p.PostSpecifications.Select(ps => new PostSpecificationDto
@@ -134,5 +143,39 @@ public class PostService : IPostService
 
         _context.Posts.Remove(post);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task ResetPostAsync(int id)
+    {
+        var post = await _context.Posts.FindAsync(id);
+
+        if (post is null)
+            throw new KeyNotFoundException("Bài viết không tồn tại");
+        if (post.PostStatusId == 2 || post.PostStatusId == 3)
+        {
+            // Reset trạng thái về Pending
+            post.PostStatusId = 1;
+
+            // đóng tất cả chat liên quan
+            var chats = await _context.ChatRooms
+                .Where(c => c.PostId == id)
+                .ToListAsync();
+
+            foreach (var chat in chats)
+            {
+                chat.IsActive = false;
+            }
+
+            // Xóa dấu vết duyệt
+            post.ApprovedAt = null;
+            post.ApprovedBy = null;
+
+            // Xóa dấu vết từ chối
+            post.RejectedAt = null;
+            post.RejectedBy = null;
+            post.RejectReason = null;
+
+            await _context.SaveChangesAsync();
+        }
     }
 }

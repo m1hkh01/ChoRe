@@ -337,6 +337,9 @@ namespace ChoRe.Migrations
                     b.Property<int?>("CurrentEscrowTransId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("LastMessageAt")
                         .HasColumnType("datetime2");
 

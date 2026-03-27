@@ -16,6 +16,7 @@ namespace ChoRe.Models
         [Required(ErrorMessage = "Bài đăng là bắt buộc")]
         public int PostId { get; set; }
         public int? CurrentEscrowTransId { get; set; }
+        public bool IsActive { get; set; } = true;
         public DateTime CreateAt { get; set; } = DateTime.Now;
         public DateTime? LastMessageAt { get; set; }
         public string? LastMessageContent { get; set; }

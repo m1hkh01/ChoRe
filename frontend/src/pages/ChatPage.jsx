@@ -7,13 +7,13 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 import api from "../api";
-import { useAuthStore }    from "../store/auth";
+import { useAuthStore } from "../store/auth";
 import { SignalRProvider, useSignalR } from "../signalr/SignalRContext";
-import { ChatHeader }      from "../components/Chat/ChatHeader";
-import { ChatInput }       from "../components/Chat/ChatInput";
-import { MessageList }     from "../components/Chat/MessageList";
-import { ProductPreview }  from "../components/Chat/ProductPreview";
-import { errorAlert }      from "../utils/alert";
+import { ChatHeader } from "../components/Chat/ChatHeader";
+import { ChatInput } from "../components/Chat/ChatInput";
+import { MessageList } from "../components/Chat/MessageList";
+import { ProductPreview } from "../components/Chat/ProductPreview";
+import { errorAlert } from "../utils/alert";
 
 // ─── CSS ──────────────────────────────────────────────────────────────────────
 
@@ -260,14 +260,14 @@ const CSS = `
 
 function timeAgo(dateString) {
   if (!dateString) return "";
-  const diff    = Date.now() - new Date(dateString).getTime();
+  const diff = Date.now() - new Date(dateString).getTime();
   const seconds = Math.floor(diff / 1000);
   const minutes = Math.floor(seconds / 60);
-  const hours   = Math.floor(minutes / 60);
-  const days    = Math.floor(hours / 24);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
   if (seconds < 60) return `${seconds}s`;
   if (minutes < 60) return `${minutes}ph`;
-  if (hours   < 24) return `${hours}g`;
+  if (hours < 24) return `${hours}g`;
   return `${days}n`;
 }
 
@@ -365,7 +365,7 @@ function ChatSidebar({ userId, activeId, onJoin }) {
 // ─── ChatWindow ───────────────────────────────────────────────────────────────
 
 function ChatWindow({ conversationId, onBack }) {
-  const { user }      = useAuthStore();
+  const { user } = useAuthStore();
   const connectionRef = useSignalR();
   const [conv, setConv] = useState(null);
   const bottomRef = useRef(null);
@@ -385,32 +385,34 @@ function ChatWindow({ conversationId, onBack }) {
       clearInterval(t);
     });
 
-    const onLoad    = (msgs) => setConv(msgs);
-    const onReceive = (msg)  => setConv(p => ({ ...p, chatMessages: [...(p?.chatMessages ?? []), msg] }));
-    const onUpdate  = (data) => setConv(p => {
+    const onLoad = (msgs) => { console.log("Message: ",msgs); setConv(msgs) };
+    const onReceive = (msg) => setConv(p => ({ ...p, chatMessages: [...(p?.chatMessages ?? []), msg] }));
+    const onUpdate = (data) => setConv(p => {
       if (!p) return p;
       const exists = p.chatMessages.some(m => m.transaction?.transactionId === data.transaction.transactionId);
       return exists
-        ? { ...p, chatMessages: p.chatMessages.map(m =>
+        ? {
+          ...p, chatMessages: p.chatMessages.map(m =>
             m.transaction?.transactionId === data.transaction.transactionId
               ? { ...m, transaction: data.transaction } : m
-          )}
+          )
+        }
         : p;
     });
     const onNotif = ({ notificationMessage }) => errorAlert(notificationMessage);
 
     conn.on("LoadConversationMessages", onLoad);
-    conn.on("ReceiveMessage",           onReceive);
-    conn.on("UpdateTransaction",        onUpdate);
-    conn.on("Notification",             onNotif);
+    conn.on("ReceiveMessage", onReceive);
+    conn.on("UpdateTransaction", onUpdate);
+    conn.on("Notification", onNotif);
 
     return () => {
       conn.off("LoadConversationMessages", onLoad);
-      conn.off("ReceiveMessage",           onReceive);
-      conn.off("UpdateTransaction",        onUpdate);
-      conn.off("Notification",             onNotif);
+      conn.off("ReceiveMessage", onReceive);
+      conn.off("UpdateTransaction", onUpdate);
+      conn.off("Notification", onNotif);
       if (conn.state === "Connected")
-        conn.invoke("LeaveConversation", conversationId.toString()).catch(() => {});
+        conn.invoke("LeaveConversation", conversationId.toString()).catch(() => { });
     };
   }, [conversationId, connectionRef]);
 
@@ -434,7 +436,7 @@ function ChatWindow({ conversationId, onBack }) {
 
       {conv ? (
         <>
-          <ChatHeader    senderName={conv.senderName} senderAvatar={conv.senderAvatar} />
+          <ChatHeader senderName={conv.senderName} senderAvatar={conv.senderAvatar} />
           <ProductPreview post={conv.postInfo} />
           <div className="cp-msg-scroll">
             <MessageList
@@ -450,6 +452,7 @@ function ChatWindow({ conversationId, onBack }) {
             conversationId={conversationId}
             post={conv.postInfo}
             buyerId={conv.buyerId}
+            isActive={conv.isActive}
           />
         </>
       ) : (

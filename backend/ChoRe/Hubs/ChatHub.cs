@@ -34,8 +34,9 @@ public class ChatHub : Hub
             .Where(c => c.ChatRoomId == int.Parse(conversationId))
             .Select(c => new ConversationMessageDto
             {
-                BuyerId = c.BuyerId,
+                BuyerId  = c.BuyerId,
                 SellerId = c.SellerId,
+                IsActive = c.IsActive,
                 SenderName = c.Buyer != null && c.Buyer.UserId != userId ? c.Buyer.UserName : (c.Seller != null ? c.Seller.UserName : "") ?? "",
                 SenderAvatar = c.Buyer != null && c.Buyer.UserId != userId ? c.Buyer.Avatar : (c.Seller != null ? c.Seller.Avatar : "") ?? "",
                 ChatMessages = c.ChatMessages != null ? c.ChatMessages.Select(cm => new MessageDto
@@ -102,7 +103,7 @@ public class ChatHub : Hub
 
         // Lấy giao dịch gần nhất trong phòng chat (qua ChatMessage)
         var transaction = await _context.ChatRooms
-            .Where(c => c.ChatRoomId == chatRoomId).Select(c=>c.CurrentEscrow)
+            .Where(c => c.ChatRoomId == chatRoomId).Select(c => c.CurrentEscrow)
             .FirstOrDefaultAsync();
 
         // Chưa từng có giao dịch → OK
@@ -147,13 +148,13 @@ public class ChatHub : Hub
         return false;
     }
 
-    public async Task ConfirmEscrow(int transactionId, bool isBuyer , decimal postPrice, bool updatePrice)
+    public async Task ConfirmEscrow(int transactionId, bool isBuyer, decimal postPrice, bool updatePrice)
     {
         try
         {
             var transaction = await _transactionService.ConfirmTransaction(transactionId, isBuyer, postPrice, updatePrice);
             await _context.SaveChangesAsync();
-            
+
             if (transaction is null)
             {
                 Console.WriteLine("Không tìm thấy giao dịch");
@@ -193,7 +194,7 @@ public class ChatHub : Hub
                     }
                 );
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             Console.WriteLine("Có lỗi xảy ra khi xác nhận giao dịch: " + e.Message);
         }
@@ -260,7 +261,7 @@ public class ChatHub : Hub
             if (isTransation && transactionDto != null)
             {
                 var usage = await _context.UserSubUsages.FirstOrDefaultAsync(u => u.UserId == senderId);
-                
+
                 // Phí sàn tối thiểu là 20000 và tối đa là 500000
                 var platformFee = Math.Min(
                                     Math.Max(
@@ -268,7 +269,7 @@ public class ChatHub : Hub
                                     20000),
                                 500000);
                 // Kiểm tra nếu có lượt giao dịch trung gian miễn phí
-                if(usage != null && usage.RemainingSubFPF > 0)
+                if (usage != null && usage.RemainingSubFPF > 0)
                 {
                     platformFee = 0;
                     usage.RemainingSubFPF -= 1;

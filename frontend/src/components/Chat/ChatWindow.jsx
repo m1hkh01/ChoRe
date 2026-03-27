@@ -11,7 +11,7 @@ export function ChatWindow({ conversationId }) {
     const { user } = useAuthStore();
     const connectionRef = useSignalR();
     const [conversation, setConversation] = useState(null);
-    
+
     useEffect(() => {
         if (!conversationId || !connectionRef?.current) return;
 
@@ -94,7 +94,7 @@ export function ChatWindow({ conversationId }) {
                         <ProductPreview post={conversation?.postInfo} />
                         <MessageList
                             userId={user?.userId}
-                            messages={conversation?.chatMessages || []} 
+                            messages={conversation?.chatMessages || []}
                             priceType={conversation?.postInfo?.priceType}
                             connectionRef={connectionRef} />
                         <ChatInput
@@ -102,11 +102,12 @@ export function ChatWindow({ conversationId }) {
                             conversationId={conversationId}
                             post={conversation?.postInfo}
                             buyerId={conversation?.buyerId}
+                            isActive={conversation?.isActive}
                         />
                     </div>
                 ) : <div className="h-full flex flex-col justify-center text-center mx-auto">
-                        <h3>Chưa có cuộc trò chuyện nào</h3>
-                        <span>Trải nghiệm chat để làm rõ thông tin về mặt hàng trước khi bắt đầu thực hiện mua bán</span>
+                    <h3>Chưa có cuộc trò chuyện nào</h3>
+                    <span>Trải nghiệm chat để làm rõ thông tin về mặt hàng trước khi bắt đầu thực hiện mua bán</span>
                 </div>
             }
         </>

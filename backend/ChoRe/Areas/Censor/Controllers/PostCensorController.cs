@@ -58,5 +58,12 @@ public class PostCensorController : ControllerBase
         }
     }
 
-    
+    [HttpPost("{id}/reset")]
+    public async Task<IActionResult> ResetPost(int id)
+    {
+        await _service.ResetPostAsync(id);
+        return Ok(new { message = "Đã reset bài viết về chờ duyệt" });
+    }
+
+
 }

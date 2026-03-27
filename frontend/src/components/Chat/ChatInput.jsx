@@ -6,7 +6,7 @@ import { useAuthStore } from "../../store/auth";
 import Swal from "sweetalert2";
 import { ConfirmPriceModal } from "./ConfirmPriceModal";
 
-export function ChatInput({ connectionRef, conversationId, post, buyerId }) {
+export function ChatInput({ connectionRef, conversationId, post, buyerId, isActive = true }) {
     const [message, setMessage] = useState("");
     const [previewImages, setPreviewImages] = useState([]);
     const [selectedFiles, setSelectedFiles] = useState([]);
@@ -23,6 +23,9 @@ export function ChatInput({ connectionRef, conversationId, post, buyerId }) {
     }, [post])
 
     const confirmCreateTransaction = () => {
+        if (!isActive) {
+            return;
+        }
         Swal.fire({
             title: "Bạn có chắc muốn tạo giao dịch trung gian không?",
             text: "Lưu ý : Người mua cần thanh toán cả phí giao dịch và sản phẩm",
@@ -68,7 +71,7 @@ export function ChatInput({ connectionRef, conversationId, post, buyerId }) {
 
     const onSubmitPriceModal = (price) => {
         // cập nhật giá chốt
-        console.log("New Price: ",price);
+        console.log("New Price: ", price);
         handleCreateTransaction(Number(price));
         setIsOpenConfirmPrice(false);
     }
@@ -207,11 +210,11 @@ export function ChatInput({ connectionRef, conversationId, post, buyerId }) {
             }
 
             <div className="flex p-2 rounded-4 font-medium bg-[#EDEDED] hover:bg-[#E0E0E0] text-sm cursor-pointer justify-center items-center">
-                <button onClick={confirmCreateTransaction} className="rounded font-medium border-0"><FontAwesomeIcon icon={faArrowRightArrowLeft} className="text-md" /> Giao dịch trung gian </button>
+                <button onClick={confirmCreateTransaction} disabled={!isActive} className={`rounded font-medium border-0 ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}`}><FontAwesomeIcon icon={faArrowRightArrowLeft} className="text-md" /> Giao dịch trung gian </button>
             </div>
-            <label for="image-upload" className="flex p-2 rounded-4 font-medium bg-[#EDEDED] hover:bg-[#E0E0E0] text-sm cursor-pointer justify-center items-center">
+            <label for="image-upload" className={`flex p-2 rounded-4 font-medium bg-[#EDEDED] hover:bg-[#E0E0E0] text-sm cursor-pointer justify-center items-center ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}`}>
                 <FontAwesomeIcon icon={faImage} className="text-md" /> Hình ảnh
-                <input type="file" className="hidden" multiple accept="image/*" id="image-upload" onChange={handlePreviewImages} />
+                <input type="file" className="hidden" multiple accept="image/*" id="image-upload" onChange={handlePreviewImages} disabled={!isActive} />
             </label>
 
             <form onSubmit={(e) => {
@@ -220,14 +223,14 @@ export function ChatInput({ connectionRef, conversationId, post, buyerId }) {
             }} className="flex flex-1">
                 <input
                     type="text"
-                    placeholder={isTransation ? "Giao dịch trung gian..." : "Nhập tin nhắn"}
+                    placeholder={!isActive ? "Bài viết đã bị thay đổi trạng thái, cuộc trò chuyện đã bị đóng" : (isTransation ? "Giao dịch trung gian..." : "Nhập tin nhắn")}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     className="flex-1 px-4 py-2 border rounded-full outline-none"
-                    disabled={isTransation}
+                    disabled={isTransation || !isActive}
                     ref={inputRef}
                 />
-                <button type="submit" disabled={!message && !isTransation} className={`${(message || isTransation) ? "text-green-600 cursor" : "text-black cursor-[not-allowed_!important]"} p-2 flex justify-center items-center text-md rounded-circle`}>
+                <button type="submit" disabled={(!message && !isTransation) || !isActive} className={`${(message || isTransation) && isActive ? "text-green-600 cursor" : "text-black cursor-[not-allowed_!important]"} p-2 flex justify-center items-center text-md rounded-circle`}>
                     <FontAwesomeIcon icon={faPaperPlane} />
                 </button>
             </form>
