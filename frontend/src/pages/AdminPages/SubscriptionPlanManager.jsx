@@ -392,7 +392,7 @@ export default function SubscriptionPlanManager() {
     };
 
     if (modal?.subPlanId) {
-      await api.put(`/api/admin/subscription-plans/${modal.subPlanId}`, payload);
+      await api.post(`/api/admin/subscription-plans/${modal.subPlanId}/update`, payload);
     } else {
       await api.post("/api/admin/subscription-plans", payload);
     }
@@ -402,14 +402,14 @@ export default function SubscriptionPlanManager() {
   };
 
   const handleToggle = async (id) => {
-    await api.patch(`/api/admin/subscription-plans/${id}/toggle`);
+    await api.post(`/api/admin/subscription-plans/${id}/toggle`);
     await load();
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm("Xoá gói dịch vụ này?")) return;
     try {
-      await api.delete(`/api/admin/subscription-plans/${id}`);
+      await api.post(`/api/admin/subscription-plans/${id}/delete`);
       await load();
     } catch (err) {
       alert(err.response?.data ?? "Không thể xoá gói này");

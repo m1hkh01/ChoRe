@@ -145,23 +145,35 @@ export function Login() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await api.post("/login", {
-        Email:        email,
-        PasswordHash: password,
-      });
-      Toast.fire({ icon: "success", title: "Đăng nhập thành công" });
-      login(data.userDto, data.token);
-      navigate("/");
+        const { data } = await api.post("/login", {
+            Email:        email,
+            PasswordHash: password,
+        });
+        Toast.fire({ icon: "success", title: "Đăng nhập thành công" });
+        login(data.userDto, data.token);
+        navigate("/");
     } catch (err) {
-      Toast.fire({
-        icon:  "error",
-        title: err.response?.data?.error ?? "Đăng nhập thất bại",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+        const errorMsg = err.response?.data?.error ?? "Đăng nhập thất bại";
+        const isLocked = err.response?.data?.isLocked;
 
+        if (isLocked) {
+            // Hiện modal/toast đặc biệt cho tài khoản bị khóa
+            Toast.fire({
+                icon:              "error",
+                title:             "Tài khoản bị khóa",
+                text:              errorMsg,
+                confirmButtonText: "Đã hiểu",
+                // Nếu dùng SweetAlert2 thì có thể thêm:
+                showConfirmButton:  true,
+                timer:              3000, // không tự đóng
+            });
+        } else {
+            Toast.fire({ icon: "error", title: errorMsg });
+        }
+    } finally {
+        setLoading(false);
+    }
+};
   return (
     <>
       <style>{CSS}</style>

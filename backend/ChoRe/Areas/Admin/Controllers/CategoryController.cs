@@ -92,8 +92,7 @@ namespace ChoRe.Controllers.Admin
             return Ok(cate);
         }
 
-        // UPDATE
-        [HttpPut("{id}")]
+        [HttpPost("update/{id:int}")]
         public async Task<IActionResult> Update(int id, CategoryCreateUpdateDto dto)
         {
             var cate = await _context.Categories.FindAsync(id);
@@ -109,13 +108,13 @@ namespace ChoRe.Controllers.Admin
             return Ok(cate);
         }
 
-        // DELETE
-        [HttpDelete("{id}")]
+        [HttpPost("delete/{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             var cate = await _context.Categories
                 .Include(c => c.SubCategories)
                 .Include(c => c.BrandCates)
+                .Include(c => c.PostCates)
                 .FirstOrDefaultAsync(c => c.CateId == id);
 
             if (cate == null) return NotFound();
@@ -124,11 +123,13 @@ namespace ChoRe.Controllers.Admin
                 return BadRequest("Danh mục còn danh mục con, không thể xoá");
 
             if (cate.BrandCates.Any())
-                return BadRequest("Danh mục đang được sử dụng, không thể xóa");
+                return BadRequest("Danh mục đang được sử dụng bởi thương hiệu, không thể xóa");
+
+            if (cate.PostCates.Any())
+                return BadRequest("Danh mục đang được sử dụng bởi bài đăng, không thể xóa");
 
             _context.Categories.Remove(cate);
             await _context.SaveChangesAsync();
-
             return Ok();
         }
 

@@ -24,20 +24,21 @@ public class SubscriptionPlanAdminController : ControllerBase
         return Ok();
     }
 
-    [HttpPut("{id}")]
+    [HttpPost("{id}/update")]
     public async Task<IActionResult> Update(int id, CreateUpdateSubscriptionPlanDto dto)
     {
         await _service.UpdateAsync(id, dto);
         return Ok();
     }
 
-    [HttpPatch("{id}/toggle")]
+    [HttpPost("{id}/toggle")]
     public async Task<IActionResult> Toggle(int id)
     {
         await _service.ToggleAsync(id);
         return Ok();
     }
-    [HttpDelete("{id}")]
+
+    [HttpPost("{id}/delete")]
     public async Task<IActionResult> Delete(int id)
     {
         await _service.DeleteAsync(id);

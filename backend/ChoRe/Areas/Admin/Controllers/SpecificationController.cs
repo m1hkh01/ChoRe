@@ -62,8 +62,7 @@ namespace ChoRe.Controllers.Admin
             return Ok(spec);
         }
 
-        // UPDATE
-        [HttpPut("{id}")]
+        [HttpPost("update/{id:int}")]
         public async Task<IActionResult> Update(int id, SpecificationCreateUpdateDto dto)
         {
             var spec = await _context.Specifications.FindAsync(id);
@@ -73,19 +72,16 @@ namespace ChoRe.Controllers.Admin
                 x.CateId == dto.CateId &&
                 x.SpecName == dto.SpecName &&
                 x.SpecId != id);
-
             if (exists)
                 return BadRequest("Thông số đã tồn tại trong danh mục này");
 
             spec.SpecName = dto.SpecName;
             spec.Description = dto.Description;
-
             await _context.SaveChangesAsync();
             return Ok(spec);
         }
 
-        // DELETE
-        [HttpDelete("{id}")]
+        [HttpPost("delete/{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             var spec = await _context.Specifications
@@ -99,7 +95,6 @@ namespace ChoRe.Controllers.Admin
 
             _context.Specifications.Remove(spec);
             await _context.SaveChangesAsync();
-
             return Ok();
         }
     }

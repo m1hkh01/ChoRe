@@ -397,7 +397,7 @@ export default function BrandManager() {
       if (logo) fd.append("logo", logo);
 
       if (isEditing) {
-        await api.put(`/api/admin/brands/${form.brandId}`, fd);
+        await api.post(`/api/admin/brands/update/${form.brandId}`, fd);
       } else {
         await api.post("/api/admin/brands", fd);
       }
@@ -415,7 +415,7 @@ export default function BrandManager() {
   const del = async (id) => {
     if (!window.confirm("Xóa thương hiệu này?")) return;
     try {
-      await api.delete(`/api/admin/brands/${id}`);
+      await api.post(`/api/admin/brands/delete/${id}`);
       await loadBrands();
     } catch (err) {
       alert(parseApiError(err));

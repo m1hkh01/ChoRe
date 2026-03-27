@@ -282,9 +282,9 @@ function Avatar({ src, name, size = 36 }) {
 }
 
 function RoleBadge({ role }) {
-  const cls = role?.toLowerCase() === "admin"  ? "um-role-admin"
-            : role?.toLowerCase() === "censor" ? "um-role-censor"
-            : "um-role-user";
+  const cls = role?.toLowerCase() === "admin" ? "um-role-admin"
+    : role?.toLowerCase() === "censor" ? "um-role-censor"
+      : "um-role-user";
   return <span className={`um-role ${cls}`}>{role}</span>;
 }
 
@@ -297,7 +297,7 @@ function StatusBadge({ locked }) {
 // ─── LockModal ────────────────────────────────────────────────────────────────
 
 function LockModal({ user, onConfirm, onClose }) {
-  const [reason,  setReason]  = useState("");
+  const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {
@@ -362,10 +362,10 @@ function LockModal({ user, onConfirm, onClose }) {
 // ─── UserManager ──────────────────────────────────────────────────────────────
 
 export default function UserManager() {
-  const [users,    setUsers]    = useState([]);
+  const [users, setUsers] = useState([]);
   const [filtered, setFiltered] = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [error,    setError]    = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [lockUser, setLockUser] = useState(null);  // user to lock
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
@@ -431,19 +431,22 @@ export default function UserManager() {
   const ActionButtons = ({ user }) => (
     <div className="um-actions">
       <button
-        className={`um-btn-icon ${user.isLocked ? "um-btn-unlock" : "um-btn-lock"}`}
-        title={user.isLocked ? "Mở khoá" : "Khoá tài khoản"}
-        onClick={() => handleLockToggle(user)}
-      >
-        <FontAwesomeIcon icon={user.isLocked ? faLockOpen : faLock} />
-      </button>
-      <button
         className="um-btn-icon um-btn-del"
         title="Xoá người dùng"
         onClick={() => handleDelete(user.userId)}
       >
         <FontAwesomeIcon icon={faTrash} />
       </button>
+      {/* Ẩn nút khóa nếu là Admin */}
+      {user.roleName?.toLowerCase() !== "admin" && (
+        <button
+          className={`um-btn-icon ${user.isLocked ? "um-btn-unlock" : "um-btn-lock"}`}
+          title={user.isLocked ? "Mở khoá" : "Khoá tài khoản"}
+          onClick={() => handleLockToggle(user)}
+        >
+          <FontAwesomeIcon icon={user.isLocked ? faLockOpen : faLock} />
+        </button>
+      )}
     </div>
   );
 

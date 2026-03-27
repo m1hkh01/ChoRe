@@ -89,19 +89,24 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> Login(LoginRequest login)
     {
         if (!ModelState.IsValid)
-        {
             return BadRequest(ModelState);
-        }
+
         var user = await _service.CheckMail(login.Email);
         if (user is null)
-        {
             return BadRequest(new { Error = "Email không tồn tại, Vui lòng kiểm tra lại email" });
-        }
+
         var isValidPassword = _service.CheckPassword(user, login.PasswordHash);
         if (!isValidPassword)
-        {
             return BadRequest(new { Error = "Mật khẩu không đúng, Vui lòng thử lại" });
-        }
+
+        // ✅ Thêm check khóa tài khoản — sau khi xác thực mật khẩu đúng
+        if (user.IsLocked)
+            return BadRequest(new
+            {
+                Error = $"Tài khoản của bạn đã bị khóa. Lý do: {user.LockReason ?? "Không có lý do"}. Liên hệ để được hỗ trợ!",
+                IsLocked = true
+            });
+
         var auth = await _service.Login(user);
         var userDto = new UserResponseDto
         {
@@ -113,18 +118,16 @@ public class AccountController : ControllerBase
             Role = user.Role?.RoleName ?? "User"
         };
 
-        // Set refresh token as HttpOnly cookie
         Response.Cookies.Append("refreshToken", auth.RefreshToken, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,  
+            Secure = true,
             SameSite = SameSiteMode.None,
             Expires = DateTime.UtcNow.AddDays(7)
         });
 
         return Ok(new { message = "Đăng nhập thành công", token = auth.Token, userDto });
     }
-
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken()
     {

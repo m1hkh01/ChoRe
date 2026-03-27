@@ -116,7 +116,7 @@ namespace ChoRe.Controllers.Admin
             return Ok();
         }
         // ================= UPDATE =================
-        [HttpPut("{id}")]
+        [HttpPost("update/{id:int}")]
         public async Task<IActionResult> Update(int id, [FromForm] UpdateBrandDto dto, IFormFile? logo)
         {
             var brand = await _context.Brands
@@ -170,7 +170,7 @@ namespace ChoRe.Controllers.Admin
             return Ok();
         }
         // ================= DELETE =================
-        [HttpDelete("{id}")]
+        [HttpPost("delete/{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             var brand = await _context.Brands
@@ -184,7 +184,9 @@ namespace ChoRe.Controllers.Admin
 
             if (brand.SubBrands.Any())
                 return BadRequest("Không thể xoá brand cha khi còn brand con");
-
+            var hasPost = await _context.Posts.AnyAsync(p => p.BrandId == id);
+            if (hasPost)
+                return BadRequest("Không thể xoá brand này vì đang có bài đăng sử dụng");
 
             if (!string.IsNullOrEmpty(brand.BrandLogo))
             {

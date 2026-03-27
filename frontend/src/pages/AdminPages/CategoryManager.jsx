@@ -295,35 +295,36 @@ export default function CategoryManager() {
     if (!form.cateName.trim()) return setError("Tên danh mục là bắt buộc");
     setError(""); setSubmitting(true);
     try {
-      const payload = {
-        cateName:     form.cateName.trim(),
-        description:  form.description.trim(),
-        parentCateId: form.parentCateId || null,
-      };
-      if (isEditing) {
-        await api.put(`/api/admin/categories/${form.cateId}`, payload);
-      } else {
-        await api.post("/api/admin/categories", payload);
-      }
-      resetForm();
-      await loadData();
+        const payload = {
+            cateName:     form.cateName.trim(),
+            description:  form.description.trim(),
+            parentCateId: form.parentCateId || null,
+        };
+        if (isEditing) {
+            // ✅ đổi từ api.put → api.post, url mới
+            await api.post(`/api/admin/categories/update/${form.cateId}`, payload);
+        } else {
+            await api.post("/api/admin/categories", payload);
+        }
+        resetForm();
+        await loadData();
     } catch (err) {
-      setError(err.response?.data || "Có lỗi xảy ra");
+        setError(err.response?.data || "Có lỗi xảy ra");
     } finally {
-      setSubmitting(false);
+        setSubmitting(false);
     }
-  };
+};
 
-  const del = async (id) => {
+const del = async (id) => {
     if (!window.confirm("Xóa danh mục này?")) return;
     try {
-      await api.delete(`/api/admin/categories/${id}`);
-      await loadData();
+        // ✅ đổi từ api.delete → api.post, url mới
+        await api.post(`/api/admin/categories/delete/${id}`);
+        await loadData();
     } catch (err) {
-      alert(err.response?.data ?? "Không thể xóa danh mục này");
+        alert(err.response?.data ?? "Không thể xóa danh mục này");
     }
-  };
-
+};
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (

@@ -272,33 +272,36 @@ export default function SpecificationManager() {
     if (!form.specName.trim()) return setError("Tên thông số là bắt buộc");
     setError(""); setSubmitting(true);
     try {
-      const payload = { specName: form.specName.trim(), description: form.description.trim(), cateId };
-      if (isEditing) {
-        await api.put(`/api/admin/specifications/${form.specId}`, payload);
-      } else {
-        await api.post("/api/admin/specifications", payload);
-      }
-      resetForm();
-      await loadSpecs(cateId);
+        const payload = {
+            specName:    form.specName.trim(),
+            description: form.description.trim(),
+            cateId,
+        };
+        if (isEditing) {
+            // ✅ đổi từ api.put → api.post, url mới
+            await api.post(`/api/admin/specifications/update/${form.specId}`, payload);
+        } else {
+            await api.post("/api/admin/specifications", payload);
+        }
+        resetForm();
+        await loadSpecs(cateId);
     } catch (err) {
-      setError(err.response?.data || "Có lỗi xảy ra");
+        setError(err.response?.data || "Có lỗi xảy ra");
     } finally {
-      setSubmitting(false);
+        setSubmitting(false);
     }
-  };
+};
 
-  // ── Delete ────────────────────────────────────────────────────────────────
-
-  const del = async (id) => {
+const del = async (id) => {
     if (!window.confirm("Xóa thông số này?")) return;
     try {
-      await api.delete(`/api/admin/specifications/${id}`);
-      await loadSpecs(cateId);
+        // ✅ đổi từ api.delete → api.post, url mới
+        await api.post(`/api/admin/specifications/delete/${id}`);
+        await loadSpecs(cateId);
     } catch (err) {
-      alert(err.response?.data ?? "Không thể xóa thông số này");
+        alert(err.response?.data ?? "Không thể xóa thông số này");
     }
-  };
-
+};
   // ── Render ────────────────────────────────────────────────────────────────
 
   const selectedCate = categories.find((c) => c.cateId === Number(cateId));
