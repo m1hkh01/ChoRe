@@ -1,0 +1,111 @@
+/* ─── TopBar.css ─────────────────────────────────────────────────────────────
+   Thanh thông báo / giới thiệu nằm trên Header.
+   Ẩn mượt khi scroll xuống >= 60px.
+──────────────────────────────────────────────────────────────────────────── */
+
+.topbar {
+  width: 100%;
+  height: 36px;
+  background: linear-gradient(90deg, #049947 0%, #049947 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  font-size: 12.5px;
+  font-weight: 500;
+  overflow: hidden;
+  position: relative;
+  z-index: 1100;
+
+  /* Transition ẩn/hiện */
+  max-height: 36px;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    max-height 0.35s ease,
+    opacity     0.3s  ease,
+    transform   0.35s ease;
+}
+
+.topbar--hidden {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+
+/* ── Marquee ─────────────────────────────────────────────────────────────── */
+
+.topbar-marquee-wrap {
+  flex: 1;
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 6%,
+    #000 94%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 6%,
+    #000 94%,
+    transparent 100%
+  );
+}
+
+.topbar-marquee {
+  display: flex;
+  width: max-content;
+  animation: topbar-scroll 20s linear infinite;
+  white-space: nowrap;
+}
+
+.topbar-marquee:hover {
+  animation-play-state: paused;
+}
+
+@keyframes topbar-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ── Contact ─────────────────────────────────────────────────────────────── */
+
+.topbar-contact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.topbar-contact-item {
+  color: rgba(255, 255, 255, 0.92);
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.2s;
+}
+
+.topbar-contact-item:hover {
+  color: #fff;
+}
+
+.topbar-sep {
+  opacity: 0.4;
+  font-size: 11px;
+}
+
+/* ── Mobile: ẩn phần contact, marquee chiếm full width ───────────────────── */
+
+@media (max-width: 768px) {
+  .topbar-contact {
+    display: none;
+  }
+  .topbar {
+    padding: 0 8px;
+  }
+}

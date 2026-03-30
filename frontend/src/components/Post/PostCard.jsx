@@ -193,7 +193,9 @@ export default function PostCard({ post, onDeleted }) {
         <h3 className="pc-title">{post.title}</h3>
 
         <div className="pc-price-row">{renderPrice(post)}</div>
-
+        {/* <div className="pc-status-text">
+          {post.status}
+        </div> */}
         {post.shortDescription && (
           <p className="pc-desc" dangerouslySetInnerHTML={{ __html: post.shortDescription }} />
         )}

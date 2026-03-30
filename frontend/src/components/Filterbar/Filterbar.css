@@ -38,7 +38,7 @@
   display:    flex;
   gap:        8px;
   width:      max-content;
-  animation:  tickerScroll 40s linear infinite;
+  animation:  tickerScroll 70s linear infinite;
 }
 
 .cate-ticker-track:hover { animation-play-state: paused; }

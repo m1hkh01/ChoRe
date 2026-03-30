@@ -1,205 +1,407 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faCheck, faXmark, faEye, faSearch,
-  faSpinner, faInbox, faTriangleExclamation,
+  faCheck, faXmark, faEye,
+  faMagnifyingGlass, faSpinner, faInbox,
+  faRotateLeft, faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons";
-import { useEffect, useState, useCallback, useRef } from "react";
-import PostPreviewModal from "@/pages/CensorPages/PostPreviewModal";
+import { useEffect, useState, useCallback } from "react";
+import PostPreviewModal from "./PostPreviewModal";
 import { useAuthStore } from "@/store/auth";
 import api from "@/api";
+import Swal from "sweetalert2";
+import { Toast } from "@/utils/toast";
 
-// ─── (CSS giữ nguyên từ PostManager — không thay đổi) ────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-const CSS = `
-  .pm {
-    --accent:       var(--primary-color);
-    --accent-hover: var(--primary-color-hover);
-    --success:      var(--success);
-    --cancel:       var(--cancel);
-    --preview:      var(--preview);
-    // --bg:           #ffffff;
-    --bg-page:      whitesmoke;
-    // --border:       #e5e7eb;
-    // --radius:       10px;
-    // --radius-sm:    6px;
-    --text:         #111827;
-    --text-sub:     #6b7280;
-    --text-xs:      #9ca3af;
-    --shadow-sm:    0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
-    --shadow-md:    0 4px 20px rgba(0,0,0,0.10);
-    --font:         'Inter', 'Segoe UI', sans-serif;
-    --transition:   0.18s ease;
-  }
-  .pm {
-    background: var(--bg); border-radius: var(--radius);
-    box-shadow: var(--shadow-sm); border: 1px solid var(--border);
-    overflow: hidden; font-family: var(--font); color: var(--text);
-    margin-bottom: 600px;
-  }
-  .pm-header {
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
-    gap: 12px; padding: 18px 24px; border-bottom: 1px solid var(--border);
-  }
-  .pm-title { font-size: 17px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
-  .pm-title-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
-  .pm-count { font-size: 12px; font-weight: 600; padding: 2px 9px; background: #f3f4f6; border: 1px solid var(--border); border-radius: 999px; color: var(--text-sub); }
-  .pm-search-wrap { position: relative; flex-shrink: 0; }
-  .pm-search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-xs); font-size: 13px; pointer-events: none; }
-  .pm-search { padding: 7px 12px 7px 32px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: var(--font); background: #f9fafb; color: var(--text); outline: none; width: 220px; transition: border-color var(--transition), box-shadow var(--transition); }
-  .pm-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(4,153,71,0.12); background: #fff; }
-  @media (max-width: 600px) { .pm-search { width: 100%; } .pm-search-wrap { width: 100%; } }
-  .pm-table-wrap { overflow-x: auto; }
-  table.pm-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-  .pm-table thead tr { background: #f9fafb; border-bottom: 1px solid var(--border); }
-  .pm-table th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-sub); white-space: nowrap; }
-  .pm-table td { padding: 12px 16px; border-bottom: 1px solid #f3f4f6; color: var(--text); vertical-align: middle; }
-  .pm-table tbody tr { transition: background var(--transition); }
-  .pm-table tbody tr:hover { background: #fafafa; }
-  .pm-table tbody tr:last-child td { border-bottom: none; }
-  .pm-id { font-size: 12px; color: var(--text-xs); font-variant-numeric: tabular-nums; }
-  .pm-post-title { font-weight: 500; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .pm-username { display: flex; align-items: center; gap: 8px; }
-  .pm-date { color: var(--text-sub); white-space: nowrap; font-size: 13px; }
-  .pm-price { font-weight: 600; color: var(--accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .pm-actions { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
-  .pm-btn { width: 32px; height: 32px; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; transition: all var(--transition); flex-shrink: 0; }
-  .pm-btn-preview { background: #eff6ff; border-color: #bfdbfe; color: var(--preview, #2196f3); }
-  .pm-btn-preview:hover { background: #dbeafe; }
-  .pm-btn-accept { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
-  .pm-btn-accept:hover { background: #dcfce7; }
-  .pm-btn-reject { background: #fff5f5; border-color: #fecaca; color: #dc2626; }
-  .pm-btn-reject:hover { background: #fee2e2; }
-  .pm-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 24px; gap: 12px; color: var(--text-sub); }
-  .pm-state-icon { font-size: 36px; opacity: 0.35; }
-  .pm-state-text { font-size: 14px; font-weight: 500; }
-  .pm-spinner { animation: pmSpin 0.8s linear infinite; }
-  @keyframes pmSpin { to { transform: rotate(360deg); } }
-  @media (max-width: 640px) { .pm-table-wrap { display: none; } .pm-cards { display: flex; flex-direction: column; gap: 0; } }
-  @media (min-width: 641px) { .pm-cards { display: none; } }
-  .pm-card { padding: 14px 18px; border-bottom: 1px solid #f3f4f6; display: flex; flex-direction: column; gap: 8px; transition: background var(--transition); }
-  .pm-card:last-child { border-bottom: none; }
-  .pm-card:hover { background: #fafafa; }
-  .pm-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-  .pm-card-title { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.4; }
-  .pm-card-price { font-size: 13px; font-weight: 700; color: var(--accent); white-space: nowrap; }
-  .pm-card-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--text-sub); }
-  .pm-card-actions { display: flex; gap: 8px; }
-  .pm-card-actions .pm-btn { width: 36px; height: 36px; font-size: 14px; }
-  .pm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(3px); z-index: 1800; display: flex; align-items: center; justify-content: center; padding: 16px; animation: pmFadeIn 0.15s ease; }
-  @keyframes pmFadeIn { from { opacity: 0; } to { opacity: 1; } }
-  .pm-modal { background: #fff; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.20); width: 100%; max-width: 420px; overflow: hidden; animation: pmSlideUp 0.2s cubic-bezier(0.16,1,0.3,1); }
-  @keyframes pmSlideUp { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
-  .pm-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
-  .pm-modal-title { font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
-  .pm-modal-title-icon { color: #dc2626; }
-  .pm-modal-close { width: 30px; height: 30px; border-radius: var(--radius-sm); background: #f3f4f6; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-sub); font-size: 13px; transition: background var(--transition); }
-  .pm-modal-close:hover { background: #e5e7eb; }
-  .pm-modal-body { padding: 20px; }
-  .pm-modal-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-sub); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 8px; }
-  .pm-modal-select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13.5px; font-family: var(--font); color: var(--text); background: #f9fafb; outline: none; transition: border-color var(--transition), box-shadow var(--transition); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
-  .pm-modal-select:focus { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.10); background-color: #fff; }
-  .pm-modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--border); background: #fafafa; }
-  .pm-modal-btn { padding: 8px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; font-family: var(--font); cursor: pointer; border: 1px solid transparent; transition: all var(--transition); }
-  .pm-modal-btn-cancel { background: #f3f4f6; border-color: var(--border); color: var(--text-sub); }
-  .pm-modal-btn-cancel:hover { background: #e5e7eb; }
-  .pm-modal-btn-confirm { background: #dc2626; border-color: #dc2626; color: #fff; }
-  .pm-modal-btn-confirm:hover { background: #b91c1c; }
-  .pm-modal-btn-confirm:disabled { opacity: 0.45; cursor: not-allowed; }
-`;
+const STATUS = {
+  PENDING:  "Pending",
+  APPROVED: "Approved",
+  REJECTED: "Reject",
+};
+
+const STATUS_CONFIG = {
+  [STATUS.PENDING]:  { label: "Chờ duyệt", bg: "#fffbeb", border: "#fde68a", text: "#92400e", dot: "#f59e0b" },
+  [STATUS.APPROVED]: { label: "Đã duyệt",  bg: "#f0fdf4", border: "#bbf7d0", text: "#065f46", dot: "#10b981" },
+  [STATUS.REJECTED]: { label: "Từ chối",   bg: "#fff5f5", border: "#fecaca", text: "#991b1b", dot: "#ef4444" },
+};
+
+const FILTER_OPTIONS = [
+  { value: "",               label: "Tất cả" },
+  { value: STATUS.PENDING,   label: "Chờ duyệt" },
+  { value: STATUS.APPROVED,  label: "Đã duyệt" },
+  { value: STATUS.REJECTED,  label: "Từ chối" },
+];
+
+const REJECT_REASONS = [
+  "Vi phạm quy định cộng đồng",
+  "Hình ảnh không phù hợp / không hợp lệ",
+  "Sản phẩm thuộc danh mục bị cấm",
+  "Thông tin sản phẩm không chính xác",
+  "Nội dung trùng lặp",
+];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function useDebounce(fn, delay = 300) {
-  const timer = useRef(null);
-  return useCallback((...args) => {
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => fn(...args), delay);
-  }, [fn, delay]);
+function useDebounce(value, delay = 350) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return debounced;
 }
 
 const formatDate = (str) => {
   if (!str) return "—";
-  const iso = str.endsWith("Z") ? str : str + "Z";
-  return new Date(iso).toLocaleString("vi-VN");
+  return new Date(str.endsWith("Z") ? str : str + "Z").toLocaleString("vi-VN", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
 };
 
 const formatPrice = (price) =>
   Number(price).toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
-function ActionButtons({ post, onPreview, onAccept, onReject }) {
+const CSS = `
+  .pm {
+    --accent:       var(--primary-color, #16a34a);
+    --accent-hover: var(--primary-color-hover, #15803d);
+    --danger:       #dc2626;
+    --border:       #e5e7eb;
+    --bg:           #ffffff;
+    --bg-sub:       #f9fafb;
+    --bg-row-hover: #fafafa;
+    --text:         #111827;
+    --text-sub:     #6b7280;
+    --text-xs:      #9ca3af;
+    --radius:       10px;
+    --radius-sm:    6px;
+    --shadow-sm:    0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+    --transition:   0.16s ease;
+  }
+
+  .pm { color: var(--text); display: flex; flex-direction: column; gap: 0; }
+
+  /* ── Card ── */
+  .pm-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin: 30px;
+  }
+  .pm-card-header {
+    display: flex; align-items: center; gap: 9px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-sub);
+    flex-wrap: wrap;
+  }
+  .pm-card-header-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); flex-shrink: 0;
+  }
+  .pm-card-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .pm-card-count {
+    margin-left: auto;
+    padding: 2px 9px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 600;
+    background: #f3f4f6; border: 1px solid var(--border);
+    color: var(--text-sub);
+  }
+
+  /* ── Toolbar ── */
+  .pm-toolbar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 20px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-sub);
+  }
+  .pm-search-wrap { position: relative; flex: 1 1 160px; max-width: 280px; }
+  .pm-search-icon {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    color: var(--text-xs); font-size: 12px; pointer-events: none;
+  }
+  .pm-search {
+    width: 100%; box-sizing: border-box;
+    padding: 7px 12px 7px 30px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 13px; background: var(--bg); color: var(--text);
+    outline: none; transition: border-color var(--transition), box-shadow var(--transition);
+  }
+  .pm-search:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(22,163,74,0.10);
+  }
+  .pm-filters { display: flex; gap: 5px; flex-wrap: wrap; }
+  .pm-pill {
+    padding: 5px 12px; border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg); color: var(--text-sub);
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    white-space: nowrap; transition: all var(--transition);
+  }
+  .pm-pill:hover { border-color: var(--accent); color: var(--accent); }
+  .pm-pill--active { background: #f0fdf4; border-color: var(--accent); color: var(--accent); }
+
+  /* ── Status badge ── */
+  .pm-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 2px 9px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 600; white-space: nowrap;
+    border: 1px solid transparent;
+  }
+  .pm-badge-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── Icon action buttons ── */
+  .pm-btn-icon {
+    width: 30px; height: 30px; padding: 0;
+    border-radius: var(--radius-sm);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; cursor: pointer; border: 1px solid transparent;
+    transition: all var(--transition); background: none;
+  }
+  .pm-btn-view   { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
+  .pm-btn-view:hover   { background: #dbeafe; }
+  .pm-btn-ok     { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
+  .pm-btn-ok:hover     { background: #dcfce7; }
+  .pm-btn-reject { background: #fff5f5; border-color: #fecaca; color: #dc2626; }
+  .pm-btn-reject:hover { background: #fee2e2; }
+  .pm-btn-reset  { background: #fffbeb; border-color: #fde68a; color: #b45309; }
+  .pm-btn-reset:hover  { background: #fef3c7; }
+  .pm-td-actions { display: flex; gap: 5px; align-items: center; }
+
+  /* ── Table ── */
+  .pm-table-wrap { overflow-x: auto; }
+  table.pm-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .pm-table thead tr { background: var(--bg-sub); border-bottom: 1px solid var(--border); }
+  .pm-table th {
+    padding: 10px 16px; text-align: left;
+    font-size: 11px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--text-sub); white-space: nowrap;
+  }
+  .pm-table td {
+    padding: 10px 16px; border-bottom: 1px solid #f3f4f6; vertical-align: middle;
+  }
+  .pm-table tbody tr { transition: background var(--transition); }
+  .pm-table tbody tr:hover { background: var(--bg-row-hover); }
+  .pm-table tbody tr:last-child td { border-bottom: none; }
+
+  .pm-td-index { color: var(--text-xs); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .pm-td-title {
+    font-weight: 600; color: var(--text);
+    max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .pm-td-user  { color: var(--text-sub); font-weight: 500; }
+  .pm-td-date  { color: var(--text-xs); font-size: 12.5px; white-space: nowrap; }
+  .pm-td-price { font-weight: 700; color: #15803d; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  /* ── Empty / Loading ── */
+  .pm-state {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 50px 24px; gap: 10px; color: var(--text-sub);
+  }
+  .pm-state-icon { font-size: 32px; opacity: 0.30; }
+  .pm-state-text { font-size: 13.5px; font-weight: 500; }
+  .pm-state-sub  { font-size: 12.5px; color: var(--text-xs); }
+  .pm-spinner { animation: pmSpin 0.8s linear infinite; }
+  @keyframes pmSpin { to { transform: rotate(360deg); } }
+
+  /* ── Mobile cards (≤ 600px) ── */
+  @media (max-width: 600px) {
+    .pm-table-wrap  { display: none; }
+    .pm-mobile-list { display: flex; flex-direction: column; }
+  }
+  @media (min-width: 601px) {
+    .pm-mobile-list { display: none; }
+  }
+
+  .pm-mobile-item {
+    padding: 13px 16px;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex; flex-direction: column; gap: 4px;
+    transition: background var(--transition);
+  }
+  .pm-mobile-item:last-child { border-bottom: none; }
+  .pm-mobile-item:hover { background: var(--bg-row-hover); }
+  .pm-mobile-top  { display: flex; justify-content: space-between; gap: 8px; }
+  .pm-mobile-title { font-size: 13.5px; font-weight: 600; color: var(--text); flex: 1; }
+  .pm-mobile-price { font-size: 13px; font-weight: 700; color: #15803d; white-space: nowrap; }
+  .pm-mobile-meta  { font-size: 12px; color: var(--text-xs); display: flex; flex-wrap: wrap; gap: 4px 6px; }
+  .pm-mobile-foot  { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+  .pm-mobile-actions { display: flex; gap: 5px; }
+
+  /* ── Reject Modal ── */
+  .pm-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.40); backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .pm-modal {
+    background: var(--bg); border-radius: var(--radius);
+    width: 100%; max-width: 460px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.16); overflow: hidden;
+  }
+  .pm-modal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--border); background: white;
+  }
+  .pm-modal-title {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 14px; font-weight: 700; color: var(--text);
+  }
+  .pm-modal-title-icon {
+    width: 28px; height: 28px; border-radius: var(--radius-sm);
+    background: #fff5f5; color: var(--danger);
+    display: flex; align-items: center; justify-content: center; font-size: 12px;
+  }
+  .pm-modal-close {
+    width: 28px; height: 28px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--bg);
+    color: var(--text-sub); font-size: 11px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all var(--transition);
+  }
+  .pm-modal-close:hover { background: #e5e7eb; color: var(--text); }
+  .pm-modal-body { padding: 16px 20px; background: #fff;}
+  .pm-modal-label {
+    display: block; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em;
+    color: var(--text-sub); margin-bottom: 10px;
+  }
+  .pm-reason-list { display: flex; flex-direction: column; gap: 6px; }
+  .pm-reason-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--bg);
+    cursor: pointer; transition: all var(--transition);
+  }
+  .pm-reason-item:hover { border-color: var(--accent); background: #f0fdf4; }
+  .pm-reason-item--sel  { border-color: var(--danger) !important; background: #fff5f5 !important; }
+  .pm-reason-radio {
+    width: 15px; height: 15px; border-radius: 50%;
+    border: 2px solid var(--border); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all var(--transition);
+  }
+  .pm-reason-item--sel .pm-reason-radio { border-color: var(--danger); background: var(--danger); }
+  .pm-reason-dot { width: 5px; height: 5px; border-radius: 50%; background: #fff; opacity: 0; transition: opacity var(--transition); }
+  .pm-reason-item--sel .pm-reason-dot { opacity: 1; }
+  .pm-reason-text { font-size: 13px; font-weight: 500; color: var(--text); }
+  .pm-modal-foot {
+    display: flex; justify-content: flex-end; gap: 8px;
+    padding: 12px 20px; border-top: 1px solid var(--border); background: white;
+  }
+  .pm-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 16px; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 600;
+    border: 1px solid transparent; cursor: pointer; transition: all var(--transition);
+  }
+  .pm-btn-secondary { background: var(--bg); border-color: var(--border); color: var(--text-sub); }
+  .pm-btn-secondary:hover { background: #e5e7eb; }
+  .pm-btn-danger:hover { background: rgba(233, 6, 6, 0.6); color: white; }
+  .pm-btn-danger:disabled { opacity: .45; cursor: not-allowed; }
+  .pm-btn pm-btn-danger { background: var(--bg); border-color: var(--border); color: black; }
+`;
+
+// ─── StatusBadge ──────────────────────────────────────────────────────────────
+
+function StatusBadge({ status }) {
+  const cfg = STATUS_CONFIG[status];
+  if (!cfg) return null;
   return (
-    <div className="pm-actions">
-      <button className="pm-btn pm-btn-preview" title="Xem trước" onClick={() => onPreview(post)}>
+    <span className="pm-badge" style={{ background: cfg.bg, borderColor: cfg.border, color: cfg.text }}>
+      <span className="pm-badge-dot" style={{ background: cfg.dot }} />
+      {cfg.label}
+    </span>
+  );
+}
+
+// ─── ActionButtons ────────────────────────────────────────────────────────────
+
+function ActionButtons({ post, onPreview, onApprove, onReject, onReset }) {
+  const { postStatus, postId } = post;
+  const isPending = postStatus === STATUS.PENDING;
+  const isDone = postStatus === STATUS.APPROVED || postStatus === STATUS.REJECTED;
+
+  return (
+    <div className="pm-td-actions">
+      <button className="pm-btn-icon pm-btn-view" title="Xem trước" onClick={() => onPreview(post)}>
         <FontAwesomeIcon icon={faEye} />
       </button>
-      <button className="pm-btn pm-btn-accept" title="Duyệt" onClick={() => onAccept(post.postId)}>
-        <FontAwesomeIcon icon={faCheck} />
-      </button>
-      <button className="pm-btn pm-btn-reject" title="Từ chối" onClick={() => onReject(post.postId)}>
-        <FontAwesomeIcon icon={faXmark} />
-      </button>
+      {isPending && (
+        <>
+          <button className="pm-btn-icon pm-btn-ok" title="Duyệt bài" onClick={() => onApprove(postId)}>
+            <FontAwesomeIcon icon={faCheck} />
+          </button>
+          <button className="pm-btn-icon pm-btn-reject" title="Từ chối" onClick={() => onReject(postId)}>
+            <FontAwesomeIcon icon={faXmark} />
+          </button>
+        </>
+      )}
+      {isDone && (
+        <button className="pm-btn-icon pm-btn-reset" title="Đặt lại trạng thái" onClick={() => onReset(postId)}>
+          <FontAwesomeIcon icon={faRotateLeft} />
+        </button>
+      )}
     </div>
   );
 }
 
-function PostRow({ post, index, onPreview, onAccept, onReject }) {
-  return (
-    <tr>
-      <td className="pm-id">{index + 1}</td>
-      <td><div className="pm-post-title" title={post.title}>{post.title}</div></td>
-      <td><div className="pm-username">{post.user?.userName}</div></td>
-      <td className="pm-date">{formatDate(post.createdAt)}</td>
-      <td className="pm-price">{formatPrice(post.price)}</td>
-      <td><ActionButtons post={post} onPreview={onPreview} onAccept={onAccept} onReject={onReject} /></td>
-    </tr>
-  );
-}
-
-function PostCard({ post, onPreview, onAccept, onReject }) {
-  return (
-    <div className="pm-card">
-      <div className="pm-card-top">
-        <div className="pm-card-title">{post.title}</div>
-        <div className="pm-card-price">{formatPrice(post.price)}</div>
-      </div>
-      <div className="pm-card-meta">
-        <span>{post.user?.userName}</span>
-        <span>·</span>
-        <span>{formatDate(post.createdAt)}</span>
-      </div>
-      <div className="pm-card-actions">
-        <ActionButtons post={post} onPreview={onPreview} onAccept={onAccept} onReject={onReject} />
-      </div>
-    </div>
-  );
-}
+// ─── RejectModal ──────────────────────────────────────────────────────────────
 
 function RejectModal({ onConfirm, onClose }) {
   const [reason, setReason] = useState("");
+
   return (
     <div className="pm-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="pm-modal" role="dialog" aria-modal="true">
-        <div className="pm-modal-header">
+        <div className="pm-modal-head">
           <div className="pm-modal-title">
-            <FontAwesomeIcon icon={faTriangleExclamation} className="pm-modal-title-icon" />
-            Lý do từ chối
+            <div className="pm-modal-title-icon">
+              <FontAwesomeIcon icon={faTriangleExclamation} />
+            </div>
+            Từ chối bài đăng
           </div>
-          <button className="pm-modal-close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
+          <button className="pm-modal-close" onClick={onClose} aria-label="Đóng">
+            <FontAwesomeIcon icon={faXmark} />
+          </button>
         </div>
+
         <div className="pm-modal-body">
-          <label className="pm-modal-label" htmlFor="pm-reject-reason">Chọn lý do</label>
-          <select id="pm-reject-reason" className="pm-modal-select" value={reason} onChange={(e) => setReason(e.target.value)}>
-            <option value="">— Chọn lý do —</option>
-            <option value="Vi phạm quy định">Vi phạm quy định</option>
-            <option value="Ảnh không hợp lệ">Ảnh không hợp lệ</option>
-            <option value="Sản phẩm bị cấm">Sản phẩm bị cấm</option>
-          </select>
+          <span className="pm-modal-label">Chọn lý do từ chối</span>
+          <div className="pm-reason-list">
+            {REJECT_REASONS.map((r) => (
+              <div
+                key={r}
+                className={`pm-reason-item${reason === r ? " pm-reason-item--sel" : ""}`}
+                onClick={() => setReason(r)}
+                role="radio"
+                aria-checked={reason === r}
+                tabIndex={0}
+                onKeyDown={(e) => e.key === "Enter" && setReason(r)}
+              >
+                <div className="pm-reason-radio">
+                  <div className="pm-reason-dot" />
+                </div>
+                <span className="pm-reason-text">{r}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="pm-modal-footer">
-          <button className="pm-modal-btn pm-modal-btn-cancel" onClick={onClose}>Huỷ</button>
-          <button className="pm-modal-btn pm-modal-btn-confirm" disabled={!reason} onClick={() => reason && onConfirm(reason)}>
+
+        <div className="pm-modal-foot">
+          <button className="pm-btn pm-btn-secondary" onClick={onClose}>Huỷ bỏ</button>
+          <button
+            className="pm-btn pm-btn-danger"
+            disabled={!reason}
+            onClick={() => reason && onConfirm(reason)}
+          >
             Xác nhận từ chối
           </button>
         </div>
@@ -208,55 +410,67 @@ function RejectModal({ onConfirm, onClose }) {
   );
 }
 
-// ─── PostCensor (dùng trong MainLayout) ──────────────────────────────────────
+// ─── PostManager ──────────────────────────────────────────────────────────────
 
-export default function PostCensor() {
+export default function PostManager() {
   const { user } = useAuthStore();
   const role = user?.role?.toLowerCase() ?? "";
 
-  const [posts,        setPosts]        = useState([]);
-  const [filtered,     setFiltered]     = useState([]);
-  const [loading,      setLoading]      = useState(true);
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null);
-  const [rejectId,     setRejectId]     = useState(null);
+  const [rejectId, setRejectId] = useState(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await api.get(`/api/${role}/posts`);
-        setPosts(res.data);
-        setFiltered(res.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [role]);
+  const debouncedSearch = useDebounce(search);
 
-  const handleSearch = useCallback(
-    (q) => setFiltered(posts.filter((p) => p.user?.userName?.includes(q))),
-    [posts]
-  );
-  const debouncedSearch = useDebounce(handleSearch, 400);
+  // ── Fetch ──────────────────────────────────────────────────────────────────
 
-  const removePost = (id) => {
-    setPosts((prev) => prev.filter((p) => p.postId !== id));
-    setFiltered((prev) => prev.filter((p) => p.postId !== id));
-  };
-
-  const handleAccept = async (id) => {
+  const fetchPosts = useCallback(async () => {
     try {
-      await api.post(`/api/${role}/posts/${id}/accept`);
-      removePost(id);
-      setSelectedPost(null);
+      const res = await api.get(`/api/${role}/posts`);
+      setPosts(res.data ?? []);
     } catch (err) {
       console.error(err);
-      alert("Lỗi khi duyệt bài");
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [role]);
 
-  const handleReject = async (reason) => {
+  useEffect(() => { fetchPosts(); }, [fetchPosts]);
+
+  // ── Filtering ──────────────────────────────────────────────────────────────
+
+  const filteredPosts = posts.filter((post) => {
+    const q = debouncedSearch.toLowerCase();
+    const matchSearch =
+      !q ||
+      post.title?.toLowerCase().includes(q) ||
+      post.user?.userName?.toLowerCase().includes(q);
+    const matchStatus = !statusFilter || post.postStatus === statusFilter;
+    return matchSearch && matchStatus;
+  });
+
+  // ── Mutations ──────────────────────────────────────────────────────────────
+
+  const optimisticUpdate = useCallback((id, patch) => {
+    setPosts((prev) => prev.map((p) => (p.postId === id ? { ...p, ...patch } : p)));
+  }, []);
+
+  const handleApprove = useCallback(async (id) => {
+    try {
+      await api.post(`/api/${role}/posts/${id}/accept`);
+      optimisticUpdate(id, { postStatus: STATUS.APPROVED });
+      setSelectedPost(null);
+      Toast.fire({ icon: "success", title: "Đã duyệt bài đăng" });
+    } catch (err) {
+      console.error(err);
+      Toast.fire({ icon: "error", title: "Lỗi khi duyệt bài" });
+    }
+  }, [role, optimisticUpdate]);
+
+  const handleReject = useCallback(async (reason) => {
     if (!rejectId || !reason) return;
     try {
       await api.post(
@@ -264,86 +478,186 @@ export default function PostCensor() {
         JSON.stringify(reason),
         { headers: { "Content-Type": "application/json" } }
       );
-      removePost(rejectId);
+      optimisticUpdate(rejectId, { postStatus: STATUS.REJECTED });
       setSelectedPost(null);
+      Toast.fire({ icon: "success", title: "Đã từ chối bài đăng" });
     } catch (err) {
       console.error(err);
-      alert("Lỗi khi từ chối bài");
+      Toast.fire({ icon: "error", title: "Lỗi khi từ chối bài" });
     } finally {
       setRejectId(null);
     }
-  };
+  }, [role, rejectId, optimisticUpdate]);
 
-  const openReject = (id) => { setRejectId(id); setSelectedPost(null); };
+  const handleReset = useCallback(async (id) => {
+    const result = await Swal.fire({
+      title: "Đặt lại trạng thái?",
+      text: "Bài đăng sẽ được chuyển về trạng thái chờ duyệt.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Xác nhận",
+      cancelButtonText: "Huỷ",
+      buttonsStyling: false,
+      customClass: {
+        confirmButton: "bg-green-600 text-white text-md me-2 px-4 py-2 rounded mr-2 hover:bg-green-700",
+        cancelButton:  "bg-red-500 text-white text-md px-4 py-2 rounded hover:bg-red-700",
+      },
+    });
+    if (!result.isConfirmed) return;
+    try {
+      await api.post(`/api/${role}/posts/${id}/reset`);
+      optimisticUpdate(id, { postStatus: STATUS.PENDING });
+      Toast.fire({ icon: "success", title: "Đã đặt lại trạng thái" });
+    } catch (err) {
+      console.error(err);
+      Toast.fire({ icon: "error", title: "Lỗi khi đặt lại trạng thái" });
+    }
+  }, [role, optimisticUpdate]);
+
+  const openReject = useCallback((id) => {
+    setRejectId(id);
+    setSelectedPost(null);
+  }, []);
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       <div className="pm">
-        <div className="pm-header">
-          <div className="pm-title">
-            <div className="pm-title-dot" />
-            Duyệt bài viết
-            {!loading && <span className="pm-count">{filtered.length} bài</span>}
-          </div>
-          <div className="pm-search-wrap">
-            <FontAwesomeIcon icon={faSearch} className="pm-search-icon" />
-            <input
-              className="pm-search" type="text"
-              placeholder="Tìm theo tên người dùng…"
-              onChange={(e) => debouncedSearch(e.target.value)}
-            />
-          </div>
-        </div>
+        <div className="pm-card">
 
-        {loading ? (
-          <div className="pm-state">
-            <FontAwesomeIcon icon={faSpinner} className="pm-state-icon pm-spinner" />
-            <span className="pm-state-text">Đang tải dữ liệu…</span>
+          {/* ── Header ── */}
+          <div className="pm-card-header">
+            <div className="pm-card-header-dot" />
+            <span className="pm-card-title">Quản lý bài viết</span>
+            {!loading && (
+              <span className="pm-card-count">{filteredPosts.length}</span>
+            )}
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="pm-state">
-            <FontAwesomeIcon icon={faInbox} className="pm-state-icon" />
-            <span className="pm-state-text">Không có bài viết nào</span>
-          </div>
-        ) : (
-          <>
-            <div className="pm-table-wrap">
-              <table className="pm-table">
-                <thead>
-                  <tr>
-                    <th>#</th><th>Tiêu đề</th><th>Người đăng</th>
-                    <th>Ngày đăng</th><th>Giá</th><th>Hành động</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((post, i) => (
-                    <PostRow key={post.postId} index={i} post={post}
-                      onPreview={setSelectedPost} onAccept={handleAccept} onReject={openReject} />
-                  ))}
-                </tbody>
-              </table>
+
+          {/* ── Toolbar ── */}
+          <div className="pm-toolbar">
+            <div className="pm-search-wrap">
+              <FontAwesomeIcon icon={faMagnifyingGlass} className="pm-search-icon" />
+              <input
+                className="pm-search"
+                type="search"
+                placeholder="Tìm tiêu đề, người dùng…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
             </div>
-            <div className="pm-cards">
-              {filtered.map((post) => (
-                <PostCard key={post.postId} post={post}
-                  onPreview={setSelectedPost} onAccept={handleAccept} onReject={openReject} />
+            <div className="pm-filters">
+              {FILTER_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  className={`pm-pill${statusFilter === opt.value ? " pm-pill--active" : ""}`}
+                  onClick={() => setStatusFilter(opt.value)}
+                >
+                  {opt.label}
+                </button>
               ))}
             </div>
-          </>
-        )}
+          </div>
+
+          {/* ── Body ── */}
+          {loading ? (
+            <div className="pm-state">
+              <FontAwesomeIcon icon={faSpinner} className="pm-state-icon pm-spinner" />
+              <span className="pm-state-text">Đang tải dữ liệu…</span>
+            </div>
+          ) : filteredPosts.length === 0 ? (
+            <div className="pm-state">
+              <FontAwesomeIcon icon={faInbox} className="pm-state-icon" />
+              <span className="pm-state-text">Không có bài viết nào</span>
+              <span className="pm-state-sub">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</span>
+            </div>
+          ) : (
+            <>
+              {/* Desktop table */}
+              <div className="pm-table-wrap">
+                <table className="pm-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Tiêu đề</th>
+                      <th>Người đăng</th>
+                      <th>Ngày đăng</th>
+                      <th>Giá</th>
+                      <th>Trạng thái</th>
+                      <th>Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredPosts.map((post, i) => (
+                      <tr key={post.postId}>
+                        <td className="pm-td-index">{i + 1}</td>
+                        <td><div className="pm-td-title" title={post.title}>{post.title}</div></td>
+                        <td className="pm-td-user">{post.user?.userName ?? "—"}</td>
+                        <td className="pm-td-date">{formatDate(post.createdAt)}</td>
+                        <td className="pm-td-price">{formatPrice(post.price)}</td>
+                        <td><StatusBadge status={post.postStatus} /></td>
+                        <td>
+                          <ActionButtons
+                            post={post}
+                            onPreview={setSelectedPost}
+                            onApprove={handleApprove}
+                            onReject={openReject}
+                            onReset={handleReset}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile list */}
+              <div className="pm-mobile-list">
+                {filteredPosts.map((post) => (
+                  <div key={post.postId} className="pm-mobile-item">
+                    <div className="pm-mobile-top">
+                      <span className="pm-mobile-title">{post.title}</span>
+                      <span className="pm-mobile-price">{formatPrice(post.price)}</span>
+                    </div>
+                    <div className="pm-mobile-meta">
+                      <span>{post.user?.userName ?? "—"}</span>
+                      <span>·</span>
+                      <span>{formatDate(post.createdAt)}</span>
+                    </div>
+                    <div className="pm-mobile-foot">
+                      <StatusBadge status={post.postStatus} />
+                      <div className="pm-mobile-actions">
+                        <ActionButtons
+                          post={post}
+                          onPreview={setSelectedPost}
+                          onApprove={handleApprove}
+                          onReject={openReject}
+                          onReset={handleReset}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
+      {/* Preview modal */}
       {selectedPost && (
         <PostPreviewModal
           post={selectedPost}
           onClose={() => setSelectedPost(null)}
-          onApprove={handleAccept}
+          onApprove={handleApprove}
           onReject={openReject}
         />
       )}
 
+      {/* Reject modal */}
       {rejectId && (
         <RejectModal onConfirm={handleReject} onClose={() => setRejectId(null)} />
       )}

@@ -11,7 +11,7 @@ import api from "@/api";
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const CSS = `
-  .ppm-overlay { 
+  .ppm-overlay {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.50);
     backdrop-filter: blur(4px);

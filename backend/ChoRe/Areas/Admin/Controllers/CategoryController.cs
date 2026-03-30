@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace ChoRe.Controllers.Admin
 {
     [ApiController]
@@ -19,23 +18,16 @@ namespace ChoRe.Controllers.Admin
         {
             _context = context;
         }
-        // GET CATEGORY TREE (CHA - CON)
+
         [HttpGet("tree")]
         public async Task<IActionResult> GetTree()
         {
             var categories = await _context.Categories
-                .Select(c => new
-                {
-                    c.CateId,
-                    c.CateName,
-                    c.ParentCateId
-                })
+                .Select(c => new { c.CateId, c.CateName, c.ParentCateId })
                 .ToListAsync();
 
-            // Build tree
-            List<CategoryTreeDto> BuildTree(int? parentId)
-            {
-                return categories
+            List<CategoryTreeDto> BuildTree(int? parentId) =>
+                categories
                     .Where(c => c.ParentCateId == parentId)
                     .Select(c => new CategoryTreeDto
                     {
@@ -44,11 +36,8 @@ namespace ChoRe.Controllers.Admin
                         Children = BuildTree(c.CateId)
                     })
                     .ToList();
-            }
 
-            var tree = BuildTree(null);
-
-            return Ok(tree);
+            return Ok(BuildTree(null));
         }
 
         [HttpGet]
@@ -69,8 +58,7 @@ namespace ChoRe.Controllers.Admin
             return Ok(data);
         }
 
-        // CREATE
-        [HttpPost]
+        [HttpPost("create")]
         public async Task<IActionResult> Create(CategoryCreateUpdateDto dto)
         {
             if (!ModelState.IsValid)
@@ -132,6 +120,5 @@ namespace ChoRe.Controllers.Admin
             await _context.SaveChangesAsync();
             return Ok();
         }
-
     }
 }

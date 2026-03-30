@@ -5,7 +5,7 @@ export default function PostGrid({ posts }) {
   if (!posts?.length) {
     return (
       <div className="post-grid-empty">
-        <span className="post-grid-empty-icon">🔍</span>
+        <span className="post-grid-empty-icon"></span>
         <p>Không tìm thấy sản phẩm nào phù hợp</p>
       </div>
     );

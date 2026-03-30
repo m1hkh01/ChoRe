@@ -53,11 +53,10 @@ public class PostService : IPostService
             throw new KeyNotFoundException("Không tìm thấy bài viết");
         return post;
     }
-
     public async Task<List<PostResponseDto>> GetPostsByAsync()
     {
         var posts = await _context.Posts
-            .Where(p => p.PostStatusId == 1 || p.PostStatusId == 2 || p.PostStatusId == 3)
+            .Where(p => (p.PostStatusId == 1 || p.PostStatusId == 2 || p.PostStatusId == 3) && !p.IsDeleted)
             .Include(p => p.User)
                 .ThenInclude(u => u.Role)
             .Include(p => p.Brand)

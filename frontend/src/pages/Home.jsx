@@ -403,7 +403,7 @@ export default function Home() {
       <section className="home-hero">
         <div className="home-hero-inner">
           <h1 className="hero-title">Mua bán đồ điện tử cũ dễ dàng!</h1>
-          <p className="hero-sub">Hàng nghìn sản phẩm, giá tốt, giao nhanh toàn quốc</p>
+          <p className="hero-sub">Hàng nghìn sản phẩm, giá tốt, an toàn và tiện lợi!</p>
 
           <form className="hero-search-bar" onSubmit={handleSearch}>
 

@@ -11,6 +11,8 @@ import PostComments from "@/components/PostDetail/PostComments";
 import PostDetailsDr from "@/components/PostDetail/PostDetailsDr";
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import ServicePackage from "./ServicePackage/ServicePackage";
+import PostGrid from "@/components/Post/PostGrid";
 
 function PostDetail() {
     const { id } = useParams();
@@ -105,6 +107,7 @@ function PostDetail() {
 
                 </div>
             </div>
+            <ServicePackage />
         </div>
     );
 }

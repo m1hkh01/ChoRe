@@ -8,7 +8,7 @@ import {
   faUser, faCreditCard, faClockRotateLeft, faGauge,
 } from "@fortawesome/free-solid-svg-icons";
 import { faComment, faBell, faHeart } from "@fortawesome/free-regular-svg-icons";
-
+import TopBar from "./TopBar";
 import "@/assets/Header.css";
 import api from "../api";
 import useFetch from "../Hooks/useFetch";
@@ -19,12 +19,12 @@ import ReviewForm from "./Review/ReviewForm";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const NOTIF_TABS = [
-  { key: "All",         label: "Tất cả" },
-  { key: "Post",        label: "Bài đăng" },
+  { key: "All", label: "Tất cả" },
+  { key: "Post", label: "Bài đăng" },
   { key: "Transaction", label: "Giao dịch" },
 ];
 
-const POST_NOTIF_TYPES        = ["PostApproved", "PostRejected", "PostNeedPayment"];
+const POST_NOTIF_TYPES = ["PostApproved", "PostRejected", "PostNeedPayment"];
 const TRANSACTION_NOTIF_TYPES = ["Transaction", "PendingPayment", "PaymentReceived", "AwaitingEvidence"];
 
 const AVATAR_BASE = "https://api.chore123.cloud/uploads/";
@@ -36,17 +36,17 @@ function avatarUrl(path) {
 }
 
 function formatNotifDate(dateString) {
-  const diff    = Date.now() - new Date(dateString).getTime();
+  const diff = Date.now() - new Date(dateString).getTime();
   const minutes = Math.floor(diff / 60_000);
-  const hours   = Math.floor(diff / 3_600_000);
-  const days    = Math.floor(diff / 86_400_000);
-  const date    = new Date(dateString);
+  const hours = Math.floor(diff / 3_600_000);
+  const days = Math.floor(diff / 86_400_000);
+  const date = new Date(dateString);
 
-  if (minutes < 60)  return `${minutes || 1} phút`;
-  if (hours   < 24)  return `${hours} giờ`;
-  if (days    === 1) return "Hôm qua";
-  if (days    <= 3)  return ["CN","T2","T3","T4","T5","T6","T7"][date.getDay()];
-  if (days    <= 30) return `${days} ngày`;
+  if (minutes < 60) return `${minutes || 1} phút`;
+  if (hours < 24) return `${hours} giờ`;
+  if (days === 1) return "Hôm qua";
+  if (days <= 3) return ["CN", "T2", "T3", "T4", "T5", "T6", "T7"][date.getDay()];
+  if (days <= 30) return `${days} ngày`;
   return date.toLocaleDateString("vi-VN");
 }
 
@@ -72,38 +72,38 @@ function NavIconBtn({ to, icon, title, children, onClick, active }) {
 
 export default function Header() {
   const { user, logout } = useAuthStore();
-  const navigate         = useNavigate();
-  const location         = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [cateOpen,        setCateOpen]        = useState(false);
-  const [notifOpen,       setNotifOpen]        = useState(false);
-  const [profileOpen,     setProfileOpen]      = useState(false);
-  const [drawerOpen,      setDrawerOpen]       = useState(false);
-  const [drawerCateOpen,  setDrawerCateOpen]   = useState(false);
-  const [drawerNotifOpen, setDrawerNotifOpen]  = useState(false);
+  const [cateOpen, setCateOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerCateOpen, setDrawerCateOpen] = useState(false);
+  const [drawerNotifOpen, setDrawerNotifOpen] = useState(false);
 
   const [searchKeyword, setSearchKeyword] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
 
   const { data: categoryData } = useFetch("/api/categories/hierarchy");
-  const [categories,         setCategories]         = useState([]);
-  const [activeCate,         setActiveCate]         = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [activeCate, setActiveCate] = useState(null);
   const [mobileExpandedCate, setMobileExpandedCate] = useState(null);
 
   const { data: notifData } = useFetch(`/api/notifications/${user?.userId || 0}`);
   const [notifications, setNotifications] = useState([]);
-  const [notifFilter,   setNotifFilter]   = useState("All");
+  const [notifFilter, setNotifFilter] = useState("All");
 
   const [reviewChatRoomId, setReviewChatRoomId] = useState(null);
 
-  const cateRef    = useRef(null);
-  const notifRef   = useRef(null);
+  const cateRef = useRef(null);
+  const notifRef = useRef(null);
   const profileRef = useRef(null);
 
   const connectionRef = useSignalR();
 
-  const isHomePage   = location.pathname === "/";
+  const isHomePage = location.pathname === "/";
   const isSearchPage = location.pathname === "/search";
 
   // ── Init ──────────────────────────────────────────────────────────────────
@@ -138,8 +138,8 @@ export default function Header() {
 
   useEffect(() => {
     const onMouseDown = (e) => {
-      if (cateRef.current    && !cateRef.current.contains(e.target))    setCateOpen(false);
-      if (notifRef.current   && !notifRef.current.contains(e.target))   setNotifOpen(false);
+      if (cateRef.current && !cateRef.current.contains(e.target)) setCateOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
       if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false);
     };
     const onEsc = (e) => {
@@ -187,14 +187,14 @@ export default function Header() {
     setNotifOpen(false);
     setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n));
     const routes = {
-      Transaction:           `/pay/transaction/${notif.relatedId}`,
-      PendingPayment:        `/pay/transaction/${notif.relatedId}`,
+      Transaction: `/pay/transaction/${notif.relatedId}`,
+      PendingPayment: `/pay/transaction/${notif.relatedId}`,
       PendingPaymentPackage: `/pay/package/${notif.relatedId}`,
-      PostApproved:          "/profile",
-      PostRejected:          "/profile",
-      PostNeedPayment:       `/pay/post/${notif.relatedId}`,
-      Confirming:            "/user-transactions",
-      AwaitingEvidence:      "/user-transactions",
+      PostApproved: "/profile",
+      PostRejected: "/profile",
+      PostNeedPayment: `/pay/post/${notif.relatedId}`,
+      Confirming: "/user-transactions",
+      AwaitingEvidence: "/user-transactions",
     };
     if (notif.type === "ReviewReminder") {
       setReviewChatRoomId(notif.relatedId);
@@ -203,13 +203,13 @@ export default function Header() {
     }
   };
 
-  const closeAll   = () => { setProfileOpen(false); setDrawerOpen(false); };
+  const closeAll = () => { setProfileOpen(false); setDrawerOpen(false); };
   const navigateTo = (path) => { closeAll(); navigate(path); };
 
   // ── Derived ───────────────────────────────────────────────────────────────
 
   const filteredNotifs = notifications.filter(n => {
-    if (notifFilter === "Post")        return POST_NOTIF_TYPES.includes(n.type);
+    if (notifFilter === "Post") return POST_NOTIF_TYPES.includes(n.type);
     if (notifFilter === "Transaction") return TRANSACTION_NOTIF_TYPES.includes(n.type);
     return true;
   });
@@ -218,8 +218,8 @@ export default function Header() {
 
   const dashboardLink = () => {
     if (!user) return null;
-    if (user.role === "Admin")  return { to: "/admin/dashboard",  icon: faGauge,        label: "Trang quản trị Admin" };
-    if (user.role === "Censor") return { to: "/censor/post-censor",  icon: faShieldHalved, label: "Trang kiểm duyệt" };
+    if (user.role === "Admin") return { to: "/admin/dashboard", icon: faGauge, label: "Trang quản trị Admin" };
+    if (user.role === "Censor") return { to: "/censor/post-censor", icon: faShieldHalved, label: "Trang kiểm duyệt" };
     return null;
   };
 
@@ -229,6 +229,7 @@ export default function Header() {
 
   return (
     <>
+      {!drawerOpen && <TopBar />}
       <header className="hdr">
         <div className="hdr-inner">
 
@@ -340,8 +341,8 @@ export default function Header() {
 
           {/* Right actions */}
           <div className="hdr-actions">
-            <NavIconBtn to="/chat"      icon={faComment} title="Nhắn tin" />
-            <NavIconBtn to="/favorites" icon={faHeart}   title="Yêu thích" />
+            <NavIconBtn to="/chat" icon={faComment} title="Nhắn tin" />
+            <NavIconBtn to="/favorites" icon={faHeart} title="Yêu thích" />
 
             {/* Notifications */}
             <div className="hdr-notif-wrap" ref={notifRef}>
@@ -427,9 +428,9 @@ export default function Header() {
                     </div>
                     <div className="hdr-profile-links">
                       {[
-                        { to: "/profile",                 icon: faUser,            label: "Trang cá nhân" },
-                        { to: "/service-package-manager", icon: faLayerGroup,      label: "Quản lý Gói" },
-                        { to: "/user-transactions",       icon: faClockRotateLeft, label: "Quản lý giao dịch" },
+                        { to: "/profile", icon: faUser, label: "Trang cá nhân" },
+                        { to: "/service-package-manager", icon: faLayerGroup, label: "Quản lý Gói" },
+                        { to: "/user-transactions", icon: faClockRotateLeft, label: "Quản lý giao dịch" },
                         ...(dash ? [dash] : []),
                       ].map(item => (
                         <Link key={item.to} to={item.to} className="hdr-profile-item" onClick={closeAll}>
@@ -697,8 +698,8 @@ export default function Header() {
 
                 <nav className="hdr-drawer-nav">
                   {[
-                    { to: "/chat",            icon: faComment,    label: "Nhắn tin" },
-                    { to: "/favorites",       icon: faHeart,      label: "Yêu thích" },
+                    { to: "/chat", icon: faComment, label: "Nhắn tin" },
+                    { to: "/favorites", icon: faHeart, label: "Yêu thích" },
                     { to: "/service-package", icon: faCreditCard, label: "Mua Gói" },
                   ].map(item => (
                     <Link key={item.to} to={item.to} className="hdr-drawer-link" onClick={() => setDrawerOpen(false)}>
@@ -707,10 +708,10 @@ export default function Header() {
                   ))}
 
                   {user && [
-                    { to: "/profile",                 icon: faUser,            label: "Trang cá nhân" },
-                    { to: "/manage-posts",            icon: faLayerGroup,      label: "Tin của tôi" },
-                    { to: "/service-package-manager", icon: faCreditCard,      label: "Quản lý Gói" },
-                    { to: "/user-transactions",       icon: faClockRotateLeft, label: "Giao dịch" },
+                    { to: "/profile", icon: faUser, label: "Trang cá nhân" },
+                    { to: "/manage-posts", icon: faLayerGroup, label: "Tin của tôi" },
+                    { to: "/service-package-manager", icon: faCreditCard, label: "Quản lý Gói" },
+                    { to: "/user-transactions", icon: faClockRotateLeft, label: "Giao dịch" },
                     ...(dash ? [dash] : []),
                   ].map(item => (
                     <Link key={item.to} to={item.to} className="hdr-drawer-link" onClick={() => setDrawerOpen(false)}>

@@ -15,7 +15,7 @@ const AVATAR_BASE = "https://api.chore123.cloud/uploads/";
 const avatarUrl = (path) => `${AVATAR_BASE}${path}`;
 
 const NAV_SECTIONS = [
-    {
+  {
     id: "dashboard",
     label: "Tổng quan",
     icon: faGauge,
@@ -28,10 +28,10 @@ const NAV_SECTIONS = [
     label: "Nội dung",
     icon: faFileLines,
     items: [
-      { path: "/admin/post-manager",           label: "Quản lý bài viết" },
-      { path: "/admin/category-manager",       label: "Phân loại" },
-      { path: "/admin/specification-manager",  label: "Cấu hình phân loại" },
-      { path: "/admin/brand-manager",          label: "Quản lý hãng" },
+      { path: "/admin/post-manager", label: "Quản lý bài viết" },
+      { path: "/admin/category-manager", label: "Phân loại" },
+      { path: "/admin/specification-manager", label: "Cấu hình phân loại" },
+      { path: "/admin/brand-manager", label: "Quản lý hãng" },
       { path: "/admin/brand-category-manager", label: "Phân loại hãng" },
     ],
   },
@@ -40,7 +40,7 @@ const NAV_SECTIONS = [
     label: "Người dùng",
     icon: faUsers,
     items: [
-      { path: "/admin/user-manager",       label: "Quản lý tài khoản" },
+      { path: "/admin/user-manager", label: "Quản lý tài khoản" },
       { path: "/admin/user-subscriptions", label: "Gói dịch vụ" },
     ],
   },
@@ -49,7 +49,7 @@ const NAV_SECTIONS = [
     label: "Dịch vụ",
     icon: faBox,
     items: [
-      { path: "/admin/sub-manager",         label: "Gói dịch vụ" },
+      { path: "/admin/sub-manager", label: "Gói dịch vụ" },
       { path: "/admin/transaction-manager", label: "Giao dịch trung gian" },
     ],
   },
@@ -363,6 +363,7 @@ function Avatar({ src, name, size = 34, className, fallbackClass }) {
         width={size}
         height={size}
         className={`al-avatar ${className ?? ""}`}
+        style={{ width: size, height: size, minWidth: size, minHeight: size }}  // ← thêm dòng này
         onError={() => setError(true)}
       />
     );
@@ -419,8 +420,8 @@ function NavSection({ section, isOpen, onToggle, pathname, onLinkClick }) {
 
 export default function AdminLayout() {
   const { user, logout } = useAuthStore();
-  const navigate         = useNavigate();
-  const { pathname }     = useLocation();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
