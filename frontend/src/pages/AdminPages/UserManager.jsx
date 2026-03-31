@@ -398,7 +398,7 @@ export default function UserManager() {
   const handleLockToggle = async (user) => {
     if (user.isLocked) {
       try {
-        await api.patch(`/api/admin/users/${user.userId}/unlock`);
+        await api.post(`/api/admin/users/${user.userId}/unlock`);
         await loadUsers();
       } catch {
         alert("Không thể mở khoá tài khoản");
@@ -409,7 +409,7 @@ export default function UserManager() {
   };
 
   const handleLockConfirm = async (reason) => {
-    await api.patch(`/api/admin/users/${lockUser.userId}/lock`, { lockReason: reason });
+    await api.post(`/api/admin/users/${lockUser.userId}/lock`, { lockReason: reason });
     setLockUser(null);
     await loadUsers();
   };
@@ -419,7 +419,7 @@ export default function UserManager() {
   const handleDelete = async (id) => {
     if (!window.confirm("Xoá người dùng này?")) return;
     try {
-      await api.delete(`/api/admin/users/${id}`);
+      await api.post(`/api/admin/users/${id}`);
       await loadUsers();
     } catch {
       alert("Xoá người dùng thất bại");

@@ -46,7 +46,7 @@ namespace ChoRe.Controllers
         }
 
         // 🔥 Xoá yêu thích
-        [HttpDelete("{postId:int}")]
+        [HttpPost("{postId:int}")]
         public async Task<IActionResult> RemoveSavedPost(int postId)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);

@@ -440,7 +440,7 @@ namespace ChoRe.Controllers
         }
 
         // DELETE /api/comments/{id}  ← giữ nguyên absolute route, không đổi
-        [HttpDelete("/api/comments/{id:int}")]
+        [HttpPost("/api/comments/{id:int}")]
         public async Task<IActionResult> DeleteComment(int id)
         {
             var comment = await _context.Comments.FindAsync(id);

@@ -63,7 +63,7 @@ namespace ChoRe.Controllers.Admin
         }
 
         // UPDATE MAPPING - TỰ ĐỘNG THÊM DANH MỤC CHA
-        [HttpPut]
+        [HttpPost]
         public async Task<IActionResult> Update(BrandCategoryUpdateDto dto)
         {
             var brand = await _context.Brands.FindAsync(dto.BrandId);

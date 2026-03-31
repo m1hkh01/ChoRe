@@ -352,7 +352,7 @@ export default function BrandCategoryManager() {
         return node && !node.children?.length;
       });
 
-      await api.put("/api/admin/brand-categories", {
+      await api.post("/api/admin/brand-categories", {
         brandId: Number(brandId),
         cateIds: leafIds,
       });

@@ -341,7 +341,7 @@ function FavCard({ post, checked, onToggle, onRemove }) {
     if (loading) return;
     setLoading(true);
     try {
-      await api.delete(`api/save-posts/${post.postId}`);
+      await api.post(`api/save-posts/${post.postId}`);
       onRemove(post.postId);
       // PostCard trên các trang khác sẽ tự reload khi nhận event này
       window.dispatchEvent(new Event("favoritesUpdated"));
@@ -451,7 +451,7 @@ export default function Favorites() {
   const deleteSelected = async () => {
     if (deleting) return;
     setDeleting(true);
-    await Promise.allSettled([...selected].map((id) => api.delete(`api/save-posts/${id}`)));
+    await Promise.allSettled([...selected].map((id) => api.post(`api/save-posts/${id}`)));
     setItems((prev) => prev.filter((p) => !selected.has(p.postId)));
     setSelected(new Set());
     setDeleting(false);
@@ -463,7 +463,7 @@ export default function Favorites() {
     if (!window.confirm(`Xóa tất cả ${items.length} tin đã lưu?`)) return;
     if (deleting) return;
     setDeleting(true);
-    await Promise.allSettled(items.map((p) => api.delete(`api/save-posts/${p.postId}`)));
+    await Promise.allSettled(items.map((p) => api.post(`api/save-posts/${p.postId}`)));
     setItems([]);
     setSelected(new Set());
     setDeleting(false);

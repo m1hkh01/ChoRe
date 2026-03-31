@@ -81,7 +81,7 @@ public class UserAdminController : ControllerBase
     //}
 
     // UPDATE
-    [HttpPut("{id}")]
+    [HttpPost("{id}")]
     public async Task<IActionResult> Update(int id, [FromForm] UpdateUserDto dto, IFormFile? avatar)
     {
         var user = await _context.Users.FindAsync(id);
@@ -119,7 +119,7 @@ public class UserAdminController : ControllerBase
     }
 
     // DELETE
-    [HttpDelete("{id}")]
+    [HttpPost("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
         var user = await _context.Users.FindAsync(id);
@@ -131,7 +131,7 @@ public class UserAdminController : ControllerBase
     }
 
     // TOGGLE LOCK
-    [HttpPatch("{id}/lock")]
+    [HttpPost("{id}/lock")]
     public async Task<IActionResult> ToggleLock(int id, [FromBody] LockUserDto dto)
     {
         if (!ModelState.IsValid)
@@ -147,7 +147,7 @@ public class UserAdminController : ControllerBase
         return Ok();
     }
 
-    [HttpPatch("{id}/unlock")]
+    [HttpPost("{id}/unlock")]
     public async Task<IActionResult> Unlock(int id)
     {
         var user = await _context.Users.FindAsync(id);
