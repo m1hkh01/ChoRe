@@ -10,19 +10,13 @@ namespace ChoRe.Controllers.Admin
     [ApiController]
     [Authorize(Roles = "Admin")]
     [Route("api/admin/categories")]
-    public class CategoryController : ControllerBase
+    public class CategoryController(AppDbContext context) : ControllerBase
     {
-        private readonly AppDbContext _context;
-
-        public CategoryController(AppDbContext context)
-        {
-            _context = context;
-        }
-
+        // GET api/admin/categories/tree
         [HttpGet("tree")]
         public async Task<IActionResult> GetTree()
         {
-            var categories = await _context.Categories
+            var categories = await context.Categories
                 .Select(c => new { c.CateId, c.CateName, c.ParentCateId })
                 .ToListAsync();
 
@@ -40,10 +34,11 @@ namespace ChoRe.Controllers.Admin
             return Ok(BuildTree(null));
         }
 
+        // GET api/admin/categories
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var data = await _context.Categories
+            var data = await context.Categories
                 .Select(c => new
                 {
                     cateId = c.CateId,
@@ -58,13 +53,14 @@ namespace ChoRe.Controllers.Admin
             return Ok(data);
         }
 
+        // POST api/admin/categories/create
         [HttpPost("create")]
         public async Task<IActionResult> Create(CategoryCreateUpdateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (await _context.Categories.AnyAsync(x => x.CateName == dto.CateName))
+            if (await context.Categories.AnyAsync(x => x.CateName == dto.CateName))
                 return BadRequest("Danh mục đã tồn tại");
 
             var cate = new Category
@@ -74,38 +70,43 @@ namespace ChoRe.Controllers.Admin
                 ParentCateId = dto.ParentCateId
             };
 
-            _context.Categories.Add(cate);
-            await _context.SaveChangesAsync();
+            context.Categories.Add(cate);
+            await context.SaveChangesAsync();
 
             return Ok(cate);
         }
 
+        // POST api/admin/categories/update/{id}
         [HttpPost("update/{id:int}")]
         public async Task<IActionResult> Update(int id, CategoryCreateUpdateDto dto)
         {
-            var cate = await _context.Categories.FindAsync(id);
-            if (cate == null) return NotFound();
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            if (await _context.Categories.AnyAsync(x => x.CateName == dto.CateName && x.CateId != id))
+            var cate = await context.Categories.FindAsync(id);
+            if (cate is null) return NotFound();
+
+            if (await context.Categories.AnyAsync(x => x.CateName == dto.CateName && x.CateId != id))
                 return BadRequest("Tên danh mục đã tồn tại");
 
             cate.CateName = dto.CateName;
             cate.Description = dto.Description;
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
             return Ok(cate);
         }
 
+        // POST api/admin/categories/delete/{id}
         [HttpPost("delete/{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var cate = await _context.Categories
+            var cate = await context.Categories
                 .Include(c => c.SubCategories)
                 .Include(c => c.BrandCates)
                 .Include(c => c.PostCates)
                 .FirstOrDefaultAsync(c => c.CateId == id);
 
-            if (cate == null) return NotFound();
+            if (cate is null) return NotFound();
 
             if (cate.SubCategories.Any())
                 return BadRequest("Danh mục còn danh mục con, không thể xoá");
@@ -116,8 +117,8 @@ namespace ChoRe.Controllers.Admin
             if (cate.PostCates.Any())
                 return BadRequest("Danh mục đang được sử dụng bởi bài đăng, không thể xóa");
 
-            _context.Categories.Remove(cate);
-            await _context.SaveChangesAsync();
+            context.Categories.Remove(cate);
+            await context.SaveChangesAsync();
             return Ok();
         }
     }
