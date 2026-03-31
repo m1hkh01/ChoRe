@@ -96,7 +96,7 @@ export default function PostCard({ post, onDeleted }) {
 
     try {
       if (prev) {
-        const res = await api.delete(`api/save-posts/${post.postId}`);
+        const res = await api.post(`api/save-posts/${post.postId}`);
         Toast.fire({ icon: "success", title: res.data?.message || "Đã xóa khỏi yêu thích!" });
       } else {
         const res = await api.post("api/save-posts", { PostId: post.postId });
@@ -123,7 +123,7 @@ export default function PostCard({ post, onDeleted }) {
 
   //   setDeleting(true);
   //   try {
-  //     const res = await api.delete(deleteUrl(role, post.postId));
+  //     const res = await api.post(deleteUrl(role, post.postId));
   //     Toast.fire({ icon: "success", title: res.data?.message || "Đã xóa bài đăng!" });
   //     setDeleted(true);
   //     onDeleted?.(post.postId);
