@@ -14,13 +14,13 @@ const EMPTY_FORM = {
 };
 
 const ENDPOINTS = {
-  brands:    "/api/admin/brands",
+  brands: "/api/admin/brands",
   brandTree: "/api/admin/brands/tree",
-  cateList:  "/api/admin/categories",
-  cateTree:  "/api/admin/categories/tree",
-  create:    "/api/admin/brands",
-  update:    (id) => `/api/admin/brands/update/${id}`,
-  delete:    (id) => `/api/admin/brands/delete/${id}`,
+  cateList: "/api/admin/categories",
+  cateTree: "/api/admin/categories/tree",
+  create: "/api/admin/brands",
+  update: (id) => `/api/admin/brands/update/${id}`,
+  delete: (id) => `/api/admin/brands/delete/${id}`,
 };
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
@@ -253,7 +253,7 @@ function parseApiError(err) {
 
 function LogoPreview({ file, src }) {
   if (file) return <img src={URL.createObjectURL(file)} alt="preview" />;
-  if (src)  return <img src={`${API_BASE_URL}/brands/${src}`} alt="logo" />;
+  if (src) return <img src={`${API_BASE_URL}/brands/${src}`} alt="logo" />;
   return <FontAwesomeIcon icon={faImage} className="bm-logo-preview-icon" />;
 }
 
@@ -273,17 +273,17 @@ function ActionButtons({ onEdit, onDelete }) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function BrandManager() {
-  const [brands,       setBrands]       = useState([]);
-  const [brandTree,    setBrandTree]    = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [brandTree, setBrandTree] = useState([]);
   const [categoryTree, setCategoryTree] = useState([]);
-  const [categories,   setCategories]   = useState([]);
+  const [categories, setCategories] = useState([]);
 
-  const [form,       setForm]       = useState(EMPTY_FORM);
-  const [logo,       setLogo]       = useState(null);
-  const [isEditing,  setIsEditing]  = useState(false);
-  const [error,      setError]      = useState("");
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [logo, setLogo] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [loading,    setLoading]    = useState(true);
+  const [loading, setLoading] = useState(true);
 
   // Hãng con không được chọn danh mục — kế thừa từ hãng cha
   const isSubBrand = !!form.parentBrandId;
@@ -331,11 +331,11 @@ export default function BrandManager() {
     setError("");
     setLogo(null);
     setForm({
-      brandId:       brand.brandId,
-      brandName:     brand.brandName,
-      description:   brand.description ?? "",
+      brandId: brand.brandId,
+      brandName: brand.brandName,
+      description: brand.description ?? "",
       parentBrandId: brand.parentBrandId ?? "",
-      cateIds:       brand.cateIds ?? [],
+      cateIds: brand.cateIds ?? [],
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -367,7 +367,7 @@ export default function BrandManager() {
 
   const submit = async () => {
     if (!form.brandName.trim()) return setError("Tên thương hiệu là bắt buộc");
-    if (!isSubBrand && !form.cateIds.length)
+    if (!form.cateIds.length)
       return setError("Vui lòng chọn ít nhất 1 danh mục");
 
     setError("");
@@ -375,14 +375,12 @@ export default function BrandManager() {
 
     try {
       const fd = new FormData();
-      fd.append("BrandName",   form.brandName.trim());
+      fd.append("BrandName", form.brandName.trim());
       fd.append("Description", form.description.trim());
       if (form.parentBrandId) fd.append("ParentBrandId", Number(form.parentBrandId));
 
       // Chỉ gửi cateIds khi là hãng gốc
-      if (!isSubBrand) {
-        form.cateIds.forEach((id) => fd.append("CateIds", Number(id)));
-      }
+      form.cateIds.forEach((id) => fd.append("CateIds", Number(id)));
 
       if (logo) fd.append("logo", logo);
 
@@ -465,7 +463,7 @@ export default function BrandManager() {
                 <select
                   className="bm-select bm-select-arrow"
                   value={form.parentBrandId}
-                  onChange={(e) => handleParentBrandChange(e.target.value)}
+                  onChange={(e) => setField("parentBrandId", e.target.value)}
                 >
                   <option value="">— Thương hiệu gốc —</option>
                   {renderTreeOptions(brandTree)}
@@ -514,48 +512,39 @@ export default function BrandManager() {
                 {!isSubBrand && <span className="bm-label-req">*</span>}
               </label>
 
-              {isSubBrand ? (
-                // Hãng con → hiển thị thông báo, không cho chọn
-                <div className="bm-inherit-notice">
-                  <FontAwesomeIcon icon={faInfoCircle} />
-                  Hãng con kế thừa danh mục từ hãng cha 
-                  {parentBrandName && <strong>&nbsp;({parentBrandName})</strong>} 
-                  không thể chọn riêng.
-                </div>
-              ) : (
-                // Hãng gốc → multi-select bình thường
-                <>
-                  <select
-                    multiple
-                    className="bm-select bm-multiselect"
-                    value={form.cateIds.map(String)}
-                    onChange={(e) => handleCategoryChange(e.target.selectedOptions)}
-                  >
-                    {renderTreeOptions(categoryTree)}
-                  </select>
-                  <span className="bm-select-hint">
-                    Ctrl (Windows) / Cmd (Mac) để chọn nhiều · Danh mục cha tự động được thêm
-                  </span>
 
-                  {form.cateIds.length > 0 && (
-                    <div className="bm-tags">
-                      {form.cateIds.map((id) => (
-                        <span key={id} className="bm-tag">
-                          <FontAwesomeIcon icon={faCheck} style={{ fontSize: 9 }} />
-                          {cateLabel(id)}
-                          <button
-                            className="bm-tag-x"
-                            onClick={() => removeCateId(id)}
-                            aria-label="Bỏ chọn"
-                          >
-                            <FontAwesomeIcon icon={faXmark} />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </>
+
+              <select
+                multiple
+                className="bm-select bm-multiselect"
+                value={form.cateIds.map(String)}
+                onChange={(e) => handleCategoryChange(e.target.selectedOptions)}
+              >
+                {renderTreeOptions(categoryTree)}
+              </select>
+              <span className="bm-select-hint">
+                Ctrl (Windows) / Cmd (Mac) để chọn nhiều · Danh mục cha tự động được thêm
+              </span>
+
+              {form.cateIds.length > 0 && (
+                <div className="bm-tags">
+                  {form.cateIds.map((id) => (
+                    <span key={id} className="bm-tag">
+                      <FontAwesomeIcon icon={faCheck} style={{ fontSize: 9 }} />
+                      {cateLabel(id)}
+                      <button
+                        className="bm-tag-x"
+                        onClick={() => removeCateId(id)}
+                        aria-label="Bỏ chọn"
+                      >
+                        <FontAwesomeIcon icon={faXmark} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
               )}
+
+
             </div>
 
             <div className="bm-form-actions">
