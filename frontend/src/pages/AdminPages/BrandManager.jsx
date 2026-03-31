@@ -3,9 +3,25 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus, faPen, faTrash, faXmark,
   faSpinner, faInbox, faBuilding,
-  faImage, faCheck,
+  faImage, faCheck, faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import api, { API_BASE_URL } from "@/api";
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const EMPTY_FORM = {
+  brandId: null, brandName: "", description: "", parentBrandId: "", cateIds: [],
+};
+
+const ENDPOINTS = {
+  brands:    "/api/admin/brands",
+  brandTree: "/api/admin/brands/tree",
+  cateList:  "/api/admin/categories",
+  cateTree:  "/api/admin/categories/tree",
+  create:    "/api/admin/brands",
+  update:    (id) => `/api/admin/brands/update/${id}`,
+  delete:    (id) => `/api/admin/brands/delete/${id}`,
+};
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
@@ -29,16 +45,9 @@ const CSS = `
 
   .bm { font-family: var(--font); color: var(--text); display: flex; flex-direction: column; gap: 20px; }
 
-  /* ── Card ── */
-  .bm-card {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden;
-  }
-  .bm-card-header {
-    display: flex; align-items: center; gap: 9px;
-    padding: 14px 20px; border-bottom: 1px solid var(--border);
-    background: var(--bg-sub);
-  }
+  /* Card */
+  .bm-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden; }
+  .bm-card-header { display: flex; align-items: center; gap: 9px; padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--bg-sub); }
   .bm-card-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
   .bm-card-title { font-size: 14px; font-weight: 700; color: var(--text); }
   .bm-card-badge {
@@ -47,25 +56,18 @@ const CSS = `
     background: #f3f4f6; border: 1px solid var(--border); color: var(--text-sub);
   }
 
-  /* ── Form ── */
+  /* Form */
   .bm-form { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-
-  .bm-grid-2 {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-  }
+  .bm-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 640px) { .bm-grid-2 { grid-template-columns: 1fr; } }
 
   .bm-field { display: flex; flex-direction: column; gap: 5px; }
-  .bm-label {
-    font-size: 11.5px; font-weight: 700; letter-spacing: .05em;
-    text-transform: uppercase; color: var(--text-sub);
-  }
+  .bm-label { font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-sub); }
   .bm-label-req { color: #dc2626; margin-left: 2px; }
 
   .bm-input, .bm-select, .bm-textarea {
-    padding: 8px 12px; border: 1px solid var(--border);
-    border-radius: var(--radius-sm); font-size: 13.5px;
-    font-family: var(--font); color: var(--text); background: var(--bg-sub);
+    padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 13.5px; font-family: var(--font); color: var(--text); background: var(--bg-sub);
     outline: none;
     transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
   }
@@ -74,7 +76,6 @@ const CSS = `
   }
   .bm-input--error { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220,38,38,0.09) !important; }
   .bm-textarea { resize: vertical; min-height: 80px; }
-
   .bm-select-arrow {
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
@@ -82,18 +83,20 @@ const CSS = `
   }
 
   /* Multi-select */
-  .bm-multiselect {
-    min-height: 140px; padding: 6px;
+  .bm-multiselect { min-height: 140px; padding: 6px; }
+  .bm-multiselect option { padding: 6px 8px; border-radius: 4px; font-size: 13px; }
+  .bm-multiselect option:checked { background: var(--accent); color: #fff; }
+  .bm-multiselect:disabled { opacity: 0.5; cursor: not-allowed; background: #f3f4f6; }
+  .bm-select-hint { font-size: 11.5px; color: var(--text-xs); margin-top: 4px; }
+
+  /* Inherit notice */
+  .bm-inherit-notice {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; border-radius: var(--radius-sm);
+    background: #fffbeb; border: 1px solid #fde68a;
+    font-size: 12.5px; color: #92400e;
   }
-  .bm-multiselect option {
-    padding: 6px 8px; border-radius: 4px; font-size: 13px;
-  }
-  .bm-multiselect option:checked {
-    background: var(--accent); color: #fff;
-  }
-  .bm-select-hint {
-    font-size: 11.5px; color: var(--text-xs); margin-top: 4px;
-  }
+  .bm-inherit-notice svg { flex-shrink: 0; color: #d97706; }
 
   /* Selected tags */
   .bm-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
@@ -104,30 +107,23 @@ const CSS = `
   }
   .bm-tag-x {
     background: none; border: none; cursor: pointer; color: #6b7280;
-    font-size: 10px; padding: 0; line-height: 1; display: flex;
-    transition: color var(--transition);
+    font-size: 10px; padding: 0; line-height: 1; display: flex; transition: color var(--transition);
   }
   .bm-tag-x:hover { color: #dc2626; }
 
   /* Logo upload */
-  .bm-logo-area {
-    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  }
+  .bm-logo-area { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   .bm-logo-preview {
     width: 60px; height: 60px; border-radius: var(--radius-sm);
     border: 1px solid var(--border); background: var(--bg-sub);
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;
   }
   .bm-logo-preview img { width: 100%; height: 100%; object-fit: contain; }
   .bm-logo-preview-icon { color: var(--text-xs); font-size: 20px; }
-  .bm-logo-upload {
-    display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0;
-  }
+  .bm-logo-upload { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
   .bm-file-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 14px; border-radius: var(--radius-sm);
-    border: 1px dashed var(--border); background: var(--bg-sub);
+    display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px;
+    border-radius: var(--radius-sm); border: 1px dashed var(--border); background: var(--bg-sub);
     font-size: 13px; font-family: var(--font); color: var(--text-sub);
     cursor: pointer; transition: all var(--transition); width: fit-content;
   }
@@ -136,20 +132,17 @@ const CSS = `
 
   /* Error */
   .bm-error {
-    display: flex; align-items: center; gap: 6px;
-    padding: 8px 12px; border-radius: var(--radius-sm);
-    background: #fff5f5; border: 1px solid #fecaca;
+    display: flex; align-items: center; gap: 6px; padding: 8px 12px;
+    border-radius: var(--radius-sm); background: #fff5f5; border: 1px solid #fecaca;
     font-size: 12.5px; color: #dc2626;
   }
 
-  /* Form actions */
   .bm-form-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-  /* ── Buttons ── */
+  /* Buttons */
   .bm-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 16px; border-radius: var(--radius-sm);
-    font-size: 13px; font-weight: 600; font-family: var(--font);
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+    border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; font-family: var(--font);
     border: 1px solid transparent; cursor: pointer; transition: all var(--transition);
   }
   .bm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -161,26 +154,22 @@ const CSS = `
   .bm-btn-icon {
     width: 30px; height: 30px; padding: 0; border-radius: var(--radius-sm);
     display: inline-flex; align-items: center; justify-content: center;
-    border: 1px solid transparent; font-size: 12px; cursor: pointer;
-    transition: all var(--transition);
+    border: 1px solid transparent; font-size: 12px; cursor: pointer; transition: all var(--transition);
   }
   .bm-btn-edit { background: #fffbeb; border-color: #fde68a; color: #b45309; }
   .bm-btn-edit:hover { background: #fef3c7; }
   .bm-btn-del  { background: #fff5f5; border-color: #fecaca; color: #dc2626; }
   .bm-btn-del:hover  { background: #fee2e2; }
 
-  /* ── Table ── */
+  /* Table */
   .bm-table-wrap { overflow-x: auto; }
   table.bm-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   .bm-table thead tr { background: var(--bg-sub); border-bottom: 1px solid var(--border); }
   .bm-table th {
-    padding: 10px 16px; text-align: left;
-    font-size: 11px; font-weight: 700; letter-spacing: .06em;
-    text-transform: uppercase; color: var(--text-sub); white-space: nowrap;
+    padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--text-sub); white-space: nowrap;
   }
-  .bm-table td {
-    padding: 11px 16px; border-bottom: 1px solid #f3f4f6; vertical-align: middle;
-  }
+  .bm-table td { padding: 11px 16px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
   .bm-table tbody tr { transition: background var(--transition); }
   .bm-table tbody tr:hover { background: var(--bg-hover); }
   .bm-table tbody tr:last-child td { border-bottom: none; }
@@ -195,13 +184,12 @@ const CSS = `
 
   .bm-brand-name { font-weight: 600; }
   .bm-parent-badge {
-    display: inline-flex; align-items: center;
-    padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 500;
-    background: #f3f4f6; border: 1px solid var(--border); color: var(--text-sub);
+    display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 500; background: #f3f4f6; border: 1px solid var(--border); color: var(--text-sub);
   }
   .bm-td-actions { display: flex; gap: 6px; }
 
-  /* ── Empty / Loading ── */
+  /* State */
   .bm-state {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 50px 24px; gap: 10px; color: var(--text-sub);
@@ -211,24 +199,18 @@ const CSS = `
   .bm-spinner { animation: bmSpin 0.8s linear infinite; }
   @keyframes bmSpin { to { transform: rotate(360deg); } }
 
-  /* ── Mobile cards (≤ 600px) ── */
-  @media (max-width: 600px) {
-    .bm-table-wrap { display: none; }
-    .bm-mobile-list { display: flex; flex-direction: column; }
-  }
+  /* Mobile */
+  @media (max-width: 600px) { .bm-table-wrap { display: none; } }
   @media (min-width: 601px) { .bm-mobile-list { display: none; } }
-
   .bm-mobile-item {
     padding: 13px 16px; border-bottom: 1px solid #f3f4f6;
-    display: flex; align-items: center; gap: 12px;
-    transition: background var(--transition);
+    display: flex; align-items: center; gap: 12px; transition: background var(--transition);
   }
   .bm-mobile-item:last-child { border-bottom: none; }
   .bm-mobile-item:hover { background: var(--bg-hover); }
   .bm-mobile-logo {
-    width: 40px; height: 40px; border-radius: 8px;
-    border: 1px solid var(--border); background: var(--bg-sub);
-    display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg-sub); display: flex; align-items: center; justify-content: center;
     overflow: hidden; flex-shrink: 0;
   }
   .bm-mobile-logo img { width: 100%; height: 100%; object-fit: contain; }
@@ -238,15 +220,8 @@ const CSS = `
   .bm-mobile-actions { display: flex; gap: 6px; flex-shrink: 0; }
 `;
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const EMPTY_FORM = {
-  brandId: null, brandName: "", description: "", parentBrandId: "", cateIds: [],
-};
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Flatten tree → <option> array with indent prefix */
 function renderTreeOptions(nodes, level = 0) {
   return nodes.flatMap((n) => [
     <option key={n.brandId ?? n.cateId} value={n.brandId ?? n.cateId}>
@@ -256,7 +231,6 @@ function renderTreeOptions(nodes, level = 0) {
   ]);
 }
 
-/** Collect all ancestor cateIds for a given cateId */
 function collectAncestors(tree, targetId, ancestors = []) {
   for (const node of tree) {
     if (node.cateId === targetId) return ancestors;
@@ -278,12 +252,8 @@ function parseApiError(err) {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function LogoPreview({ file, src }) {
-  if (file) {
-    return <img src={URL.createObjectURL(file)} alt="preview" />;
-  }
-  if (src) {
-    return <img src={`${API_BASE_URL}/brands/${src}`} alt="logo" />;
-  }
+  if (file) return <img src={URL.createObjectURL(file)} alt="preview" />;
+  if (src)  return <img src={`${API_BASE_URL}/brands/${src}`} alt="logo" />;
   return <FontAwesomeIcon icon={faImage} className="bm-logo-preview-icon" />;
 }
 
@@ -300,7 +270,7 @@ function ActionButtons({ onEdit, onDelete }) {
   );
 }
 
-// ─── BrandManager ─────────────────────────────────────────────────────────────
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export default function BrandManager() {
   const [brands,       setBrands]       = useState([]);
@@ -309,18 +279,21 @@ export default function BrandManager() {
   const [categories,   setCategories]   = useState([]);
 
   const [form,       setForm]       = useState(EMPTY_FORM);
-  const [logo,       setLogo]       = useState(null);   // File object
+  const [logo,       setLogo]       = useState(null);
   const [isEditing,  setIsEditing]  = useState(false);
   const [error,      setError]      = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loading,    setLoading]    = useState(true);
 
+  // Hãng con không được chọn danh mục — kế thừa từ hãng cha
+  const isSubBrand = !!form.parentBrandId;
+
   // ── Fetch ─────────────────────────────────────────────────────────────────
 
   const loadBrands = useCallback(async () => {
     const [listRes, treeRes] = await Promise.all([
-      api.get("/api/admin/brands"),
-      api.get("/api/admin/brands/tree"),
+      api.get(ENDPOINTS.brands),
+      api.get(ENDPOINTS.brandTree),
     ]);
     setBrands(listRes.data);
     setBrandTree(treeRes.data);
@@ -330,8 +303,8 @@ export default function BrandManager() {
     (async () => {
       try {
         const [cateRes, cateTreeRes] = await Promise.all([
-          api.get("/api/admin/categories"),
-          api.get("/api/admin/categories/tree"),
+          api.get(ENDPOINTS.cateList),
+          api.get(ENDPOINTS.cateTree),
         ]);
         setCategories(cateRes.data);
         setCategoryTree(cateTreeRes.data);
@@ -346,30 +319,40 @@ export default function BrandManager() {
 
   const setField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
-  const resetForm = () => { setForm(EMPTY_FORM); setLogo(null); setError(""); setIsEditing(false); };
+  const resetForm = () => {
+    setForm(EMPTY_FORM);
+    setLogo(null);
+    setError("");
+    setIsEditing(false);
+  };
 
   const startEdit = (brand) => {
     setIsEditing(true);
     setError("");
     setLogo(null);
     setForm({
-      brandId:      brand.brandId,
-      brandName:    brand.brandName,
-      description:  brand.description ?? "",
+      brandId:       brand.brandId,
+      brandName:     brand.brandName,
+      description:   brand.description ?? "",
       parentBrandId: brand.parentBrandId ?? "",
-      cateIds:      brand.cateIds ?? [],
+      cateIds:       brand.cateIds ?? [],
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // ── Category multi-select (auto-add ancestors) ────────────────────────────
+  // Khi đổi hãng cha → xóa danh mục đã chọn nếu chuyển sang hãng con
+  const handleParentBrandChange = (value) => {
+    setField("parentBrandId", value);
+    if (value) setField("cateIds", []);   // hãng con không giữ danh mục
+  };
+
+  // ── Category multi-select ─────────────────────────────────────────────────
 
   const handleCategoryChange = (selectedOptions) => {
     const selectedIds = Array.from(selectedOptions, (o) => Number(o.value));
     const allIds = new Set(selectedIds);
     selectedIds.forEach((id) => {
-      const ancestors = collectAncestors(categoryTree, id) ?? [];
-      ancestors.forEach((aid) => allIds.add(aid));
+      (collectAncestors(categoryTree, id) ?? []).forEach((aid) => allIds.add(aid));
     });
     setField("cateIds", Array.from(allIds));
   };
@@ -382,25 +365,30 @@ export default function BrandManager() {
 
   // ── Submit ────────────────────────────────────────────────────────────────
 
-  const submit = async (e) => {
-    e?.preventDefault();
+  const submit = async () => {
     if (!form.brandName.trim()) return setError("Tên thương hiệu là bắt buộc");
-    if (!form.cateIds.length)   return setError("Vui lòng chọn ít nhất 1 danh mục");
+    if (!isSubBrand && !form.cateIds.length)
+      return setError("Vui lòng chọn ít nhất 1 danh mục");
 
-    setError(""); setSubmitting(true);
+    setError("");
+    setSubmitting(true);
+
     try {
       const fd = new FormData();
       fd.append("BrandName",   form.brandName.trim());
       fd.append("Description", form.description.trim());
       if (form.parentBrandId) fd.append("ParentBrandId", Number(form.parentBrandId));
-      form.cateIds.forEach((id) => fd.append("CateIds", Number(id)));
+
+      // Chỉ gửi cateIds khi là hãng gốc
+      if (!isSubBrand) {
+        form.cateIds.forEach((id) => fd.append("CateIds", Number(id)));
+      }
+
       if (logo) fd.append("logo", logo);
 
-      if (isEditing) {
-        await api.post(`/api/admin/brands/update/${form.brandId}`, fd);
-      } else {
-        await api.post("/api/admin/brands", fd);
-      }
+      const url = isEditing ? ENDPOINTS.update(form.brandId) : ENDPOINTS.create;
+      await api.post(url, fd);
+
       resetForm();
       await loadBrands();
     } catch (err) {
@@ -415,18 +403,24 @@ export default function BrandManager() {
   const del = async (id) => {
     if (!window.confirm("Xóa thương hiệu này?")) return;
     try {
-      await api.post(`/api/admin/brands/delete/${id}`);
+      await api.post(ENDPOINTS.delete(id));
       await loadBrands();
     } catch (err) {
       alert(parseApiError(err));
     }
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Derived ───────────────────────────────────────────────────────────────
 
   const currentLogo = isEditing
     ? brands.find((b) => b.brandId === form.brandId)?.brandLogo
     : null;
+
+  const parentBrandName = isSubBrand
+    ? brands.find((b) => b.brandId === Number(form.parentBrandId))?.brandName
+    : null;
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <>
@@ -434,7 +428,7 @@ export default function BrandManager() {
 
       <div className="bm">
 
-        {/* ── Form card ── */}
+        {/* Form card */}
         <div className="bm-card">
           <div className="bm-card-header">
             <div className="bm-card-dot" />
@@ -446,8 +440,7 @@ export default function BrandManager() {
           <div className="bm-form">
             {error && (
               <div className="bm-error">
-                <FontAwesomeIcon icon={faXmark} />
-                {error}
+                <FontAwesomeIcon icon={faXmark} /> {error}
               </div>
             )}
 
@@ -472,7 +465,7 @@ export default function BrandManager() {
                 <select
                   className="bm-select bm-select-arrow"
                   value={form.parentBrandId}
-                  onChange={(e) => setField("parentBrandId", e.target.value)}
+                  onChange={(e) => handleParentBrandChange(e.target.value)}
                 >
                   <option value="">— Thương hiệu gốc —</option>
                   {renderTreeOptions(brandTree)}
@@ -514,36 +507,54 @@ export default function BrandManager() {
               </div>
             </div>
 
-            {/* Categories multi-select */}
+            {/* Categories */}
             <div className="bm-field">
               <label className="bm-label">
-                Danh mục <span className="bm-label-req">*</span>
+                Danh mục
+                {!isSubBrand && <span className="bm-label-req">*</span>}
               </label>
-              <select
-                multiple
-                className="bm-select bm-multiselect"
-                value={form.cateIds.map(String)}
-                onChange={(e) => handleCategoryChange(e.target.selectedOptions)}
-              >
-                {renderTreeOptions(categoryTree)}
-              </select>
-              <span className="bm-select-hint">
-                Ctrl (Windows) / Cmd (Mac) để chọn nhiều · Danh mục cha tự động được thêm
-              </span>
 
-              {/* Selected tags */}
-              {form.cateIds.length > 0 && (
-                <div className="bm-tags">
-                  {form.cateIds.map((id) => (
-                    <span key={id} className="bm-tag">
-                      <FontAwesomeIcon icon={faCheck} style={{ fontSize: 9 }} />
-                      {cateLabel(id)}
-                      <button className="bm-tag-x" onClick={() => removeCateId(id)} aria-label="Bỏ chọn">
-                        <FontAwesomeIcon icon={faXmark} />
-                      </button>
-                    </span>
-                  ))}
+              {isSubBrand ? (
+                // Hãng con → hiển thị thông báo, không cho chọn
+                <div className="bm-inherit-notice">
+                  <FontAwesomeIcon icon={faInfoCircle} />
+                  Hãng con kế thừa danh mục từ hãng cha 
+                  {parentBrandName && <strong>&nbsp;({parentBrandName})</strong>} 
+                  không thể chọn riêng.
                 </div>
+              ) : (
+                // Hãng gốc → multi-select bình thường
+                <>
+                  <select
+                    multiple
+                    className="bm-select bm-multiselect"
+                    value={form.cateIds.map(String)}
+                    onChange={(e) => handleCategoryChange(e.target.selectedOptions)}
+                  >
+                    {renderTreeOptions(categoryTree)}
+                  </select>
+                  <span className="bm-select-hint">
+                    Ctrl (Windows) / Cmd (Mac) để chọn nhiều · Danh mục cha tự động được thêm
+                  </span>
+
+                  {form.cateIds.length > 0 && (
+                    <div className="bm-tags">
+                      {form.cateIds.map((id) => (
+                        <span key={id} className="bm-tag">
+                          <FontAwesomeIcon icon={faCheck} style={{ fontSize: 9 }} />
+                          {cateLabel(id)}
+                          <button
+                            className="bm-tag-x"
+                            onClick={() => removeCateId(id)}
+                            aria-label="Bỏ chọn"
+                          >
+                            <FontAwesomeIcon icon={faXmark} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -557,15 +568,14 @@ export default function BrandManager() {
               </button>
               {isEditing && (
                 <button className="bm-btn bm-btn-secondary" onClick={resetForm}>
-                  <FontAwesomeIcon icon={faXmark} />
-                  Huỷ
+                  <FontAwesomeIcon icon={faXmark} /> Huỷ
                 </button>
               )}
             </div>
           </div>
         </div>
 
-        {/* ── List card ── */}
+        {/* List card */}
         <div className="bm-card">
           <div className="bm-card-header">
             <div className="bm-card-dot" />
@@ -585,7 +595,7 @@ export default function BrandManager() {
             </div>
           ) : (
             <>
-              {/* Desktop table */}
+              {/* Desktop */}
               <div className="bm-table-wrap">
                 <table className="bm-table">
                   <thead>
@@ -616,7 +626,10 @@ export default function BrandManager() {
                         </td>
                         <td>
                           <div className="bm-td-actions">
-                            <ActionButtons onEdit={() => startEdit(b)} onDelete={() => del(b.brandId)} />
+                            <ActionButtons
+                              onEdit={() => startEdit(b)}
+                              onDelete={() => del(b.brandId)}
+                            />
                           </div>
                         </td>
                       </tr>
@@ -625,7 +638,7 @@ export default function BrandManager() {
                 </table>
               </div>
 
-              {/* Mobile cards */}
+              {/* Mobile */}
               <div className="bm-mobile-list">
                 {brands.map((b) => (
                   <div key={b.brandId} className="bm-mobile-item">
@@ -642,7 +655,10 @@ export default function BrandManager() {
                       )}
                     </div>
                     <div className="bm-mobile-actions">
-                      <ActionButtons onEdit={() => startEdit(b)} onDelete={() => del(b.brandId)} />
+                      <ActionButtons
+                        onEdit={() => startEdit(b)}
+                        onDelete={() => del(b.brandId)}
+                      />
                     </div>
                   </div>
                 ))}
