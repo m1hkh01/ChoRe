@@ -5,6 +5,6 @@ public class JwtUserIdProvider : IUserIdProvider
 {
     public string GetUserId(HubConnectionContext connection)
     {
-        return connection.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+        return connection.User?.FindFirst("UserId")?.Value ?? string.Empty;
     }
 }

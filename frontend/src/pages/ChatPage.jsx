@@ -287,22 +287,53 @@ function ChatSidebar({ userId, activeId, onJoin }) {
   }, [userId]);
 
   useEffect(() => {
-    const t = setInterval(() => {
+    const handler = (msg) => {
+      setChats(prev => {
+        const found = prev.find(c => c.chatRoomId == msg.conversationId);
+        if (!found) return prev;
+        const updated = {
+          ...found,
+          lastMessageContent: msg.chatContent,
+          lastMessageAt: msg.createdAt
+        };
+        return [updated, ...prev.filter(c => c.chatRoomId != msg.conversationId)];
+      });
+    };
+
+    const handleNewChat = (room) => {
+      setChats(prev => {
+        console.log("New chat: ", room);
+        console.log("Current chats: ", prev);
+        const filtered = prev.filter(r => r.chatRoomId !== room.chatRoomId);
+        return [room, ...filtered];
+      });
+    };
+
+    const tryOn = () => {
+      const conn = connectionRef?.current;
+
+      if (!conn) {
+        setTimeout(tryOn, 500);
+        return;
+      }
+
+      if (conn.state === "Connected") {
+        conn.on("ReceiveMessage", handler);
+        conn.on("NewConversationCreated", handleNewChat);
+      } else {
+        setTimeout(tryOn, 500);
+      }
+    };
+
+    tryOn();
+
+    return () => {
       const conn = connectionRef?.current;
       if (!conn) return;
-      const handler = (msg) => {
-        setChats(prev => {
-          const found = prev.find(c => c.chatRoomId == msg.conversationId);
-          if (!found) return prev;
-          const updated = { ...found, lastMessageContent: msg.chatContent, lastMessageAt: msg.createdAt };
-          return [updated, ...prev.filter(c => c.chatRoomId != msg.conversationId)];
-        });
-      };
-      conn.on("ReceiveMessage", handler);
-      clearInterval(t);
-      return () => conn.off("ReceiveMessage", handler);
-    }, 300);
-    return () => clearInterval(t);
+
+      conn.off("ReceiveMessage", handler);
+      conn.off("NewConversationCreated", handleNewChat);
+    };
   }, [connectionRef]);
 
   const filtered = chats.filter(c =>
@@ -379,17 +410,24 @@ function ChatWindow({ conversationId, onBack }) {
     if (!conversationId || !connectionRef?.current) return;
     const conn = connectionRef.current;
 
-    const t = setInterval(async () => {
-      if (conn.state !== "Connected") return;
-      await conn.invoke("JoinConversation", conversationId.toString());
-      clearInterval(t);
-    });
+    const tryJoin = async () => {
+      if (conn.state === "Connected") {
+        await conn.invoke("JoinConversation", conversationId.toString());
+      } else {
+        setTimeout(tryJoin, 1000);
+      }
+    };
+
+    tryJoin();
 
     const onLoad = (msgs) => { console.log("Message: ",msgs); setConv(msgs) };
     const onReceive = (msg) => setConv(p => ({ ...p, chatMessages: [...(p?.chatMessages ?? []), msg] }));
     const onUpdate = (data) => setConv(p => {
+      console.log("UpdateTransaction: ", data);
+      
       if (!p) return p;
       const exists = p.chatMessages.some(m => m.transaction?.transactionId === data.transaction.transactionId);
+      console.log("Current conv: ", exists);
       return exists
         ? {
           ...p, chatMessages: p.chatMessages.map(m =>

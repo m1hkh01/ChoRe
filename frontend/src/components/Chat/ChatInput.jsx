@@ -148,7 +148,7 @@ export function ChatInput({ connectionRef, conversationId, post, buyerId, isActi
         // Nếu giá thuộc kiểu không thuộc kiểu cố định thì set tạm giá, phí sàn tổng tiền = 0         
         const isPriceFixed = updatePost.priceType.toLowerCase() == "fixed";
         const platformFee = isPriceFixed ? Math.round(updatePost.postPrice * 0.05) : Math.round(postPrice * 0.05);
-        const totalAmount = isPriceFixed ? updatePost.postPrice + platformFee : platformFee + postPrice;
+        const totalAmount = isPriceFixed ? updatePost.postPrice : postPrice;
 
         console.log("Post: ", updatePost);
         const txData = {

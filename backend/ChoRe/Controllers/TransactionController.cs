@@ -95,7 +95,8 @@ public class TransactionController : ControllerBase
     [HttpPost("confirm")]
     public async Task<IActionResult> ConfirmTransaction(ConfirmTransactionDto req)
     {
-        var transaction = await _transactionService.ConfirmTransaction(req.TransactionId, req.IsBuyer, req.PostPrice, req.UpdatePrice);
+        var senderId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+        var transaction = await _transactionService.ConfirmTransaction(req.TransactionId, req.IsBuyer, req.PostPrice, req.UpdatePrice, senderId);
         if (transaction is null)
         {
             return NotFound(new { Message = "Đã có lỗi xảy ra vui lòng thử lại sau" });

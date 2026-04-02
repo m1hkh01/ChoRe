@@ -1,6 +1,7 @@
 using ChoRe.Data;
 using ChoRe.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 public interface IEscrowTransactionService
@@ -13,7 +14,7 @@ public interface IEscrowTransactionService
     Task<TransactionDto?> GetEscrowByIdAsync(int id);
     Task<List<ServiceTransactionDto>>? GetServicesByIdAsync(int id, EscrowTransactionFilterRequest req);
     Task<EscrowTransation> PayTransaction(PayOrderRequest rq);
-    Task<EscrowTransation?> ConfirmTransaction(int transactionId, bool isBuyer, decimal postPrice, bool updatePrice);
+    Task<EscrowTransation?> ConfirmTransaction(int transactionId, bool isBuyer, decimal postPrice, bool updatePrice, int senderId);
     Task RejectTransaction(int transactionId);
     Task RefundRequest(int transactionId, RefundRequestDto req);
     Task CompleteTransaction(int transactionId);
@@ -26,11 +27,13 @@ public class EscrowTransactionService : IEscrowTransactionService
 {
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
+    private readonly IHubContext<ChatHub> _hubContext;
 
-    public EscrowTransactionService(AppDbContext context, IConfiguration configuration)
+    public EscrowTransactionService(AppDbContext context, IConfiguration configuration, IHubContext<ChatHub> hubContext)
     {
         _context = context;
         _configuration = configuration;
+        _hubContext = hubContext;
     }
     public async Task<List<EscrowTransStatus>> GetStatusesAsync(bool isAdmin, bool isTransation = true)
     {
@@ -343,10 +346,11 @@ public class EscrowTransactionService : IEscrowTransactionService
         return transaction;
     }
 
-    public async Task<EscrowTransation?> ConfirmTransaction(int transactionId, bool isBuyer, decimal postPrice, bool updatePrice)
+    public async Task<EscrowTransation?> ConfirmTransaction(int transactionId, bool isBuyer, decimal postPrice, bool updatePrice, int senderId)
     {
         try
         {
+
             var transaction = await _context.EscrowTransations
                                     .Include(t => t.EscrowTransStatus)
                                     .Include(t => t.ChatMessage)
@@ -367,21 +371,30 @@ public class EscrowTransactionService : IEscrowTransactionService
             }
             if (updatePrice)
             {
-                // Phí sàn tối thiểu là 20000 và tối đa là 500000
+                var usage = await _context.UserSubUsages.FirstOrDefaultAsync(u => u.UserId == senderId);
+
+                var rawFee = Math.Round(postPrice * 0.05M); // 5% phí nền tảng
                 var platformFee = Math.Min(
-                                    Math.Max(
-                                        Math.Round(postPrice * 0.03M),
-                                    20000),
-                                500000);
+                            Math.Max(rawFee, 10000),          // min 10k
+                            Math.Min(postPrice * 0.5M, 50000) // cap 50% đơn & max 50k
+                          );
+
+                // Kiểm tra nếu có lượt giao dịch trung gian miễn phí
+                if (usage != null && usage.RemainingSubFPF > 0)
+                {
+                    platformFee = 0;
+                    usage.RemainingSubFPF -= 1;
+                }
                 transaction.PostPrice = postPrice;
                 transaction.PlatformFee = platformFee;
-                transaction.TotalAmount = postPrice + platformFee;
+                transaction.TotalAmount = postPrice;
             }
             await _context.SaveChangesAsync();
             await _context.Entry(transaction)
                 .Reference(t => t.EscrowTransStatus)
                 .LoadAsync();
 
+            await BroadcastTransaction(transaction);
             return transaction;
 
         }
@@ -477,7 +490,10 @@ public class EscrowTransactionService : IEscrowTransactionService
     {
         try
         {
-            var transaction = await _context.EscrowTransations.FindAsync(transactionId);
+            var transaction = await _context.EscrowTransations
+                .Include(t => t.ChatMessage)
+                .Include(t => t.EscrowTransStatus)
+                .FirstOrDefaultAsync(t => t.EscrowTransId == transactionId);
             if (transaction is null)
             {
                 Console.WriteLine("Không tìm thấy giao dịch");
@@ -485,6 +501,10 @@ public class EscrowTransactionService : IEscrowTransactionService
             }
             transaction.EscrowTransStatusId = statusId;
             await _context.SaveChangesAsync();
+            await _context.Entry(transaction)
+                .Reference(t => t.EscrowTransStatus)
+                .LoadAsync();
+            await BroadcastTransaction(transaction);
 
         }
         catch (Exception err)
@@ -562,7 +582,8 @@ public class EscrowTransactionService : IEscrowTransactionService
                     // For now, assume verification is successful
 
                     // Save bank details to transaction
-                    if(!req.IsBuyer){
+                    if (!req.IsBuyer)
+                    {
                         var transaction = await _context.EscrowTransations.FindAsync(transactionId);
                         if (transaction == null)
                         {
@@ -620,6 +641,36 @@ public class EscrowTransactionService : IEscrowTransactionService
                 Message = $"Lỗi khi xác minh tài khoản: {ex.Message}"
             };
         }
+    }
+    private async Task BroadcastTransaction(EscrowTransation transaction)
+    {
+        if (transaction?.ChatMessage == null) return;
+
+        var chatRoomId = transaction.ChatMessage.ChatRoomId;
+
+        await _hubContext.Clients.Group(chatRoomId.ToString()).SendAsync(
+            "UpdateTransaction",
+            new
+            {
+                MessageType = "Transaction",
+                Transaction = new TransactionDto
+                {
+                    TransactionId = transaction.EscrowTransId,
+                    ChatRoomId = chatRoomId,
+                    BuyerId = transaction.BuyerUserId,
+                    SellerId = transaction.SellerUserId,
+                    Amount = transaction.TotalAmount,
+                    PostPrice = transaction.PostPrice,
+                    PlatformFee = transaction.PlatformFee,
+                    Status = transaction.EscrowTransStatus?.StatusName,
+                    StatusDescription = transaction.EscrowTransStatus?.Description,
+                    BuyerConfirmed = transaction.BuyerConfirmed,
+                    SellerConfirmed = transaction.SellerConfirmed,
+                    ExpiredAt = transaction.ExpiredAt,
+                    TransactionOrderCode = transaction.TransactionOrderCode,
+                }
+            }
+        );
     }
 
 }

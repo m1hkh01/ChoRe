@@ -19,13 +19,16 @@ export default function PendingPaymentCard({
         >
             {/* Success message */}
             <div div className="bg-green-100 p-3 rounded flex justify-center items-center gap-2 mb-4" >
-                <FontAwesomeIcon
-                    icon={faCheckCircle}
-                    className="text-green-600 text-xl"
-                />
-                <span className="font-semibold text-sm">
-                    Giao dịch đã được xác nhận
-                </span>
+                
+                <p className="font-semibold text-sm flex flex-col">
+                    <span className="text-center"><FontAwesomeIcon
+                        icon={faCheckCircle}
+                        className="text-green-600 text-base"
+                    />Giao dịch đã được xác nhận</span>
+                    <span className="text-xs text-gray-500 mt-1">
+                        Lưu ý: Phí giao dịch sẽ được trừ vào tiền sản phẩm sau khi giao dịch được hoàn tất
+                    </span>
+                </p>
             </div>
 
             {/* Price breakdown */}
@@ -46,7 +49,7 @@ export default function PendingPaymentCard({
 
                 <div className="border-t pt-2 flex justify-between font-bold text-green-700">
                     <span>Tổng thanh toán</span>
-                    <span>{transaction.amount?.toLocaleString()} ₫</span>
+                    <span>{transaction.postPrice?.toLocaleString()} ₫</span>
                 </div>
             </div>
 

@@ -152,7 +152,10 @@ public class ChatHub : Hub
     {
         try
         {
-            var transaction = await _transactionService.ConfirmTransaction(transactionId, isBuyer, postPrice, updatePrice);
+            var senderIdString = Context.UserIdentifier ?? _httpContext.HttpContext?.User.FindFirst("UserId")?.Value;
+            if (!int.TryParse(senderIdString, out var senderId)) senderId = 0;
+
+            var transaction = await _transactionService.ConfirmTransaction(transactionId, isBuyer, postPrice, updatePrice, senderId);
             await _context.SaveChangesAsync();
 
             if (transaction is null)
@@ -262,12 +265,13 @@ public class ChatHub : Hub
             {
                 var usage = await _context.UserSubUsages.FirstOrDefaultAsync(u => u.UserId == senderId);
 
-                // Phí sàn tối thiểu là 20000 và tối đa là 500000
+
+                var rawFee = Math.Round(transactionDto.Amount * 0.05M); // 5% phí nền tảng
                 var platformFee = Math.Min(
-                                    Math.Max(
-                                        Math.Round(transactionDto.Amount * 0.03M),
-                                    20000),
-                                500000);
+                            Math.Max(rawFee, 10000),          // min 10k
+                            Math.Min(transactionDto.Amount * 0.5M, 50000) // cap 50% đơn & max 50k
+                          );
+
                 // Kiểm tra nếu có lượt giao dịch trung gian miễn phí
                 if (usage != null && usage.RemainingSubFPF > 0)
                 {
