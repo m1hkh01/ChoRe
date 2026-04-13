@@ -26,6 +26,9 @@ public class SubscriptionPlanService : ISubscriptionPlanService
                 MaxPostPerSub = x.MaxPostPerSub,
                 MaxFreePlatformFeePerSub = x.MaxFreePlatformFeePerSub,
                 MaxFreePost = x.MaxFreePost,
+                FeaturedPriority = x.FeaturedPriority,
+                MaxFeaturedPosts = x.MaxFeaturedPosts,
+                FeaturedDurationDays = x.FeaturedDurationDays,
                 IsActive = x.IsActive
             }).ToListAsync();
     }
@@ -42,6 +45,9 @@ public class SubscriptionPlanService : ISubscriptionPlanService
             MaxPostPerSub = dto.MaxPostPerSub,
             MaxFreePlatformFeePerSub = dto.MaxFreePlatformFeePerSub,
             MaxFreePost = dto.MaxFreePost,
+            FeaturedPriority = dto.FeaturedPriority,
+            MaxFeaturedPosts = dto.MaxFeaturedPosts,
+            FeaturedDurationDays = dto.FeaturedDurationDays,
             IsActive = true
         };
 
@@ -53,7 +59,7 @@ public class SubscriptionPlanService : ISubscriptionPlanService
     {
         var plan = await _context.SubscriptionPlans.FindAsync(id);
         if (plan == null) throw new Exception("Không tìm thấy gói");
-
+        Console.WriteLine("FeateredPriority in DTO: " + dto.FeaturedPriority);
         plan.SubPlanName = dto.SubPlanName;
         plan.SubPlanTitle = dto.SubPlanTitle;
         plan.SubPlanPromo = dto.SubPlanPromo;
@@ -62,6 +68,9 @@ public class SubscriptionPlanService : ISubscriptionPlanService
         plan.MaxPostPerSub = dto.MaxPostPerSub;
         plan.MaxFreePlatformFeePerSub = dto.MaxFreePlatformFeePerSub;
         plan.MaxFreePost = dto.MaxFreePost;
+        plan.FeaturedPriority = dto.FeaturedPriority;
+        plan.MaxFeaturedPosts = dto.MaxFeaturedPosts;
+        plan.FeaturedDurationDays = dto.FeaturedDurationDays;
 
         await _context.SaveChangesAsync();
     }

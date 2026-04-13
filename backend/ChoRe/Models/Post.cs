@@ -70,6 +70,13 @@ namespace ChoRe.Models
         [ForeignKey("Brand")]
         public int? BrandId { get; set; }
 
+        // Feature Post (tin nổi bật)
+        public bool IsFeatured { get; set; } = false;
+
+        public FeaturedTier FeaturedPriority { get; set; } = FeaturedTier.Normal;
+
+        public DateTime? FeaturedUntil { get; set; }
+
         // Soft delete(Xóa mềm)
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }

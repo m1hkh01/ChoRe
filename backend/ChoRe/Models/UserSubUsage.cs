@@ -20,6 +20,10 @@ namespace ChoRe.Models
         public int RemainingSubPost { get; set; }
         [Range(0, int.MaxValue, ErrorMessage = "Số bài miễn phí còn lại phải lớn hơn hoặc bằng 0")]
         public int RemainingFreePost { get; set; }
+        [Range(0, int.MaxValue, ErrorMessage = "Số bài nổi bật còn lại phải lớn hơn hoặc bằng 0")]
+        public int RemainingFeaturedPosts { get; set; }
+        public FeaturedTier FeaturedPriority { get; set; } = FeaturedTier.Normal;
+        public int? FeaturedDurationDays { get; set; }
 
         // Navigation properties
         public virtual User User { get; set; }

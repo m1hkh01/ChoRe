@@ -7,5 +7,6 @@ public class SubPlanDto
     public int DurationDays { get; set; }
     public int MaxPost { get; set; }
     public int MaxFreePost { get; set; }
-    public int MaxFreePlatform{ get; set; }
+    public int MaxFeaturedPosts { get; set; }
+    public int MaxFreePlatform { get; set; }
 }

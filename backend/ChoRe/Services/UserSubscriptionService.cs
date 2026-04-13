@@ -32,7 +32,8 @@ public class UserSubscriptionService : IUserSubscriptionService
 
                 StartDate = x.us.StartDate,
                 EndDate = x.us.EndDate,
-                IsActive = x.us.IsActive && x.us.EndDate >= DateTime.Now,
+                IsActive = x.us.IsActive &&
+                (!x.us.EndDate.HasValue || x.us.EndDate.Value >= DateTime.UtcNow),
 
                 RemainingSubPost = x.usu.RemainingSubPost,
                 RemainingFreePost = x.usu.RemainingFreePost,

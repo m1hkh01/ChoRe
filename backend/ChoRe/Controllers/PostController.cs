@@ -151,7 +151,7 @@ namespace ChoRe.Controllers
         int? time
         )
         {
-            var query = _context.Posts
+            var baseQuery = _context.Posts
                 .AsNoTracking()
                 .Include(p => p.User)
                 .Include(p => p.PostImages)
@@ -165,34 +165,31 @@ namespace ChoRe.Controllers
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 keyword = keyword.Trim();
-                query = query.Where(p => EF.Functions.Like(p.Title, $"%{keyword}%"));
+                baseQuery = baseQuery.Where(p => EF.Functions.Like(p.Title, $"%{keyword}%"));
             }
 
             // 🏷️ brandId
-            // Bằng đoạn mới:
             if (brandId.HasValue && brandId > 0)
             {
                 var allBrandIds = await GetAllSubBrandIdsAsync(brandId.Value);
-                query = query.Where(p => p.BrandId.HasValue && allBrandIds.Contains(p.BrandId.Value));
+                baseQuery = baseQuery.Where(p => p.BrandId.HasValue && allBrandIds.Contains(p.BrandId.Value));
             }
 
             // 📂 categoryId
-            // Trong GetPostsForHome, thay đoạn filter categoryId:
             if (categoryId.HasValue && categoryId > 0)
             {
                 var allCateIds = await GetAllSubCateIdsAsync(categoryId.Value);
                 Console.WriteLine($"[DEBUG] categoryId={categoryId.Value}, allCateIds=[{string.Join(",", allCateIds)}]");
 
-                query = query.Where(p =>
+                baseQuery = baseQuery.Where(p =>
                     _context.PostCates.Any(pc => pc.PostId == p.PostId && allCateIds.Contains(pc.CateId))
                 );
             }
 
-            // 💰 price - ✅ CẬP NHẬT
-            // 💰 price - FIX ĐÚNG
+            // 💰 price
             if (minPrice.HasValue || maxPrice.HasValue)
             {
-                query = query.Where(p =>
+                baseQuery = baseQuery.Where(p =>
                     p.PriceType == "NEGOTIABLE"
                     ||
                     (p.PriceType == "FIXED" &&
@@ -209,28 +206,27 @@ namespace ChoRe.Controllers
             if (time.HasValue && time > 0)
             {
                 var fromDate = DateTime.Now.AddDays(-time.Value);
-                query = query.Where(p => p.CreatedAt >= fromDate);
+                baseQuery = baseQuery.Where(p => p.CreatedAt >= fromDate);
             }
 
-            var posts = await query
-                .OrderByDescending(p => p.CreatedAt)
+            // Logic lấy tin nổi bật
+            var featuredPosts = await baseQuery
+                .Where(p => p.IsFeatured && p.FeaturedUntil > DateTime.UtcNow)
+                .OrderByDescending(p => p.FeaturedPriority)
+                .ThenByDescending(p => p.CreatedAt)
+                .Take(20)
                 .Select(p => new PostHomeDto
                 {
                     PostId = p.PostId,
                     Title = p.Title,
-
                     ViewCount = p.ViewCount,
-
                     ShortDescription = p.Description.Length > 120
                         ? p.Description.Substring(0, 120) + "..."
                         : p.Description,
-
-                    // ✅ THÊM CÁC TRƯỜNG GIÁ
                     PriceType = p.PriceType,
                     Price = p.Price,
                     MinPrice = p.MinPrice,
                     MaxPrice = p.MaxPrice,
-
                     Address = p.Address,
                     CreatedAt = p.CreatedAt,
                     UserName = p.User.UserName,
@@ -241,7 +237,37 @@ namespace ChoRe.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(posts);
+            // Logic lấy tin thường
+            var latestPosts = await baseQuery
+                .Where(p => !p.IsFeatured || p.FeaturedUntil <= DateTime.UtcNow)
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new PostHomeDto
+                {
+                    PostId = p.PostId,
+                    Title = p.Title,
+                    ViewCount = p.ViewCount,
+                    ShortDescription = p.Description.Length > 120
+                        ? p.Description.Substring(0, 120) + "..."
+                        : p.Description,
+                    PriceType = p.PriceType,
+                    Price = p.Price,
+                    MinPrice = p.MinPrice,
+                    MaxPrice = p.MaxPrice,
+                    Address = p.Address,
+                    CreatedAt = p.CreatedAt,
+                    UserName = p.User.UserName,
+                    Thumbnail = p.PostImages
+                        .Select(i => i.PostImage1)
+                        .FirstOrDefault(),
+                    IsSaved = p.SavedPosts.Any(sp => sp.UserId == userId && sp.PostId == p.PostId)
+                })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                FeaturedPosts = featuredPosts,
+                LatestPosts = latestPosts
+            });
         }
 
         [HttpPost]
@@ -355,13 +381,25 @@ namespace ChoRe.Controllers
             };
 
             // Check lượt đăng tin miễn phí
-            if(usage.RemainingFreePost == 0)
+            if (usage.RemainingFreePost == 0)
             {
                 var datePart = DateTime.Now.ToString("yyyyMMddHHmmss");
                 var randomPart = Guid.NewGuid().ToString("N")[..4].ToUpper();
                 var orderCode = $"POST{post.UserId}E{datePart}{randomPart}";
 
                 post.PostOrderCode = orderCode;
+            }
+            // Nếu là tin nổi bật
+            if (usage != null
+                && usage.RemainingFeaturedPosts > 0)
+            {
+                post.IsFeatured = true;
+                post.FeaturedPriority = usage.FeaturedPriority;
+                post.FeaturedUntil = DateTime.UtcNow.AddDays(
+                    usage.FeaturedDurationDays.HasValue ? usage.FeaturedDurationDays.Value : 0
+                );
+
+                usage.RemainingFeaturedPosts--;
             }
 
             _context.Posts.Add(post);
@@ -405,7 +443,7 @@ namespace ChoRe.Controllers
 
             /* ===================== 1️⃣1️⃣ TRỪ LƯỢT ĐĂNG TIN && LƯỢT MIỄN PHÍ ĐĂNG TIN ===================== */
             usage.RemainingSubPost -= 1;
-            if(usage.RemainingFreePost > 0)
+            if (usage.RemainingFreePost > 0)
             {
                 usage.RemainingFreePost -= 1;
             }
@@ -465,7 +503,7 @@ namespace ChoRe.Controllers
                 .AsNoTracking()
                 .Include(p => p.User)
                 .Include(p => p.PostImages)
-                .Include(p=>p.SavedPosts)
+                .Include(p => p.SavedPosts)
                 .Where(p => p.PostStatusId == 2 && p.IsDeleted == false); // ✅ chỉ approved và chưa bị xóa
 
             // 🔍 Optional filter theo statusIds (nếu cần)
@@ -658,11 +696,11 @@ namespace ChoRe.Controllers
                 {
                     return NotFound("Không tìm thấy bài đăng");
                 }
-                if(post.PostOrderCode is null)
+                if (post.PostOrderCode is null)
                 {
                     return BadRequest("Bài đăng này không cần thanh toán");
                 }
-                return Ok(new { postId = post.PostId, orderCode = post.PostOrderCode , postTitle = post.Title});
+                return Ok(new { postId = post.PostId, orderCode = post.PostOrderCode, postTitle = post.Title });
             }
             catch (Exception e)
             {
@@ -672,7 +710,8 @@ namespace ChoRe.Controllers
         }
 
         [HttpPost("pay/{id:int}")]
-        public async Task<IActionResult> PayPost(int id)    {
+        public async Task<IActionResult> PayPost(int id)
+        {
             try
             {
                 var post = await _context.Posts.FindAsync(id);
@@ -686,11 +725,14 @@ namespace ChoRe.Controllers
                 }
                 else
                 {
-                    return Ok(new { Error = post.PaymentMessage 
-                        ?? "Thanh toán chưa thành công vui lòng kiểm tra lại số tiền và nội dung chuyển khoản" });
+                    return Ok(new
+                    {
+                        Error = post.PaymentMessage
+                        ?? "Thanh toán chưa thành công vui lòng kiểm tra lại số tiền và nội dung chuyển khoản"
+                    });
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine("Có lỗi xảy ra khi thanh toán: " + e.Message);
                 return BadRequest("Có lỗi xảy ra khi thanh toán: " + e.Message);

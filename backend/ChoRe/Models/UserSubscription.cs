@@ -18,9 +18,7 @@ namespace ChoRe.Models
 
         [Required(ErrorMessage = "Ngày bắt đầu là bắt buộc")]
         public DateTime StartDate { get; set; }
-
-        [Required(ErrorMessage = "Ngày kết thúc là bắt buộc")]
-        public DateTime EndDate { get; set; }
+        public DateTime? EndDate { get; set; }
 
         public bool IsActive { get; set; } = true;
 

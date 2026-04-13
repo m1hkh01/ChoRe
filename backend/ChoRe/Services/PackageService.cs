@@ -36,6 +36,7 @@ public class PackageService : IPackageService
                                 RemainingSubPost = uSub.User.UserSubUsage.RemainingSubPost,
                                 RemainingFreePost = uSub.User.UserSubUsage.RemainingFreePost,
                                 RemainingSubFPF = uSub.User.UserSubUsage.RemainingSubFPF,
+                                RemainingFeaturedPosts = uSub.User.UserSubUsage.RemainingFeaturedPosts,
                                 subscriptionPlanDto = new SubPlanDto
                                 {
                                     SubPlanId = uSub.SubscriptionPlan.SubPlanId,
@@ -43,8 +44,9 @@ public class PackageService : IPackageService
                                     Price = uSub.SubscriptionPlan.SubPlanPrice,
                                     DurationDays = uSub.SubscriptionPlan.DurationDays,
                                     MaxFreePost = uSub.SubscriptionPlan.MaxFreePost,
-                                    MaxFreePlatform= uSub.SubscriptionPlan.MaxFreePlatformFeePerSub,
+                                    MaxFreePlatform = uSub.SubscriptionPlan.MaxFreePlatformFeePerSub,
                                     MaxPost = uSub.SubscriptionPlan.MaxPostPerSub,
+                                    MaxFeaturedPosts = uSub.SubscriptionPlan.MaxFeaturedPosts,
                                     Title = uSub.SubscriptionPlan.SubPlanTitle,
                                 }
                             }).FirstOrDefaultAsync();
@@ -53,13 +55,14 @@ public class PackageService : IPackageService
     public async Task<ServiceTransactionDto> CreateSubPlanOrder(int userId, SubscriptionPlan subscription)
     {
         var existingOrder = await _context.SubscriptionOrders
-                                .Include(s=>s.SubscriptionPlan)
+                                .Include(s => s.SubscriptionPlan)
                                 .FirstOrDefaultAsync(s =>
                                 s.UserId == userId &&
                                 s.SubPlanId == subscription.SubPlanId &&
                                 s.OrdStatusId == EscrowStatus.PendingPayment);
         var now = DateTime.UtcNow;
-        if(existingOrder != null){
+        if (existingOrder != null)
+        {
             existingOrder.CreatedAt = now;
             existingOrder.ExpiredAt = now.AddMinutes(15);
 
@@ -103,9 +106,9 @@ public class PackageService : IPackageService
         return query;
     }
 
-    public async Task PaySubPlanOrder(UserSubUsage userSubUsage, UserSubscription userSubscription,string orderCode)
+    public async Task PaySubPlanOrder(UserSubUsage userSubUsage, UserSubscription userSubscription, string orderCode)
     {
-        var subOrder = await _context.SubscriptionOrders.Include(subOrd=>subOrd.SubscriptionPlan).FirstOrDefaultAsync(subOrd => subOrd.OrderCode == orderCode);
+        var subOrder = await _context.SubscriptionOrders.Include(subOrd => subOrd.SubscriptionPlan).FirstOrDefaultAsync(subOrd => subOrd.OrderCode == orderCode);
         if (subOrder is null)
         {
             throw new KeyNotFoundException("Không tìm thấy đơn hàng");
@@ -124,6 +127,7 @@ public class PackageService : IPackageService
         userSubUsage.RemainingSubFPF = subOrder.SubscriptionPlan.MaxFreePlatformFeePerSub;
         userSubUsage.RemainingFreePost = (int)subOrder.SubscriptionPlan.MaxFreePost;
         userSubUsage.RemainingSubPost = subOrder.SubscriptionPlan.MaxPostPerSub;
+        userSubUsage.RemainingFeaturedPosts = subOrder.SubscriptionPlan.MaxFeaturedPosts;
 
         await _context.SaveChangesAsync();
     }
@@ -134,7 +138,8 @@ public class PackageService : IPackageService
                         .Include(s => s.SubscriptionPlan)
                         .Include(s => s.OrderStatus)
                         .FirstOrDefaultAsync(s => s.OrderId == id);
-        if(order is null){
+        if (order is null)
+        {
             return new ServiceTransactionDto();
         }
         var query = new ServiceTransactionDto

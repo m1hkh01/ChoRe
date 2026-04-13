@@ -839,7 +839,16 @@ namespace ChoRe.Migrations
                         .HasMaxLength(5000)
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("FeaturedPriority")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("FeaturedUntil")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsFeatured")
                         .HasColumnType("bit");
 
                     b.Property<decimal?>("MaxPrice")
@@ -940,7 +949,9 @@ namespace ChoRe.Migrations
                             BrandId = 1,
                             CreatedAt = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Máy zin, pin 85%",
+                            FeaturedPriority = 0,
                             IsDeleted = false,
+                            IsFeatured = false,
                             PostStatusId = 2,
                             Price = 2000000m,
                             PriceType = "FIXED",
@@ -960,7 +971,9 @@ namespace ChoRe.Migrations
                             BrandId = 1,
                             CreatedAt = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "16GB/512GB PCIE/VGA 4GB RTX3050",
+                            FeaturedPriority = 0,
                             IsDeleted = false,
+                            IsFeatured = false,
                             MaxPrice = 17990000m,
                             MinPrice = 17000000m,
                             PostStatusId = 2,
@@ -981,7 +994,9 @@ namespace ChoRe.Migrations
                             BrandId = 1,
                             CreatedAt = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Chính hãng Apple Việt Nam",
+                            FeaturedPriority = 0,
                             IsDeleted = false,
+                            IsFeatured = false,
                             PostStatusId = 2,
                             PriceType = "NEGOTIABLE",
                             RejectReason = "",
@@ -1000,7 +1015,9 @@ namespace ChoRe.Migrations
                             BrandId = 1,
                             CreatedAt = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "12GB 256GB",
+                            FeaturedPriority = 0,
                             IsDeleted = false,
+                            IsFeatured = false,
                             PostStatusId = 2,
                             Price = 21990000m,
                             PriceType = "FIXED",
@@ -1020,7 +1037,9 @@ namespace ChoRe.Migrations
                             BrandId = 1,
                             CreatedAt = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Chính hãng Apple Việt Nam",
+                            FeaturedPriority = 0,
                             IsDeleted = false,
+                            IsFeatured = false,
                             PostStatusId = 2,
                             Price = 21990000m,
                             PriceType = "FIXED",
@@ -1691,8 +1710,17 @@ namespace ChoRe.Migrations
                     b.Property<int>("DurationDays")
                         .HasColumnType("int");
 
+                    b.Property<int>("FeaturedDurationDays")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FeaturedPriority")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<int>("MaxFeaturedPosts")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("MaxFreePlatformFeePerSub")
                         .HasColumnType("decimal(18,2)");
@@ -1730,7 +1758,10 @@ namespace ChoRe.Migrations
                         {
                             SubPlanId = 1,
                             DurationDays = 30,
+                            FeaturedDurationDays = 0,
+                            FeaturedPriority = 0,
                             IsActive = true,
+                            MaxFeaturedPosts = 0,
                             MaxFreePlatformFeePerSub = 0m,
                             MaxFreePost = 2m,
                             MaxPostPerSub = 5,
@@ -1743,7 +1774,10 @@ namespace ChoRe.Migrations
                         {
                             SubPlanId = 2,
                             DurationDays = 30,
+                            FeaturedDurationDays = 0,
+                            FeaturedPriority = 0,
                             IsActive = true,
+                            MaxFeaturedPosts = 0,
                             MaxFreePlatformFeePerSub = 4m,
                             MaxFreePost = 5m,
                             MaxPostPerSub = 10,
@@ -1756,7 +1790,10 @@ namespace ChoRe.Migrations
                         {
                             SubPlanId = 3,
                             DurationDays = 30,
+                            FeaturedDurationDays = 0,
+                            FeaturedPriority = 0,
                             IsActive = true,
+                            MaxFeaturedPosts = 0,
                             MaxFreePlatformFeePerSub = 12m,
                             MaxFreePost = 10m,
                             MaxPostPerSub = 30,
@@ -1769,7 +1806,10 @@ namespace ChoRe.Migrations
                         {
                             SubPlanId = 4,
                             DurationDays = 40,
+                            FeaturedDurationDays = 0,
+                            FeaturedPriority = 0,
                             IsActive = true,
+                            MaxFeaturedPosts = 0,
                             MaxFreePlatformFeePerSub = 30m,
                             MaxFreePost = 18m,
                             MaxPostPerSub = 100,
@@ -1906,6 +1946,15 @@ namespace ChoRe.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UsuId"));
 
+                    b.Property<int?>("FeaturedDurationDays")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FeaturedPriority")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RemainingFeaturedPosts")
+                        .HasColumnType("int");
+
                     b.Property<int>("RemainingFreePost")
                         .HasColumnType("int");
 
@@ -1929,6 +1978,8 @@ namespace ChoRe.Migrations
                         new
                         {
                             UsuId = 2,
+                            FeaturedPriority = 0,
+                            RemainingFeaturedPosts = 0,
                             RemainingFreePost = 18,
                             RemainingSubFPF = 30m,
                             RemainingSubPost = 100,
@@ -1937,6 +1988,8 @@ namespace ChoRe.Migrations
                         new
                         {
                             UsuId = 1,
+                            FeaturedPriority = 0,
+                            RemainingFeaturedPosts = 0,
                             RemainingFreePost = 18,
                             RemainingSubFPF = 30m,
                             RemainingSubPost = 100,

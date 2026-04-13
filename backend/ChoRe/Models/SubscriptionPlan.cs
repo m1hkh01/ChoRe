@@ -38,7 +38,23 @@ namespace ChoRe.Models
         [Column(TypeName = "decimal(18,2)")]
         public int MaxFreePost { get; set; }
 
+        // ===== FEATURED / VIP CONFIG =====
+
+        public FeaturedTier FeaturedPriority { get; set; } = FeaturedTier.Normal;
+
+        public int MaxFeaturedPosts { get; set; } = 0;
+
+        public int FeaturedDurationDays { get; set; } = 0;
+
         // Navigation properties
         public virtual ICollection<UserSubscription>? UserSubscriptions { get; set; }
+    }
+    public enum FeaturedTier
+    {
+        Normal = 0,
+        Vip = 1,
+        Premium = 2,
+        Business = 3,
+        Luxury = 4
     }
 }

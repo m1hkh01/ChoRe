@@ -7,6 +7,7 @@ public class UserSubDto
     // usage
     public int RemainingSubPost { get; set; }
     public int RemainingFreePost { get; set; }
+    public int RemainingFeaturedPosts { get; set; }
     public decimal RemainingSubFPF { get; set; }
     public SubPlanDto? subscriptionPlanDto { get; set; }
 }

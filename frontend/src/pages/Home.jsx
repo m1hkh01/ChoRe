@@ -19,13 +19,13 @@ import wardData from "@/data/sauSapNhap/ward.json";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const INITIAL_FILTERS = {
-  keyword:    "",
-  brandId:    null,
+  keyword: "",
+  brandId: null,
   categoryId: null,
   priceRange: [0, 0],
-  time:       null,
-  address:    null,
-  priceType:  null,
+  time: null,
+  address: null,
+  priceType: null,
 };
 
 const provinces = Object.entries(provinceData)
@@ -131,8 +131,8 @@ function DesktopCategoryPanel({ onClose }) {
 function MobileBottomSheet({ open, onClose }) {
   const navigate = useNavigate();
   const { data: categoryData } = useFetch("/api/categories/hierarchy");
-  const [categories,    setCategories]    = useState([]);
-  const [activeScreen,  setActiveScreen]  = useState(null); // null = list, object = detail
+  const [categories, setCategories] = useState([]);
+  const [activeScreen, setActiveScreen] = useState(null); // null = list, object = detail
 
   useEffect(() => {
     if (categoryData) setCategories(categoryData);
@@ -249,28 +249,29 @@ function MobileBottomSheet({ open, onClose }) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function Home() {
-  const { user }    = useAuthStore();
-  const navigate    = useNavigate();
+  const { user } = useAuthStore();
+  const navigate = useNavigate();
   const locationRef = useRef(null);
-  const cateRef     = useRef(null);
+  const cateRef = useRef(null);
 
-  const [posts,    setPosts]    = useState([]);
+  const [posts, setPosts] = useState([]);
   const [allPosts, setAllPosts] = useState([]);
+  const [featuredPosts, setFeaturedPosts] = useState([]);
   const [searchInput, setSearchInput] = useState("");
 
-  const [locationOpen,         setLocationOpen]         = useState(false);
+  const [locationOpen, setLocationOpen] = useState(false);
   const [selectedProvinceCode, setSelectedProvinceCode] = useState("");
-  const [selectedWardCode,     setSelectedWardCode]     = useState("");
-  const [selectedLocation,     setSelectedLocation]     = useState("");
+  const [selectedWardCode, setSelectedWardCode] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
 
   // Desktop: click để toggle popup
   // Mobile: bottom sheet
-  const [cateOpen,       setCateOpen]       = useState(false);
-  const [sheetOpen,      setSheetOpen]      = useState(false);
-  const [isMobile,       setIsMobile]       = useState(false);
+  const [cateOpen, setCateOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const [maxPriceInDB, setMaxPriceInDB] = useState(0);
-  const [filters,      setFilters]      = useState(INITIAL_FILTERS);
+  const [filters, setFilters] = useState(INITIAL_FILTERS);
 
   // Detect mobile
   useEffect(() => {
@@ -285,8 +286,8 @@ export default function Home() {
   const wardsForProvince = useMemo(() =>
     selectedProvinceCode
       ? Object.entries(wardData)
-          .filter(([, w]) => w.parent_code === selectedProvinceCode)
-          .map(([code, w]) => ({ code, ...w }))
+        .filter(([, w]) => w.parent_code === selectedProvinceCode)
+        .map(([code, w]) => ({ code, ...w }))
       : [],
     [selectedProvinceCode]
   );
@@ -331,15 +332,18 @@ export default function Home() {
 
   // Load posts
   useEffect(() => {
-    api.get("/api/posts/all", { params: { statusIds: [2], userId: user?.userId } })
-      .then(res => {
-        const data = res.data;
-        const max  = getMaxPrice(data);
-        setAllPosts(data);
-        setPosts(data);
-        setMaxPriceInDB(max);
-        setFilters(prev => ({ ...prev, priceRange: [0, max] }));
-      });
+    api.get("/api/posts/home", {
+      params: { userId: user?.userId },
+    }).then(res => {
+      const data = res.data;
+      const all = [...(data.featuredPosts || []), ...(data.latestPosts || [])];
+      const max = getMaxPrice(all);
+      setAllPosts(all);
+      setFeaturedPosts(data.featuredPosts || []);
+      setPosts(data.latestPosts || []);
+      setMaxPriceInDB(max);
+      setFilters(prev => ({ ...prev, priceRange: [0, max] }));
+    });
   }, []);
 
   // Debounced filter
@@ -348,15 +352,19 @@ export default function Home() {
     const timer = setTimeout(() => {
       api.get("/api/posts/home", {
         params: {
-          keyword:    filters.keyword || null,
-          brandId:    filters.brandId,
+          keyword: filters.keyword || null,
+          brandId: filters.brandId,
           categoryId: filters.categoryId,
-          minPrice:   filters.priceRange[0],
-          maxPrice:   filters.priceRange[1],
-          time:       filters.time,
-          userId:     user?.userId,
+          minPrice: filters.priceRange[0],
+          maxPrice: filters.priceRange[1],
+          time: filters.time,
+          userId: user?.userId,
         },
-      }).then(res => setPosts(res.data));
+      }).then(res => {
+        const data = res.data;
+        setFeaturedPosts(data.featuredPosts || []);
+        setPosts(data.latestPosts || []);
+      });
     }, 400);
     return () => clearTimeout(timer);
   }, [filters, maxPriceInDB]);
@@ -503,6 +511,17 @@ export default function Home() {
 
       {/* ── Posts ── */}
       <main className="home-main">
+        {/* Featured Posts */}
+        {featuredPosts.length > 0 && (
+          <div className="cards-panel">
+            <div className="section-header">
+              <h2 className="section-title">Tin nổi bật</h2>
+            </div>
+            <PostGrid posts={featuredPosts} />
+          </div>
+        )}
+
+        {/* Latest Posts */}
         <div className="cards-panel">
           <div className="section-header">
             <h2 className="section-title">Tin đăng mới nhất</h2>

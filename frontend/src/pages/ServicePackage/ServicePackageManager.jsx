@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { CircleAlert, Zap, FileText, RefreshCw } from "lucide-react";
+import { CircleAlert, Zap, FileText, RefreshCw, Star } from "lucide-react";
 import { useAuthStore } from "../../store/auth";
 import useFetch from "../../Hooks/useFetch";
 
@@ -252,14 +252,14 @@ function pct(used, max) {
 
 function barCls(p) {
   if (p === 0) return "empty";
-  if (p <= 25)  return "low";
+  if (p <= 25) return "low";
   return "";
 }
 
 // ─── Benefit row with progress ────────────────────────────────────────────────
 
 function Benefit({ icon: Icon, label, used, max }) {
-  const p   = pct(used, max);
+  const p = pct(used, max);
   const cls = barCls(p);
   const val = max == null ? "—" : max === 0 ? "0 lần" : `${used} / ${max} lần`;
 
@@ -286,9 +286,9 @@ function Benefit({ icon: Icon, label, used, max }) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ServicePackageManager() {
-  const navigate     = useNavigate();
-  const { user }     = useAuthStore();
-  const { data }     = useFetch(`/api/package/${user.userId}`);
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const { data } = useFetch(`/api/package/${user.userId}`);
 
   const plan = data?.subscriptionPlanDto;
 
@@ -341,6 +341,12 @@ export default function ServicePackageManager() {
                     label="Đăng tin trong tháng"
                     used={data?.remainingSubPost ?? 0}
                     max={plan?.maxPost ?? 0}
+                  />
+                  <Benefit
+                    icon={Star}
+                    label="Đăng tin nổi bật"
+                    used={data?.remainingFeaturedPosts ?? 0}
+                    max={plan?.maxFeaturedPosts ?? 0}
                   />
                   <Benefit
                     icon={Zap}

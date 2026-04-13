@@ -1,4 +1,6 @@
-﻿public class SubscriptionPlanDto
+﻿using ChoRe.Models;
+
+public class SubscriptionPlanDto
 {
     public int SubPlanId { get; set; }
     public string SubPlanName { get; set; }
@@ -9,5 +11,8 @@
     public int MaxPostPerSub { get; set; }
     public decimal MaxFreePlatformFeePerSub { get; set; }
     public decimal MaxFreePost { get; set; }
+    public FeaturedTier FeaturedPriority { get; set; }
+    public int MaxFeaturedPosts { get; set; }
+    public int FeaturedDurationDays { get; set; }
     public bool IsActive { get; set; }
 }

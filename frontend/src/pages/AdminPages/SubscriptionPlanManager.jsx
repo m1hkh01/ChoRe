@@ -240,19 +240,31 @@ const CSS = `
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
+const FEATURE_TIERS = [
+  { value: 0, label: "Bình thường" },
+  { value: 1, label: "Vip" },
+  { value: 2, label: "Premium" },
+  { value: 3, label: "Business" },
+  { value: 4, label: "Luxury" },
+];
+
 const EMPTY_FORM = {
   subPlanName: "", subPlanTitle: "", subPlanPromo: "",
-  subPlanPrice: "", durationDays: "", maxPostPerSub: "",
+  subPlanPrice: "", durationDays: "", maxPostPerSub: "", maxFreePost: "",
+  featuredPriority: 0, maxFeaturedPosts: "", featuredDurationDays: "",
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ───────────────────────────────────────────────────────────────────
 
 const fmtPrice = (n) => Number(n).toLocaleString("vi-VN") + " đ";
+
+const fmtTierReturnLabel = (label) => FEATURE_TIERS.find((tier) => tier.label === label)?.label ?? "Bình thường";
+const fmtTierReturnValue = (label) => FEATURE_TIERS.find((tier) => tier.label === label)?.value ?? FEATURE_TIERS.find((tier) => tier.value === label)?.value;
 
 // ─── PlanModal ────────────────────────────────────────────────────────────────
 
 function PlanModal({ plan, onSave, onClose }) {
-  const [form,       setForm]       = useState(plan ?? EMPTY_FORM);
+  const [form, setForm] = useState(plan ?? EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
 
   const setField = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
@@ -332,6 +344,49 @@ function PlanModal({ plan, onSave, onClose }) {
               />
             </div>
 
+            <div className="spm-field">
+              <label className="spm-label">Hạng</label>
+              <select
+                className="spm-input"
+                value={fmtTierReturnValue(form.featuredPriority)}
+                onChange={(e) => {console.log(e.target.value); setField("featuredPriority", Number(e.target.value)) }}
+              >
+                {FEATURE_TIERS.map((tier) => (
+                  <option key={tier.value} value={tier.value}>{tier.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="spm-field">
+              <label className="spm-label">Số tin nổi bật tối đa</label>
+              <input
+                className="spm-input" type="number" min="0"
+                placeholder="0"
+                value={form.maxFeaturedPosts}
+                onChange={(e) => setField("maxFeaturedPosts", e.target.value)}
+              />
+            </div>
+
+            <div className="spm-field">
+              <label className="spm-label">Số tin miễn phí tối đa</label>
+              <input
+                className="spm-input" type="number" min="0"
+                placeholder="0"
+                value={form.maxFreePost}
+                onChange={(e) => setField("maxFreePost", e.target.value)}
+              />
+            </div>
+
+            <div className="spm-field">
+              <label className="spm-label">Số ngày nổi bật</label>
+              <input
+                className="spm-input" type="number" min="0"
+                placeholder="0"
+                value={form.featuredDurationDays}
+                onChange={(e) => setField("featuredDurationDays", e.target.value)}
+              />
+            </div>
+
             <div className="spm-field" style={{ gridColumn: "1 / -1" }}>
               <label className="spm-label">Số bài đăng tối đa <span className="spm-label-req">*</span></label>
               <input
@@ -364,9 +419,9 @@ function PlanModal({ plan, onSave, onClose }) {
 // ─── SubscriptionPlanManager ──────────────────────────────────────────────────
 
 export default function SubscriptionPlanManager() {
-  const [plans,   setPlans]   = useState([]);
+  const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [modal,   setModal]   = useState(null); // null | "add" | plan object
+  const [modal, setModal] = useState(null); // null | "add" | plan object
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
 
@@ -386,10 +441,16 @@ export default function SubscriptionPlanManager() {
   const handleSave = async (form) => {
     const payload = {
       ...form,
-      subPlanPrice:  Number(form.subPlanPrice),
-      durationDays:  Number(form.durationDays),
+      subPlanPrice: Number(form.subPlanPrice),
+      durationDays: Number(form.durationDays),
       maxPostPerSub: Number(form.maxPostPerSub),
+      maxFreePost: Number(form.maxFreePost),
+      featuredPriority: Number(fmtTierReturnValue(form.featuredPriority)),
+      maxFeaturedPosts: Number(form.maxFeaturedPosts),
+      featuredDurationDays: Number(form.featuredDurationDays),
     };
+    console.log("Saving plan with form data:", form);
+    console.log("Saving plan with payload data:", payload);
 
     if (modal?.subPlanId) {
       await api.post(`/api/admin/subscription-plans/${modal.subPlanId}/update`, payload);
@@ -487,7 +548,10 @@ export default function SubscriptionPlanManager() {
                       <th>Gói dịch vụ</th>
                       <th>Giá</th>
                       <th>Thời hạn</th>
+                      <th>Bài miễn phí</th>
                       <th>Bài tối đa</th>
+                      <th>Hạng</th>
+                      <th>Tin nổi bật</th>
                       <th>Trạng thái</th>
                       <th>Hành động</th>
                     </tr>
@@ -508,8 +572,26 @@ export default function SubscriptionPlanManager() {
                         </td>
                         <td>
                           <span className="spm-stat">
+                            <FontAwesomeIcon icon={faTag} className="spm-stat-icon" />
+                            {p.maxFreePost} bài
+                          </span>
+                        </td>
+                        <td>
+                          <span className="spm-stat">
                             <FontAwesomeIcon icon={faFileLines} className="spm-stat-icon" />
                             {p.maxPostPerSub} bài
+                          </span>
+                        </td>
+                        <td>
+                          <span className="spm-stat">
+                            <FontAwesomeIcon icon={faTag} className="spm-stat-icon" />
+                            {fmtTierReturnLabel(p.featuredPriority)}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="spm-stat">
+                            <FontAwesomeIcon icon={faClock} className="spm-stat-icon" />
+                            {p.maxFeaturedPosts > 0 ? `${p.maxFeaturedPosts} bài / ${p.featuredDurationDays} ngày` : "Không có"}
                           </span>
                         </td>
                         <td>
@@ -550,8 +632,20 @@ export default function SubscriptionPlanManager() {
                         <span>Thời hạn: <strong>{p.durationDays} ngày</strong></span>
                       </div>
                       <div className="spm-mobile-stat-item">
+                        <FontAwesomeIcon icon={faTag} />
+                        <span>Free: <strong>{p.maxFreePost} bài</strong></span>
+                      </div>
+                      <div className="spm-mobile-stat-item">
                         <FontAwesomeIcon icon={faFileLines} />
                         <span>Tối đa: <strong>{p.maxPostPerSub} bài</strong></span>
+                      </div>
+                      <div className="spm-mobile-stat-item">
+                        <FontAwesomeIcon icon={faTag} />
+                        <span>Feature: <strong>{fmtTierReturnLabel(p.featuredPriority)}</strong></span>
+                      </div>
+                      <div className="spm-mobile-stat-item">
+                        <FontAwesomeIcon icon={faClock} />
+                        <span>Nổi bật: <strong>{p.maxFeaturedPosts} bài / {p.featuredDurationDays} ngày</strong></span>
                       </div>
                     </div>
 
