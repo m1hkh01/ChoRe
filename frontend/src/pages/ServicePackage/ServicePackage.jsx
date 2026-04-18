@@ -174,6 +174,16 @@ function ServicePackage() {
                                             value={pkg.maxFreePost}
                                         />
                                         <SummaryItem
+                                            active={pkg.maxFeaturedPosts > 0}
+                                            label="Lượt đăng tin nổi bật"
+                                            value={pkg.maxFeaturedPosts > 0 ? `${pkg.maxFeaturedPosts} bài` : "Không có"}
+                                        />
+                                        <SummaryItem
+                                            active
+                                            label="Hạng"
+                                            value={getTierLabel(pkg.featuredPriority)}
+                                        />
+                                        <SummaryItem
                                             active={hasFreeTransaction}
                                             label="Giao dịch trung gian miễn phí"
                                             value={pkg.maxFreePlatformFeePerSub}
@@ -202,5 +212,15 @@ function SummaryItem({ active, label, value }) {
         </div>
     );
 }
+
+const FEATURE_TIERS = [
+    { value: 0, label: "Bình thường" },
+    { value: 1, label: "Vip" },
+    { value: 2, label: "Premium" },
+    { value: 3, label: "Business" },
+    { value: 4, label: "Luxury" },
+];
+
+const getTierLabel = (value) => FEATURE_TIERS.find((tier) => tier.label === value)?.label ?? "Bình thường";
 
 export default ServicePackage;
