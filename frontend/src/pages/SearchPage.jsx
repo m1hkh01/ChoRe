@@ -1098,25 +1098,27 @@ export default function SearchPage() {
 
   // ── Fetch posts ───────────────────────────────────────────────────────────
   const fetchPosts = useCallback(async () => {
-    setLoading(true);
-    try {
-      const p = new URLSearchParams();
-      if (urlKeyword) p.set("keyword", urlKeyword);
-      if (selectedBrandId) p.set("brandId", selectedBrandId);
-      if (selectedCateId) p.set("categoryId", selectedCateId);
-      if (minPrice && selectedPriceType !== "NEGOTIABLE") p.set("minPrice", minPrice);
-      if (maxPrice && selectedPriceType !== "NEGOTIABLE") p.set("maxPrice", maxPrice);
-      const res = await fetch(`${API}/posts/home?${p}`);
-      setPosts(res.ok ? await res.json() : []);
-    } catch { setPosts([]); }
-    finally { setLoading(false); }
-  }, [urlKeyword, selectedBrandId, selectedCateId, minPrice, maxPrice]);
-
+  setLoading(true);
+  try {
+    const p = new URLSearchParams();
+    if (urlKeyword) p.set("keyword", urlKeyword);
+    if (selectedBrandId) p.set("brandId", selectedBrandId);
+    if (selectedCateId) p.set("categoryId", selectedCateId);
+    if (minPrice && selectedPriceType !== "NEGOTIABLE") p.set("minPrice", minPrice);
+    if (maxPrice && selectedPriceType !== "NEGOTIABLE") p.set("maxPrice", maxPrice);
+    const res = await fetch(`${API}/posts/home?${p}`);
+    const data = res.ok ? await res.json() : { featuredPosts: [], latestPosts: [] };
+    const featured = Array.isArray(data.featuredPosts) ? data.featuredPosts : [];
+    const latest   = Array.isArray(data.latestPosts)   ? data.latestPosts   : [];
+    setPosts([...featured, ...latest]);
+  } catch { setPosts([]); }
+  finally { setLoading(false); }
+}, [urlKeyword, selectedBrandId, selectedCateId, minPrice, maxPrice]);
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
   // ── Client-side filter + sort ─────────────────────────────────────────────
   useEffect(() => {
-    let r = [...posts];
+    let r = [...(Array.isArray(posts) ? posts : [])];
     if (selectedPriceType) r = r.filter(p => p.priceType === selectedPriceType);
     if (appliedAddress) r = r.filter(p => p.address?.toLowerCase().includes(appliedAddress.toLowerCase()));
     r.sort((a, b) => {

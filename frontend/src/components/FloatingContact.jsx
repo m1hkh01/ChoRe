@@ -12,7 +12,7 @@ export default function FloatingContact() {
             {/* Options */}
             {open && (
                 <div className="fc-menu">
-                    <a href="tel:19001234" className="fc-item">
+                    <a href="tel:0836044008" className="fc-item">
                         <FontAwesomeIcon icon={faPhoneVolume} />
                         <span>0836 044 008</span>
                     </a>
