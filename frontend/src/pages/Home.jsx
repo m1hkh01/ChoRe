@@ -513,7 +513,7 @@ export default function Home() {
       <main className="home-main">
         {/* Featured Posts */}
         {featuredPosts.length > 0 && (
-          <div className="cards-panel">
+          <div className="cards-panel mb-2">
             <div className="section-header">
               <h2 className="section-title">Tin nổi bật</h2>
             </div>

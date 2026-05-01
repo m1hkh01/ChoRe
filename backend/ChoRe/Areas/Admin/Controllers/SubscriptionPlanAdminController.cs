@@ -20,6 +20,10 @@ public class SubscriptionPlanAdminController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateUpdateSubscriptionPlanDto dto)
     {
+        if (dto.MaxFeaturedPosts > 0 && dto.FeaturedDurationDays <= 0)
+        {
+            throw new Exception("Có bài featured thì phải có thời gian > 0");
+        }
         await _service.CreateAsync(dto);
         return Ok();
     }

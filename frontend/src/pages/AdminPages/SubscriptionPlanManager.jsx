@@ -6,6 +6,8 @@ import {
   faClock, faFileLines, faTag,
 } from "@fortawesome/free-solid-svg-icons";
 import api from "@/api";
+import { Toast } from "../../utils/toast";
+import { icon } from "@fortawesome/fontawesome-svg-core";
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
@@ -269,21 +271,42 @@ function PlanModal({ plan, onSave, onClose }) {
 
   const setField = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
 
-  const handleSave = async () => {
+  const handleSave = async (e) => {
+    e.preventDefault();
     setSubmitting(true);
     try { await onSave(form); }
-    finally { setSubmitting(false); }
+    catch (err) {
+      Toast.fire({
+        icon: "error",
+        title: err.response?.data ?? "Lỗi không xác định"
+      });
+    }
+    finally {
+      if (plan) {
+        Toast.fire({
+          icon: "success",
+          title: "Cập nhật gói dịch vụ thành công"
+        });
+      }
+      else {
+        Toast.fire({
+          icon: "success",
+          title: "Thêm gói dịch vụ thành công"
+        });
+      }
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="spm-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="spm-modal" role="dialog" aria-modal="true">
+      <form className="spm-modal" role="dialog" aria-modal="true" onSubmit={handleSave}>
 
         <div className="spm-modal-header">
           <span className="spm-modal-title">
             {plan ? "Cập nhật gói dịch vụ" : "Thêm gói dịch vụ mới"}
           </span>
-          <button className="spm-modal-close" onClick={onClose}>
+          <button className="spm-modal-close" type="button" onClick={onClose}>
             <FontAwesomeIcon icon={faXmark} />
           </button>
         </div>
@@ -296,6 +319,7 @@ function PlanModal({ plan, onSave, onClose }) {
               className="spm-input"
               placeholder="VD: Gói Cơ Bản, Gói Premium…"
               value={form.subPlanName}
+              required
               onChange={(e) => setField("subPlanName", e.target.value)}
             />
           </div>
@@ -327,10 +351,18 @@ function PlanModal({ plan, onSave, onClose }) {
             <div className="spm-field">
               <label className="spm-label">Giá (VNĐ) <span className="spm-label-req">*</span></label>
               <input
-                className="spm-input" type="number" min="0"
+                className="spm-input" type="text"
                 placeholder="0"
-                value={form.subPlanPrice}
-                onChange={(e) => setField("subPlanPrice", e.target.value)}
+                required
+                onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, "");
+                    e.target.value = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                    console.log("Raw price input:", raw);
+                    console.log("Formatted price input:", e.target.value);
+                    setField("subPlanPrice", raw);
+                  }
+                }
+                  
               />
             </div>
 
@@ -340,6 +372,7 @@ function PlanModal({ plan, onSave, onClose }) {
                 className="spm-input" type="number" min="1"
                 placeholder="30"
                 value={form.durationDays}
+                required
                 onChange={(e) => setField("durationDays", e.target.value)}
               />
             </div>
@@ -363,6 +396,7 @@ function PlanModal({ plan, onSave, onClose }) {
                 className="spm-input" type="number" min="0"
                 placeholder="0"
                 value={form.maxFeaturedPosts}
+                required={form.featuredDurationDays > 0}
                 onChange={(e) => setField("maxFeaturedPosts", e.target.value)}
               />
             </div>
@@ -383,6 +417,7 @@ function PlanModal({ plan, onSave, onClose }) {
                 className="spm-input" type="number" min="0"
                 placeholder="0"
                 value={form.featuredDurationDays}
+                required={form.maxFeaturedPosts > 0}
                 onChange={(e) => setField("featuredDurationDays", e.target.value)}
               />
             </div>
@@ -393,6 +428,7 @@ function PlanModal({ plan, onSave, onClose }) {
                 className="spm-input" type="number" min="0"
                 placeholder="10"
                 value={form.maxPostPerSub}
+                required
                 onChange={(e) => setField("maxPostPerSub", e.target.value)}
               />
             </div>
@@ -400,10 +436,10 @@ function PlanModal({ plan, onSave, onClose }) {
         </div>
 
         <div className="spm-modal-footer">
-          <button className="spm-modal-btn spm-modal-btn-cancel" onClick={onClose} disabled={submitting}>
+          <button className="spm-modal-btn spm-modal-btn-cancel" type="button" onClick={onClose} disabled={submitting}>
             Huỷ
           </button>
-          <button className="spm-modal-btn spm-modal-btn-save" onClick={handleSave} disabled={submitting}>
+          <button className="spm-modal-btn spm-modal-btn-save" type="submit" disabled={submitting}>
             {submitting
               ? <FontAwesomeIcon icon={faSpinner} className="spm-spinner" />
               : <FontAwesomeIcon icon={plan ? faPen : faPlus} />
@@ -411,7 +447,7 @@ function PlanModal({ plan, onSave, onClose }) {
             {plan ? "Cập nhật" : "Thêm mới"}
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
@@ -451,15 +487,24 @@ export default function SubscriptionPlanManager() {
     };
     console.log("Saving plan with form data:", form);
     console.log("Saving plan with payload data:", payload);
-
-    if (modal?.subPlanId) {
-      await api.post(`/api/admin/subscription-plans/${modal.subPlanId}/update`, payload);
-    } else {
-      await api.post("/api/admin/subscription-plans", payload);
+    try {
+      if (modal?.subPlanId) {
+        await api.post(`/api/admin/subscription-plans/${modal.subPlanId}/update`, payload);
+      } else {
+        await api.post("/api/admin/subscription-plans", payload);
+      }
     }
-
-    setModal(null);
-    await load();
+    catch (err) {
+      Toast.fire({
+        icon: "error",
+        title: err.response?.data ?? "Lỗi không xác định"
+      });
+      return;
+    }
+    finally {
+      setModal(null);
+      await load();
+    }
   };
 
   const handleToggle = async (id) => {
@@ -472,8 +517,15 @@ export default function SubscriptionPlanManager() {
     try {
       await api.post(`/api/admin/subscription-plans/${id}/delete`);
       await load();
+      Toast.fire({
+        icon: "success",
+        title: "Xoá gói dịch vụ thành công"
+      });
     } catch (err) {
-      alert(err.response?.data ?? "Không thể xoá gói này");
+      Toast.fire({
+        icon: "error",
+        title: err.response?.data ?? "Không thể xoá gói này"
+      });
     }
   };
 
