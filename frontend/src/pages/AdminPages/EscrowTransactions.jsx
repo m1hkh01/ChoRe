@@ -6,6 +6,12 @@ import {
   faCheckCircle, faTimesCircle, faHourglassHalf,
   faMoneyBillWave, faUser, faCalendar, faHashtag,
   faChevronDown,
+  faMoneyBillTransfer,
+  faCircleXmark,
+  faTriangleExclamation,
+  faMoneyBill,
+  faLink,
+  faFileAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import api from "@/api";
 
@@ -14,7 +20,7 @@ import api from "@/api";
 const CSS = `
   .et {
     --accent:       var(--primary-color);
-    --accent-hover: var(--primary-color-hover);
+    --accent-hover: #1a6438;
     --preview:      var(--preview, #2196f3);
     --border:       #e5e7eb;
     --bg:           #ffffff;
@@ -126,6 +132,8 @@ const CSS = `
   .et-status-success  { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
   .et-status-failed   { background: #fff5f5; border: 1px solid #fecaca; color: #dc2626; }
   .et-status-default  { background: #f3f4f6; border: 1px solid var(--border); color: var(--text-sub); }
+  .et-status-disputed { background: #fffbeb; border: 1px solid #fde68a; color: #b45309; }
+  .et-status-refunded { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
 
   /* Preview button */
   .et-btn-preview {
@@ -274,9 +282,45 @@ const CSS = `
   .et-modal-btn-close   { background: #f3f4f6; border-color: var(--border); color: var(--text-sub); }
   .et-modal-btn-close:hover:not(:disabled) { background: #e5e7eb; }
   .et-modal-btn-success { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .et-modal-btn-success:hover:not(:disabled) { background: var(--accent-hover); }
+  .et-modal-btn-success:hover:not(:disabled) { background: #16a34a; }
   .et-modal-btn-danger  { background: #fff5f5; border-color: #fecaca; color: #dc2626; }
   .et-modal-btn-danger:hover:not(:disabled) { background: #fee2e2; }
+
+  /* ══════════════════════════════
+     DISPUTE EVIDENCE SECTION
+  ══════════════════════════════ */
+  .et-dispute-section {
+    padding: 12px 0; border-top: 2px solid #f3f4f6; margin-top: 8px;
+  }
+  .et-dispute-title {
+    font-size: 12px; font-weight: 700; letter-spacing: .05em;
+    text-transform: uppercase; color: #b45309; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .et-dispute-reason {
+    padding: 10px 12px; background: #fffbeb; border-left: 3px solid #fde68a;
+    border-radius: 4px; font-size: 13px; color: var(--text); line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .et-evidence-list { display: flex; flex-direction: column; gap: 8px; }
+  .et-evidence-item {
+    padding: 10px 12px; background: #f9fafb; border: 1px solid #e5e7eb;
+    border-radius: 6px; display: flex; gap: 10px; align-items: flex-start;
+  }
+  .et-evidence-icon {
+    width: 28px; height: 28px; border-radius: 4px; background: #eff6ff;
+    color: #2563eb; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; flex-shrink: 0;
+  }
+  .et-evidence-content { flex: 1; min-width: 0; }
+  .et-evidence-submitter { font-size: 11px; color: var(--text-xs); margin-bottom: 6px; padding: 4px 0; }
+  .et-evidence-submitter-type { font-weight: 600; color: var(--text-sub); }
+  .et-evidence-desc { font-size: 12px; color: var(--text); font-weight: 500; margin-bottom: 4px; }
+  .et-evidence-link {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 11px;
+    color: #2563eb; text-decoration: none; word-break: break-all;
+  }
+  .et-evidence-link:hover { text-decoration: underline; }
 `;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -284,18 +328,20 @@ const CSS = `
 const ITEMS_PER_PAGE = 6;
 
 const fmtMoney = (n) => Number(n ?? 0).toLocaleString("vi-VN") + " đ";
-const fmtDate  = (str) => {
+const fmtDate = (str) => {
   if (!str) return "—";
   const iso = str.endsWith("Z") ? str : str + "Z";
-  return new Date(iso).toLocaleString("vi-VN");
+  return new Date(iso).toLocaleDateString("vi-VN");
 };
 
 const STATUS_MAP = {
-  PENDING:   { label: "Chờ xử lý",  cls: "et-status-pending",  icon: faHourglassHalf },
-  SUCCESS:   { label: "Thành công",  cls: "et-status-success",  icon: faCheckCircle },
-  COMPLETED: { label: "Hoàn thành",  cls: "et-status-success",  icon: faCheckCircle },
-  FAILED:    { label: "Thất bại",    cls: "et-status-failed",   icon: faTimesCircle },
-  REFUNDED:  { label: "Hoàn tiền",   cls: "et-status-default",  icon: faTimesCircle },
+  PENDINGPAYMENT: { label: "Chờ thanh toán", cls: "et-status-pending", icon: faHourglassHalf },
+  PAID: { label: "Đã thanh toán", cls: "et-status-success", icon: faMoneyBill },
+  COMPLETED: { label: "Hoàn thành", cls: "et-status-success", icon: faCheckCircle },
+  CANCELLED: { label: "Thất bại", cls: "et-status-failed", icon: faCircleXmark },
+  REFUNDED: { label: "Đã hoàn tiền", cls: "et-status-refunded", icon: faMoneyBillTransfer },
+  DISPUTING: { label: "Tranh chấp", cls: "et-status-disputed", icon: faTriangleExclamation },
+  REFUNDREQUESTED: { label: "Yêu cầu hoàn tiền", cls: "et-status-default", icon: faHourglassHalf },
 };
 
 function StatusBadge({ status }) {
@@ -356,10 +402,11 @@ function EscrowFilter({ filter, onChange, onSearch }) {
           onChange={(e) => set("status", e.target.value)}
         >
           <option value="">Tất cả</option>
-          <option value="PENDING">Chờ xử lý</option>
-          <option value="SUCCESS">Thành công</option>
-          <option value="FAILED">Thất bại</option>
-          <option value="REFUNDED">Hoàn tiền</option>
+          {
+            STATUS_MAP && Object.entries(STATUS_MAP).map(([key, s]) => (
+              <option key={key} value={key}>{s.label}</option>
+            ))
+          }
         </select>
       </div>
 
@@ -412,15 +459,14 @@ function EscrowPreviewModal({ tx, onClose, onReload }) {
       setActing(false);
     }
   };
-
-  const isPending = tx.status?.toUpperCase() === "PENDING";
+  const isPending = tx.status?.toUpperCase() === "DISPUTING";
 
   const details = [
-    { icon: faHashtag,        iconCls: "et-detail-icon-gray",   label: "Mã giao dịch", value: tx.transactionId, monospace: true },
-    { icon: faUser,           iconCls: "et-detail-icon-blue",   label: "Người mua",    value: tx.buyerName ?? tx.userName ?? "—" },
-    { icon: faUser,           iconCls: "et-detail-icon-blue",   label: "Người bán",    value: tx.sellerName ?? "—" },
-    { icon: faMoneyBillWave,  iconCls: "et-detail-icon-green",  label: "Số tiền",      value: fmtMoney(tx.amount), accent: true },
-    { icon: faCalendar,       iconCls: "et-detail-icon-yellow", label: "Thời gian",    value: fmtDate(tx.createdAt) },
+    { icon: faHashtag, iconCls: "et-detail-icon-gray", label: "Mã giao dịch", value: tx.transactionId, monospace: true },
+    { icon: faUser, iconCls: "et-detail-icon-blue", label: "Người mua", value: tx.buyerName ?? tx.userName ?? "—" },
+    { icon: faUser, iconCls: "et-detail-icon-blue", label: "Người bán", value: tx.sellerName ?? "—" },
+    { icon: faMoneyBillWave, iconCls: "et-detail-icon-green", label: "Số tiền", value: fmtMoney(tx.amount), accent: true },
+    { icon: faCalendar, iconCls: "et-detail-icon-yellow", label: "Thời gian", value: fmtDate(tx.createAt) },
   ];
 
   return (
@@ -468,6 +514,59 @@ function EscrowPreviewModal({ tx, onClose, onReload }) {
               </div>
             </div>
           )}
+
+          {/* Dispute Evidence Section */}
+          {isPending && tx.disEvidence && tx.disEvidence.length > 0 && (
+            <div className="et-dispute-section">
+              <div className="et-dispute-title">
+                <FontAwesomeIcon icon={faTriangleExclamation} />
+                Bằng chứng tranh chấp
+              </div>
+
+              {tx.disputeReason && (
+                <div className="et-dispute-reason">
+                  <strong style={{ color: "#b45309" }}>Lý do tranh chấp:</strong> {tx.disputeReason}
+                </div>
+              )}
+
+              <div className="et-evidence-list">
+                {tx.disEvidence.map((dispute, dIdx) =>
+                  dispute.evidences && dispute.evidences.length > 0 ? (
+                    dispute.evidences.map((evidence, eIdx) => {
+                      const submittedByBuyer = dispute.submitByUserId === tx.buyerId;
+                      const submitterType = submittedByBuyer ? "Người mua" : "Người bán";
+                      return (
+                        <div key={`${dIdx}-${eIdx}`} className="et-evidence-item">
+                          <div className="et-evidence-icon">
+                            <FontAwesomeIcon icon={faFileAlt} />
+                          </div>
+                          <div className="et-evidence-content">
+                            <div className="et-evidence-submitter">
+                              Gửi bởi: <span className="et-evidence-submitter-type">{submitterType}</span>
+                            </div>
+                            {evidence.description && (
+                              <div className="et-evidence-desc">{evidence.description}</div>
+                            )}
+                            {evidence.disEvidenceLink && (
+                              <a
+                                href={evidence.disEvidenceLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="et-evidence-link"
+                              >
+                                <FontAwesomeIcon icon={faLink} />
+                                Xem bằng chứng
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : null
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="et-modal-footer">
@@ -504,9 +603,9 @@ function EscrowPreviewModal({ tx, onClose, onReload }) {
 
 export default function EscrowTransactions() {
   const [transactions, setTransactions] = useState([]);
-  const [filter,       setFilter]       = useState({});
-  const [loading,      setLoading]      = useState(true);
-  const [selected,     setSelected]     = useState(null);
+  const [filter, setFilter] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(null);
 
   const { page, setPage, totalPages, visiblePages, paginated } = usePagination(transactions.length);
   const pageData = paginated(transactions);
@@ -533,7 +632,7 @@ export default function EscrowTransactions() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   const startItem = (page - 1) * ITEMS_PER_PAGE + 1;
-  const endItem   = Math.min(page * ITEMS_PER_PAGE, transactions.length);
+  const endItem = Math.min(page * ITEMS_PER_PAGE, transactions.length);
 
   return (
     <>
@@ -605,7 +704,7 @@ export default function EscrowTransactions() {
                           </div>
                         </td>
                         <td><span className="et-amount">{fmtMoney(tx.amount)}</span></td>
-                        <td><span className="et-date">{fmtDate(tx.createdAt)}</span></td>
+                        <td><span className="et-date">{fmtDate(tx.createAt)}</span></td>
                         <td><StatusBadge status={tx.status} /></td>
                         <td>
                           <button className="et-btn-preview" title="Xem chi tiết" onClick={() => setSelected(tx)}>

@@ -58,12 +58,14 @@ public class EscrowTransactionService : IEscrowTransactionService
     }
     public async Task<List<TransactionDto>> GetListAsync(EscrowTransactionFilterRequest req)
     {
-        int[] getStatus = [
-            EscrowStatus.PendingPayment,
-            EscrowStatus.Paid,
-            EscrowStatus.Completed,
-            EscrowStatus.Disputing,
-            EscrowStatus.Cancelled
+        string[] getStatus = [
+            "PENDINGPAYMENT",
+            "PAID",
+            "COMPLETED",
+            "CANCELLED",
+            "REFUNDED",
+            "DISPUTING",
+            "REFUNDREQUESTED",
         ];
         var query = _context.EscrowTransations
             .Include(x => x.BuyerUser)
@@ -71,7 +73,7 @@ public class EscrowTransactionService : IEscrowTransactionService
             .Include(x => x.EscrowTransStatus)
             .Include(x => x.Disputes)
                 .ThenInclude(d => d.DisputeEvidences)
-            .Where(x => getStatus.Contains(x.EscrowTransStatusId))
+            .Where(x => getStatus.Contains(x.EscrowTransStatus.StatusName.ToUpper()))
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(req.Keyword))
@@ -81,8 +83,8 @@ public class EscrowTransactionService : IEscrowTransactionService
                 x.SellerUser.FullName.Contains(req.Keyword));
         }
 
-        if (req.StatusId.HasValue)
-            query = query.Where(x => x.EscrowTransStatusId == req.StatusId);
+        if (!string.IsNullOrEmpty(req.Status))
+            query = query.Where(x => x.EscrowTransStatus.StatusName.ToUpper() == req.Status.ToUpper());
 
         if (req.FromDate.HasValue)
             query = query.Where(x => x.CreateAt >= req.FromDate);
@@ -181,8 +183,8 @@ public class EscrowTransactionService : IEscrowTransactionService
                 x.SellerUser.FullName.Contains(req.Keyword));
         }
 
-        if (req.StatusId.HasValue)
-            query = query.Where(x => x.EscrowTransStatusId == req.StatusId);
+        if (!string.IsNullOrEmpty(req.Status))
+            query = query.Where(x => x.EscrowTransStatus.StatusName.ToUpper() == req.Status.ToUpper());
 
         if (req.FromDate.HasValue)
             query = query.Where(x => x.CreateAt >= req.FromDate);
@@ -298,8 +300,8 @@ public class EscrowTransactionService : IEscrowTransactionService
             query = query.Where(o => o.SubscriptionPlan.SubPlanName == req.Keyword);
         }
 
-        if (req.StatusId.HasValue)
-            query = query.Where(o => o.OrdStatusId == req.StatusId);
+        if (!string.IsNullOrEmpty(req.Status))
+            query = query.Where(o => o.OrderStatus.StatusName.ToUpper() == req.Status.ToUpper());
 
         if (req.FromDate.HasValue)
             query = query.Where(o => o.CreatedAt >= req.FromDate);
