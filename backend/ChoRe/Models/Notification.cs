@@ -27,6 +27,9 @@ public enum NotificationType
     // PaymentReceived,
     AwaitingEvidence,
     Confirming,
+    TransactionShipped,
+    AutoCompleteReminder,
+    CompletedBankConfirmation,
     ReviewReminder,
     Error,
     Success

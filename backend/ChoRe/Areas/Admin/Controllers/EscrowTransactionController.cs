@@ -39,4 +39,20 @@ public class EscrowTransactionController : ControllerBase
         await _service.ResolveDisputeAsync(req, adminId);
         return Ok();
     }
+
+    [HttpPost("{id}/{action}")]
+    public async Task<IActionResult> HandleDispute(int id, string action)
+    {
+        if (action == "approve")
+        {
+            await _service.RefundConfirmTransaction(id);
+            return Ok(new { message = "Đã duyệt yêu cầu hoàn tiền" });
+        }
+        else if (action == "reject")
+        {
+            await _service.RefundRejectTransaction(id);
+            return Ok(new { message = "Đã từ chối yêu cầu hoàn tiền" });
+        }
+        return BadRequest(new { error = "Hành động không hợp lệ" });
+    }
 }

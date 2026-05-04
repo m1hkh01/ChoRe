@@ -1,6 +1,6 @@
 public class TransactionDto
 {
-    public int ChatRoomId{ get; set; }
+    public int ChatRoomId { get; set; }
     public int TransactionId { get; set; }
 
     // Post
@@ -18,7 +18,7 @@ public class TransactionDto
     // public string? Role{ get; set; } // vai trò của ng dùng vd: người mua / bán
 
     // Trạng thái / thời gian
-    public DateTime CreateAt{ get; set; }
+    public DateTime CreateAt { get; set; }
     public DateTime ExpiredAt { get; set; }
     public string? Status { get; set; }
     public string? StatusDescription { get; set; }
@@ -30,7 +30,7 @@ public class TransactionDto
     public string? TransactionOrderCode { get; set; }
 
     // Dispute
-    public int DisputeId{ get; set; }
+    public int DisputeId { get; set; }
     public string? DisputeReason { get; set; }
     public string? DisputeStatus { get; set; }
     public string? DisBankName { get; set; }
@@ -41,5 +41,10 @@ public class TransactionDto
     // Ngân hàng
     public string? BankName { get; set; }
     public string? BankNumber { get; set; }
-    
+
+    // Shipping
+    public DateTime? ShippedAt { get; set; }
+    public DateTime? EstimatedDeliveryAt { get; set; }
+    public DateTime? AutoCompleteAt { get; set; }
+    public int? EstimatedDeliveryDays { get; set; }
 }

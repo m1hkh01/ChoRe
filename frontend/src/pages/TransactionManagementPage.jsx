@@ -131,7 +131,9 @@ function EscrowTab({ transactions, userId, reload }) {
     itemsPerPage: PER_PAGE,
     maxPageIndex: 5,
   });
-
+  if (currentPage > totalPages.length && totalPages.length > 0) {
+    setCurrentPage(1);
+  }
   const start     = (currentPage - 1) * PER_PAGE;
   const paginated = (transactions ?? []).slice(start, start + PER_PAGE);
 

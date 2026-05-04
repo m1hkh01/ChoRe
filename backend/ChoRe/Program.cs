@@ -77,6 +77,7 @@ builder.Services.AddSingleton<IUserIdProvider, JwtUserIdProvider>();
 
 builder.Services.AddScoped<IReminderStrategy, TransactionExpireStrategy>();
 builder.Services.AddScoped<IReminderStrategy, TransactionNotificationStrategy>();
+builder.Services.AddScoped<IReminderStrategy, TransactionAutoCompleteStrategy>();
 builder.Services.AddScoped<IReminderStrategy, SubscriptionExpireStrategy>();
 builder.Services.AddScoped<IReminderStrategy, SubscriptionNotificationStrategy>();
 builder.Services.AddScoped<IReminderStrategy, DisputeNotificationStrategy>();

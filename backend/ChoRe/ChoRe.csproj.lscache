@@ -77,6 +77,7 @@ BackgroundServices/ReminderEngine/
    SubscriptionNotificationStrategy.cs
   SubscriptionPlan/SubscriptionPlanExpireStrategy.cs
   Transaction/
+   TransactionAutoCompleteStrategy.cs
    TransactionExpireStrategy.cs
    TransactionNotificationStrategy.cs
 Controllers/
@@ -140,6 +141,7 @@ Dto/
   EscrowTransactionFilterRequest.cs
   RefundRequestDto.cs
   ResolveDisputeRequest.cs
+  ShipTransactionRequest.cs
   TransationDto.cs
   VerifyBankRequestDto.cs
   VerifyBankResponseDto.cs
@@ -238,6 +240,10 @@ Migrations/
  20260327120000_AddIsActiveToChatRoom.Designer.cs
  20260413101823_FeaturePost.cs
  20260413101823_FeaturePost.Designer.cs
+ 20260504144213_AddShippingFields.cs
+ 20260504144213_AddShippingFields.Designer.cs
+ 20260504151101_AddShippedStatus.cs
+ 20260504151101_AddShippedStatus.Designer.cs
  AppDbContextModelSnapshot.cs
 Models/
  Brand.cs

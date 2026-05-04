@@ -22,19 +22,55 @@ public interface IEscrowTransactionService
     Task RefundRejectTransaction(int disputeId);
     Task RefundSystemTransaction(int disputeId, List<DisEvidenceDto>? evidences, int userId);
     Task<VerifyBankResponseDto> VerifyAndSaveBankDetails(int transactionId, VerifyBankRequestDto req);
+    Task<EscrowTransation> ShipTransaction(int transactionId, int deliveryDays, int sellerId);
 }
 public class EscrowTransactionService : IEscrowTransactionService
 {
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly IHubContext<ChatHub> _hubContext;
+    private readonly INotificationService _notificationService;
+    private readonly ISendMailService _sendMailService;
 
-    public EscrowTransactionService(AppDbContext context, IConfiguration configuration, IHubContext<ChatHub> hubContext)
+    public EscrowTransactionService(
+        AppDbContext context,
+        IConfiguration configuration,
+        IHubContext<ChatHub> hubContext,
+        INotificationService notificationService,
+        ISendMailService sendMailService)
     {
         _context = context;
         _configuration = configuration;
         _hubContext = hubContext;
+        _notificationService = notificationService;
+        _sendMailService = sendMailService;
     }
+
+    private async Task SendSystemNotificationAsync(
+        int userId,
+        string title,
+        string message,
+        NotificationType type,
+        int relatedId)
+    {
+        await _notificationService.CreateNotificationAsync(new NotificationDto
+        {
+            UserId = userId,
+            Title = title,
+            Message = message,
+            Type = type,
+            RelatedId = relatedId
+        });
+    }
+
+    private async Task SendEmailAsync(string email, string subject, string body)
+    {
+        if (string.IsNullOrEmpty(email))
+            return;
+
+        await _sendMailService.SendEmailAsync(email, subject, body);
+    }
+
     public async Task<List<EscrowTransStatus>> GetStatusesAsync(bool isAdmin, bool isTransation = true)
     {
         if (isTransation)
@@ -42,7 +78,7 @@ public class EscrowTransactionService : IEscrowTransactionService
 
             if (isAdmin)
             {
-                string[] getStatus = ["PendingPayment", "Paid", "Completed", "Disputing", "Cancelled"];
+                string[] getStatus = ["PendingPayment", "Paid", "Completed", "Disputing", "Cancelled", "Shipped"];
                 return await _context.EscrowTransStatuses.Where(s => getStatus.Contains(s.StatusName)).ToListAsync();
             }
             else
@@ -80,7 +116,10 @@ public class EscrowTransactionService : IEscrowTransactionService
         {
             query = query.Where(x =>
                 x.BuyerUser.FullName.Contains(req.Keyword) ||
-                x.SellerUser.FullName.Contains(req.Keyword));
+                x.SellerUser.FullName.Contains(req.Keyword) ||
+                req.Keyword.Contains(x.EscrowTransId.ToString()) ||
+                (x.TransactionOrderCode != null && x.TransactionOrderCode == req.Keyword)
+            );
         }
 
         if (!string.IsNullOrEmpty(req.Status))
@@ -182,9 +221,10 @@ public class EscrowTransactionService : IEscrowTransactionService
                 x.BuyerUser.FullName.Contains(req.Keyword) ||
                 x.SellerUser.FullName.Contains(req.Keyword));
         }
-
         if (!string.IsNullOrEmpty(req.Status))
+        {
             query = query.Where(x => x.EscrowTransStatus.StatusName.ToUpper() == req.Status.ToUpper());
+        }
 
         if (req.FromDate.HasValue)
             query = query.Where(x => x.CreateAt >= req.FromDate);
@@ -236,15 +276,19 @@ public class EscrowTransactionService : IEscrowTransactionService
                                     }).ToList()
                                 }).ToList()
                             : new List<DisEvidenceGroupDto>(),
+                ShippedAt = x.ShippedAt,
+                EstimatedDeliveryAt = x.EstimatedDeliveryAt,
+                AutoCompleteAt = x.AutoCompleteAt,
+                EstimatedDeliveryDays = x.EstimatedDeliveryDays,
                 Review = x.IsRated ? new ReviewDto
                 {
                     ReviewId = x.Review.ReviewId,
                     Rating = x.Review.Rating,
                     Comment = x.Review.Comment,
                     ReviewTags = x.Review.ReviewTags != null ? x.Review.ReviewTags
-                        .Select(t =>new ReviewTagDto
+                        .Select(t => new ReviewTagDto
                         {
-                            Tag = t.Tag   
+                            Tag = t.Tag
                         })
                         .ToList() : new List<ReviewTagDto>(),
                     ReviewImages = x.Review.ReviewImages != null ? x.Review.ReviewImages
@@ -440,6 +484,63 @@ public class EscrowTransactionService : IEscrowTransactionService
     public async Task CompleteTransaction(int transactionId)
     {
         await UpdateStatus(transactionId, EscrowStatus.Completed);
+
+        var transaction = await _context.EscrowTransations
+            .Include(t => t.SellerUser)
+            .FirstOrDefaultAsync(t => t.EscrowTransId == transactionId);
+
+        if (transaction != null)
+        {
+            await NotifySellerCompletedBankConfirmAsync(transaction);
+        }
+    }
+
+    private async Task NotifyBuyerShippedAsync(EscrowTransation transaction)
+    {
+        if (transaction == null || transaction.BuyerUser == null || string.IsNullOrEmpty(transaction.BuyerUser.Email))
+            return;
+
+        var title = "Người bán đã gửi hàng";
+        var message = $"Giao dịch {transaction.TransactionOrderCode} đã được gửi hàng. Dự kiến giao tới trong {transaction.EstimatedDeliveryDays} ngày ({transaction.EstimatedDeliveryAt:HH:mm dd/MM/yyyy}). Vui lòng chú ý thời gian và xác nhận đơn hàng khi nhận được.";
+
+        await SendSystemNotificationAsync(
+            transaction.BuyerUserId,
+            title,
+            message,
+            NotificationType.TransactionShipped,
+            transaction.EscrowTransId);
+
+        await SendEmailAsync(
+            transaction.BuyerUser.Email,
+            "Đã gửi hàng - ChoRe",
+            $"<p>Xin chào {transaction.BuyerUser.UserName},</p>" +
+            $"<p>Giao dịch <strong>{transaction.TransactionOrderCode}</strong> đã được người bán gửi hàng.</p>" +
+            $"<p>Dự kiến giao tới trong <strong>{transaction.EstimatedDeliveryDays} ngày</strong> ({transaction.EstimatedDeliveryAt:dd/MM/yyyy HH:mm}).</p>" +
+            "<p>Vui lòng chú ý thời gian và xác nhận đơn hàng khi nhận được. Nếu có vấn đề, hãy liên hệ người bán ngay.</p>");
+    }
+
+    private async Task NotifySellerCompletedBankConfirmAsync(EscrowTransation transaction)
+    {
+        if (transaction == null || transaction.SellerUser == null || string.IsNullOrEmpty(transaction.SellerUser.Email))
+            return;
+
+        var message = string.IsNullOrEmpty(transaction.BankNumber) || string.IsNullOrEmpty(transaction.BankName)
+            ? "Đơn hàng đã hoàn thành. Vui lòng cập nhật thông tin ngân hàng để nhận tiền."
+            : "Đơn hàng đã hoàn thành. Vui lòng kiểm tra và xác nhận lại thông tin ngân hàng để nhận thanh toán.";
+
+        await SendSystemNotificationAsync(
+            transaction.SellerUserId,
+            "Đơn hàng hoàn thành",
+            message,
+            NotificationType.CompletedBankConfirmation,
+            transaction.EscrowTransId);
+
+        await SendEmailAsync(
+            transaction.SellerUser.Email,
+            "Đơn hàng hoàn thành - Xác nhận thông tin ngân hàng",
+            $"<p>Xin chào {transaction.SellerUser.UserName},</p>" +
+            $"<p>Giao dịch <strong>{transaction.TransactionOrderCode}</strong> đã hoàn thành.</p>" +
+            $"<p>{message}</p>");
     }
 
     public async Task RefundConfirmTransaction(int disputeId)
@@ -673,6 +774,44 @@ public class EscrowTransactionService : IEscrowTransactionService
                 }
             }
         );
+    }
+
+    public async Task<EscrowTransation> ShipTransaction(int transactionId, int deliveryDays, int sellerId)
+    {
+        var transaction = await _context.EscrowTransations
+            .Include(t => t.SellerUser)
+            .Include(t => t.BuyerUser)
+            .FirstOrDefaultAsync(t => t.EscrowTransId == transactionId);
+
+        if (transaction == null)
+            throw new Exception("Transaction not found");
+
+        if (transaction.SellerUserId != sellerId)
+            throw new Exception("Only seller can ship the transaction");
+
+        if (transaction.EscrowTransStatusId != EscrowStatus.Paid)
+            throw new Exception("Transaction must be in Paid status to ship");
+
+        if (transaction.ShippedAt.HasValue)
+            throw new Exception("Transaction already shipped");
+
+        // Clamp delivery days between 1 and 7
+        deliveryDays = Math.Clamp(deliveryDays, 1, 7);
+
+        var now = DateTime.Now;
+        transaction.ShippedAt = now;
+        transaction.EstimatedDeliveryAt = now.AddDays(deliveryDays);
+        transaction.AutoCompleteAt = transaction.EstimatedDeliveryAt.Value.AddDays(3);
+        transaction.EstimatedDeliveryDays = deliveryDays;
+        transaction.EscrowTransStatusId = EscrowStatus.Shipped;
+
+        await _context.SaveChangesAsync();
+        await _context.Entry(transaction).Reference(t => t.EscrowTransStatus).LoadAsync();
+
+        await BroadcastTransaction(transaction);
+        await NotifyBuyerShippedAsync(transaction);
+
+        return transaction;
     }
 
 }

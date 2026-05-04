@@ -28,6 +28,7 @@ export default function EscrowFilter({ onChange, currentTab }) {
                 api.get('api/transaction/service-status')
             ]);
             setEscrowStatuses(escrow.data);
+            console.log(escrow.data);
             setServiceStatuses(service.data);
         }
         fetchData();
@@ -132,8 +133,8 @@ export default function EscrowFilter({ onChange, currentTab }) {
             <div className="flex gap-2 flex-wrap mt-2">
                 <div
                     onClick={() => {
-                        setStatus("");
-                        onChange({ keyword, statusId: null });
+                        setStatus(null);
+                        onChange({ keyword, status: null });
                     }}
                     className={`
                             px-4 py-2 rounded-3xl text-sm font-medium cursor-pointer transition
@@ -150,7 +151,7 @@ export default function EscrowFilter({ onChange, currentTab }) {
                         key={s.escTransStatusId}
                         onClick={() => {
                             setStatus(s.escTransStatusId);
-                            onChange({ keyword, statusId: s.escTransStatusId });
+                            onChange({ keyword, status: s.statusName });
                         }}
                         className={`
                             px-4 py-2 rounded-3xl text-sm font-medium cursor-pointer transition

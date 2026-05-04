@@ -23,7 +23,7 @@ namespace ChoReDB.Data
                 {
                     UserId = 1,
                     UserName = "adminKhoi",
-                    FullName = "Nguyễn Admin",  
+                    FullName = "Nguyễn Admin",
                     PhoneNumber = "0123123123",
                     Email = "admin@gmail.com",
                     Address = "Thành phố Hồ Chí Minh",
@@ -499,7 +499,8 @@ namespace ChoReDB.Data
                 new EscrowTransStatus { EscTransStatusId = 7, StatusName = "Disputing", Description = "Tranh chấp" },
                 new EscrowTransStatus { EscTransStatusId = 8, StatusName = "RefundRequested", Description = "Yêu cầu hoàn tiền" },
                 new EscrowTransStatus { EscTransStatusId = 9, StatusName = "RefundRejected", Description = "Từ chối hoàn tiền" },
-                new EscrowTransStatus { EscTransStatusId = 10, StatusName = "Refunded", Description = "Đã hoàn tiền" }
+                new EscrowTransStatus { EscTransStatusId = 10, StatusName = "Refunded", Description = "Đã hoàn tiền" },
+                new EscrowTransStatus { EscTransStatusId = 11, StatusName = "Shipped", Description = "Đã gửi hàng" }
 
             // new EscrowTransStatus { EscTransStatusId = 5, StatusName = "Failed", Description = "Thanh toán thất bại" }
             );

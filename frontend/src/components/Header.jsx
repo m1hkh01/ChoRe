@@ -25,7 +25,7 @@ const NOTIF_TABS = [
 ];
 
 const POST_NOTIF_TYPES = ["PostApproved", "PostRejected", "PostNeedPayment"];
-const TRANSACTION_NOTIF_TYPES = ["Transaction", "PendingPayment", "PaymentReceived", "AwaitingEvidence"];
+const TRANSACTION_NOTIF_TYPES = ["Transaction", "PendingPayment", "PaymentReceived", "AwaitingEvidence", "TransactionShipped","AutoCompleteReminder","CompletedBankConfirmation"];
 
 const AVATAR_BASE = "https://api.chore123.cloud/uploads/";
 
@@ -195,6 +195,9 @@ export default function Header() {
       PostNeedPayment: `/pay/post/${notif.relatedId}`,
       Confirming: "/user-transactions",
       AwaitingEvidence: "/user-transactions",
+      TransactionShipped: "/user-transactions",
+      AutoCompleteReminder: "/user-transactions",
+      CompletedBankConfirmation: "/user-transactions",
     };
     if (notif.type === "ReviewReminder") {
       setReviewChatRoomId(notif.relatedId);

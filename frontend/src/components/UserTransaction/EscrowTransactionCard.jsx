@@ -99,6 +99,23 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload 
         navigate(`/pay/transaction/${transaction.transactionId}`)
     }
 
+    const handleShipTransaction = async (deliveryDays) => {
+        try {
+            await api.post(`api/transaction/ship/${transaction.transactionId}`, { deliveryDays });
+            Toast.fire({
+                icon: "success",
+                title: "Đã xác nhận gửi hàng thành công"
+            });
+            reload();
+        } catch (e) {
+            console.log("Có lỗi xảy ra: ", e);
+            Toast.fire({
+                icon: "error",
+                title: e.response?.data?.error || "Có lỗi xảy ra vui lòng thử lại"
+            });
+        }
+    }
+
     const handleRefundTransaction = async () => {
         try {
             if (!dispute.DisputeReason) {
@@ -116,7 +133,7 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload 
                 return;
             }
             console.log(dispute);
-        
+
             await api.post(`api/transaction/refund/${Number(transaction.transactionId)}`, dispute);
             Toast.fire({
                 icon: "success",
@@ -258,6 +275,7 @@ export function EscrowTransactionCard({ transaction, currentUserIsSeler, reload 
                         disputeStatus={transaction.disputeStatus}
                         openBankDetailsModal={(u) => setOpenBankDetailsModal({ open: true, user: u })}
                         hasBankDetails={!!(transaction.bankName && transaction.bankNumber)}
+                        handleShipTransaction={handleShipTransaction}
                     />
                     {/* {transaction.status === "Confirming" && (
                         <div className="flex gap-3">

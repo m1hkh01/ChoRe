@@ -84,8 +84,11 @@ public class TransactionController : ControllerBase
                 );
                 return Ok(new { Success = transaction.PaymentMessage ?? "Thanh toán thành công" });
             }
-            return Ok(new { Error = transaction.PaymentMessage ??
-                     "Giao dịch chưa được thanh toán vui lòng kiểm tra lại số tiền và nội dung chuyển khoản" });
+            return Ok(new
+            {
+                Error = transaction.PaymentMessage ??
+                     "Giao dịch chưa được thanh toán vui lòng kiểm tra lại số tiền và nội dung chuyển khoản"
+            });
         }
         catch (Exception ex)
         {
@@ -156,6 +159,21 @@ public class TransactionController : ControllerBase
         catch (Exception ex)
         {
             return BadRequest(new { success = false, message = "Lỗi khi xác minh: " + ex.Message });
+        }
+    }
+
+    [HttpPost("ship/{id:int}")]
+    public async Task<IActionResult> ShipTransaction(int id, [FromBody] ShipTransactionRequest req)
+    {
+        var sellerId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+        try
+        {
+            var transaction = await _transactionService.ShipTransaction(id, req.DeliveryDays, sellerId);
+            return Ok(new { Message = "Đã xác nhận gửi hàng thành công" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
         }
     }
 }

@@ -31,5 +31,6 @@ public static class EscrowStatus
     public const int RefundRequested = 8;
     public const int RefundRejected = 9;
     public const int Refunded = 10;
+    public const int Shipped = 11;
 }
 

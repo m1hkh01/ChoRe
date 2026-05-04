@@ -342,6 +342,7 @@ const STATUS_MAP = {
   REFUNDED: { label: "Đã hoàn tiền", cls: "et-status-refunded", icon: faMoneyBillTransfer },
   DISPUTING: { label: "Tranh chấp", cls: "et-status-disputed", icon: faTriangleExclamation },
   REFUNDREQUESTED: { label: "Yêu cầu hoàn tiền", cls: "et-status-default", icon: faHourglassHalf },
+  SHIPPED: { label: "Đã gửi hàng", cls: "et-status-default", icon: faMoneyBill },
 };
 
 function StatusBadge({ status }) {
@@ -450,7 +451,7 @@ function EscrowPreviewModal({ tx, onClose, onReload }) {
   const handleAction = async (endpoint) => {
     setActing(true);
     try {
-      await api.patch(`/api/admin/transactions/${tx.transactionId}/${endpoint}`);
+      await api.post(`/api/admin/transactions/${tx.transactionId}/${endpoint}`);
       onClose();
       onReload();
     } catch (err) {
@@ -461,12 +462,30 @@ function EscrowPreviewModal({ tx, onClose, onReload }) {
   };
   const isPending = tx.status?.toUpperCase() === "DISPUTING";
 
+  const getRemainingTime = () => {
+    if (!tx.autoCompleteAt) return null;
+    const now = new Date();
+    const autoComplete = new Date(tx.autoCompleteAt);
+    const diffMs = autoComplete - now;
+    if (diffMs <= 0) return "Đã hết thời gian";
+
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    if (days > 0) return `${days} ngày ${hours} giờ`;
+    return `${hours} giờ`;
+  };
+
+  const remainingTime = getRemainingTime();
+
   const details = [
     { icon: faHashtag, iconCls: "et-detail-icon-gray", label: "Mã giao dịch", value: tx.transactionId, monospace: true },
     { icon: faUser, iconCls: "et-detail-icon-blue", label: "Người mua", value: tx.buyerName ?? tx.userName ?? "—" },
     { icon: faUser, iconCls: "et-detail-icon-blue", label: "Người bán", value: tx.sellerName ?? "—" },
     { icon: faMoneyBillWave, iconCls: "et-detail-icon-green", label: "Số tiền", value: fmtMoney(tx.amount), accent: true },
     { icon: faCalendar, iconCls: "et-detail-icon-yellow", label: "Thời gian", value: fmtDate(tx.createAt) },
+    ...(tx.shippedAt ? [{ icon: faMoneyBill, iconCls: "et-detail-icon-blue", label: "Thời gian gửi hàng", value: fmtDate(tx.shippedAt) }] : []),
+    ...(tx.estimatedDeliveryAt ? [{ icon: faCalendar, iconCls: "et-detail-icon-yellow", label: "Dự kiến nhận hàng", value: fmtDate(tx.estimatedDeliveryAt) }] : []),
+    ...(tx.autoCompleteAt ? [{ icon: faCheckCircle, iconCls: "et-detail-icon-green", label: "Tự động hoàn tất", value: fmtDate(tx.autoCompleteAt) }] : []),
   ];
 
   return (
@@ -487,6 +506,14 @@ function EscrowPreviewModal({ tx, onClose, onReload }) {
             <span style={{ fontSize: 12, color: "var(--text-sub)", textTransform: "uppercase", fontWeight: 700, letterSpacing: ".05em" }}>Trạng thái</span>
             <StatusBadge status={tx.status} />
           </div>
+
+          {/* Countdown for shipped transactions */}
+          {tx.status?.toUpperCase() === "SHIPPED" && remainingTime && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0 12px", borderBottom: "1px solid #f3f4f6", marginBottom: 4 }}>
+              <span style={{ fontSize: 12, color: "var(--text-sub)", textTransform: "uppercase", fontWeight: 700, letterSpacing: ".05em" }}>Tự động hoàn tất sau</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: remainingTime === "Đã hết thời gian" ? "#dc2626" : "var(--accent)" }}>{remainingTime}</span>
+            </div>
+          )}
 
           {details.map((d, i) => (
             <div key={i} className="et-detail-row">

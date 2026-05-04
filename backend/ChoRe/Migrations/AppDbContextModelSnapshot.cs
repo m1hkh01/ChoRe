@@ -675,6 +675,12 @@ namespace ChoRe.Migrations
                             EscTransStatusId = 10,
                             Description = "Đã hoàn tiền",
                             StatusName = "Refunded"
+                        },
+                        new
+                        {
+                            EscTransStatusId = 11,
+                            Description = "Đã gửi hàng",
+                            StatusName = "Shipped"
                         });
                 });
 
@@ -685,6 +691,9 @@ namespace ChoRe.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EscrowTransId"));
+
+                    b.Property<DateTime?>("AutoCompleteAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("BankName")
                         .HasColumnType("nvarchar(max)");
@@ -706,6 +715,12 @@ namespace ChoRe.Migrations
                         .HasDefaultValueSql("GETDATE()");
 
                     b.Property<int>("EscrowTransStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EstimatedDeliveryAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("EstimatedDeliveryDays")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("ExpiredAt")
@@ -733,6 +748,9 @@ namespace ChoRe.Migrations
 
                     b.Property<int>("SellerUserId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("ShippedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
@@ -2005,7 +2023,7 @@ namespace ChoRe.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserSubId"));
 
-                    b.Property<DateTime>("EndDate")
+                    b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")

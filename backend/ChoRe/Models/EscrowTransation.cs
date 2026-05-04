@@ -45,6 +45,12 @@ namespace ChoRe.Models
         public string? BankName { get; set; }
         public string? PaymentMessage { get; set; }
 
+        // Shipping fields
+        public DateTime? ShippedAt { get; set; }
+        public DateTime? EstimatedDeliveryAt { get; set; }
+        public DateTime? AutoCompleteAt { get; set; }
+        public int? EstimatedDeliveryDays { get; set; }
+
         // Navigation properties
         public virtual User BuyerUser { get; set; }
         public virtual User SellerUser { get; set; }
