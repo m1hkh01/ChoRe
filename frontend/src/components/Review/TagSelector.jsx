@@ -1,8 +1,12 @@
 export function TagSelector({ tags, selectedTags, onToggle }) {
+    console.log("Selected tags: ", selectedTags);
+    console.log("Available tags: ", tags);
     return (
         <div className="flex flex-wrap gap-2.5 mb-3">
             {tags.map((tag) => {
-                const isSelected = selectedTags.includes(tag);
+                const selectedSet = new Set(selectedTags.map(t => t.tag));
+                const isSelected = selectedSet.has(tag);
+                console.log(`Tag: ${tag}, isSelected: ${isSelected}`);
                 return (
                     <button
                         key={tag}

@@ -9,7 +9,8 @@ import api from '../../api';
 export default function ReviewForm({ review, transactionId, sellerId, postId, chatRoomId, postImage, postTitle, userId, reload, onClose }) {
     const [rating, setRating] = useState(review ? review.rating : 0);
     const [comment, setComment] = useState(review ? review.comment : "");
-    const [selectedTags, setSelectedTags] = useState(review ? review.tags : []);
+    const [selectedTags, setSelectedTags] = useState(review ? review.reviewTags : []);
+    // console.log("Review tags: ", review?.reviewTags);
     const [images, setImages] = useState(review ? review.reviewImages?.map(img => ({ previewUrl: img.fileUrl, type: img.type, isServer: true })) : []);
     // console.log("Review data: ", review);
     const MAX_FILES = 5;
@@ -184,10 +185,10 @@ export default function ReviewForm({ review, transactionId, sellerId, postId, ch
     const isSubmitDisabled = rating === 0;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-990 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="w-full max-w-3xl p-2 transform overflow-hidden rounded-sm bg-white shadow-2xl transition-all duration-300 animate-in fade-in zoom-in-95">
                 {/* Header */}
-                <div className="relative flex items-center justify-center pt-8 pb-4">
+                <div className="relative flex items-center justify-center pt-0 pb-4">
                     {onClose && (
                         <button
                             onClick={onClose}
@@ -198,7 +199,7 @@ export default function ReviewForm({ review, transactionId, sellerId, postId, ch
                     )}
                 </div>
 
-                <div className="flex text-lg font-semibold mt-2 text-gray-900 border-b pb-1 border-gray-200">
+                <div className="flex text-lg font-semibold mt-1 mx-3 text-gray-900 border-b pb-1 border-gray-200">
                     {postTitle && (<img src={"https://api.chore123.cloud/uploads/" + postImage} alt={postTitle} className="h-15 w-15 object-cover rounded-lg mr-3" />)}
                     {
                         postTitle ?
@@ -226,6 +227,7 @@ export default function ReviewForm({ review, transactionId, sellerId, postId, ch
                         onChange={(e) => setComment(e.target.value)}
                         placeholder="Viết đánh giá của bạn..."
                         rows={4}
+                        required
                         className="w-full rounded-sm resize-none! border border-gray-300 px-4 py-3 text-sm focus:ring-blue-200 outline-none transition"
                     />
 

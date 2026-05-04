@@ -14,6 +14,7 @@ import {
   faFileAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import api from "@/api";
+import { Toast } from "../../utils/toast";
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
@@ -451,13 +452,20 @@ function EscrowPreviewModal({ tx, onClose, onReload }) {
   const handleAction = async (endpoint) => {
     setActing(true);
     try {
-      await api.post(`/api/admin/transactions/${tx.transactionId}/${endpoint}`);
+      const res = await api.post(`/api/admin/transactions/${tx.transactionId}/${endpoint}`);
+      Toast.fire({
+        icon: "success",
+        title: res.data.message
+      });
       onClose();
-      onReload();
     } catch (err) {
-      alert(err.response?.data ?? "Có lỗi xảy ra");
+      Toast.fire({
+        icon: "error",
+        title: err.response?.data?.message || "Có lỗi xảy ra"
+      });
     } finally {
       setActing(false);
+      onReload();
     }
   };
   const isPending = tx.status?.toUpperCase() === "DISPUTING";

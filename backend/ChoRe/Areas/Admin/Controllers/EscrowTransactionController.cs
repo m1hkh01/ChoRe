@@ -40,19 +40,33 @@ public class EscrowTransactionController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("{id}/{action}")]
-    public async Task<IActionResult> HandleDispute(int id, string action)
+    [HttpPost("{id}/approve")]
+    public async Task<IActionResult> Approve(int id)
     {
-        if (action == "approve")
-        {
-            await _service.RefundConfirmTransaction(id);
-            return Ok(new { message = "Đã duyệt yêu cầu hoàn tiền" });
+        var escrow = await _service.GetEscrowByIdAsync(id);
+        if (escrow is null)        {
+            return NotFound();
         }
-        else if (action == "reject")
+        var result = await _service.RefundConfirmTransaction(escrow.DisputeId);
+        if (!result)
         {
-            await _service.RefundRejectTransaction(id);
-            return Ok(new { message = "Đã từ chối yêu cầu hoàn tiền" });
+            return BadRequest(new { message = "Không thể xác nhận hoàn tiền" });
         }
-        return BadRequest(new { error = "Hành động không hợp lệ" });
+        return Ok(new { message = "Đã duyệt yêu cầu hoàn tiền" });
+    }
+    [HttpPost("{id}/reject")]
+    public async Task<IActionResult> Reject(int id)
+    {
+        var escrow = await _service.GetEscrowByIdAsync(id);
+        if (escrow is null)
+        {
+            return NotFound();
+        }
+        var result = await _service.RefundRejectTransaction(escrow.DisputeId);
+        if (!result)
+        {
+            return BadRequest(new { message = "Không thể từ chối yêu cầu hoàn tiền" });
+        }
+        return Ok(new { message = "Đã từ chối yêu cầu hoàn tiền" });
     }
 }

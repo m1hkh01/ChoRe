@@ -17,8 +17,8 @@ export default function EscrowFilter({ onChange, currentTab }) {
     const [keyword, setKeyword] = useState("");
     const [status, setStatus] = useState(null);
     const [open, setOpen] = useState(false);
-    const [from, setFrom] = useState("");
-    const [to, setTo] = useState("");
+    const [from, setFrom] = useState(null);
+    const [to, setTo] = useState(null);
     const [escrowstatuses, setEscrowStatuses] = useState([]);
     const [servicestatuses, setServiceStatuses] = useState([]);
     useEffect(() => {
@@ -37,8 +37,8 @@ export default function EscrowFilter({ onChange, currentTab }) {
         const resetFilter = () => {
             setKeyword("");
             setStatus(null);
-            setFrom("");
-            setTo("");
+            setFrom(null);
+            setTo(null);
             onChange({});
         }
         resetFilter();
@@ -108,9 +108,9 @@ export default function EscrowFilter({ onChange, currentTab }) {
                                 <button
                                     onClick={() => {
                                         setKeyword("");
-                                        setStatus("");
-                                        setFrom("");
-                                        setTo("");
+                                        setStatus(null);
+                                        setFrom(null);
+                                        setTo(null);
                                         onChange({});
                                     }}
                                     className="h-10 px-3 !rounded-lg text-gray-600 bg-red-100 hover:bg-red-200">

@@ -18,8 +18,8 @@ public interface IEscrowTransactionService
     Task RejectTransaction(int transactionId);
     Task RefundRequest(int transactionId, RefundRequestDto req);
     Task CompleteTransaction(int transactionId);
-    Task RefundConfirmTransaction(int transactionId);
-    Task RefundRejectTransaction(int disputeId);
+    Task<bool> RefundConfirmTransaction(int transactionId);
+    Task<bool> RefundRejectTransaction(int disputeId);
     Task RefundSystemTransaction(int disputeId, List<DisEvidenceDto>? evidences, int userId);
     Task<VerifyBankResponseDto> VerifyAndSaveBankDetails(int transactionId, VerifyBankRequestDto req);
     Task<EscrowTransation> ShipTransaction(int transactionId, int deliveryDays, int sellerId);
@@ -315,6 +315,7 @@ public class EscrowTransactionService : IEscrowTransactionService
             .Include(x => x.BuyerUser)
             .Include(x => x.SellerUser)
             .Include(x => x.ChatMessage)
+            .Include(x=>x.Disputes)
             .FirstOrDefaultAsync(e => e.EscrowTransId == id);
         if (escrow is null) return new TransactionDto();
         var query = new TransactionDto
@@ -330,6 +331,7 @@ public class EscrowTransactionService : IEscrowTransactionService
             PlatformFee = escrow.PlatformFee,
             Amount = escrow.TotalAmount,
             PostPrice = escrow.PostPrice,
+            DisputeId = escrow.Disputes != null ? escrow.Disputes.DisputeId : 0,
         };
         return query;
     }
@@ -543,35 +545,37 @@ public class EscrowTransactionService : IEscrowTransactionService
             $"<p>{message}</p>");
     }
 
-    public async Task RefundConfirmTransaction(int disputeId)
+    public async Task<bool> RefundConfirmTransaction(int disputeId)
     {
         var dispute = await _context.Disputes.FindAsync(disputeId);
         if (dispute is null)
         {
-            Console.WriteLine("Không tìm thấy tranh chấp / hoàn tiền");
-            return;
+            Console.WriteLine("Không tìm thấy tranh chấp / hoàn tiền " + disputeId);
+            return false;
         }
         dispute.StatusId = DisStatus.ResolvedRefund;
         await UpdateStatus(dispute.EscrowTransId, EscrowStatus.Refunded);
+        return true;
     }
 
-    public async Task RefundRejectTransaction(int disputeId)
+    public async Task<bool> RefundRejectTransaction(int disputeId)
     {
         var dispute = await _context.Disputes.FindAsync(disputeId);
         if (dispute is null)
         {
-            Console.WriteLine("Không tìm thấy tranh chấp / hoàn tiền");
-            return;
+            Console.WriteLine("Không tìm thấy tranh chấp / hoàn tiền " + disputeId);
+            return false;
         }
         dispute.StatusId = DisStatus.SellerRejected;
         await UpdateStatus(dispute.EscrowTransId, EscrowStatus.RefundRejected);
+        return true;
     }
     public async Task RefundSystemTransaction(int disputeId, List<DisEvidenceDto>? evidences, int userId)
     {
         var dispute = await _context.Disputes.Include(d => d.DisputeEvidences).FirstOrDefaultAsync(d => d.DisputeId == disputeId);
         if (dispute is null)
         {
-            Console.WriteLine("Không tìm thấy tranh chấp / hoàn tiền");
+            Console.WriteLine("Không tìm thấy tranh chấp / hoàn tiền " + disputeId);
             return;
         }
         if (evidences != null && evidences.Count() > 0)
