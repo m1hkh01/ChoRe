@@ -10,7 +10,6 @@ export default function ReviewForm({ review, transactionId, sellerId, postId, ch
     const [rating, setRating] = useState(review ? review.rating : 0);
     const [comment, setComment] = useState(review ? review.comment : "");
     const [selectedTags, setSelectedTags] = useState(review ? review.reviewTags : []);
-    // console.log("Review tags: ", review?.reviewTags);
     const [images, setImages] = useState(review ? review.reviewImages?.map(img => ({ previewUrl: img.fileUrl, type: img.type, isServer: true })) : []);
     // console.log("Review data: ", review);
     const MAX_FILES = 5;
@@ -43,9 +42,13 @@ export default function ReviewForm({ review, transactionId, sellerId, postId, ch
     };
 
     const toggleTag = (tag) => {
-        setSelectedTags((prev) =>
-            prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-        );
+        setSelectedTags((prev) => {
+            const exists = prev.some((t) => t.tag === tag);
+
+            return exists
+                ? prev.filter((t) => t.tag !== tag)
+                : [...prev, { tag }];
+        });
     };
 
     const handleImageChange = (e) => {
@@ -136,7 +139,7 @@ export default function ReviewForm({ review, transactionId, sellerId, postId, ch
             formData.append("ChatRoomId", chatRoomId);
 
             selectedTags.forEach(tag => {
-                formData.append("Tags", tag);
+                formData.append("Tags", tag.tag);
             });
 
             // Files
